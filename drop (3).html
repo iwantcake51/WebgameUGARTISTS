@@ -359,6 +359,12 @@
   .fbox.new .fl::after{content:" \2605 new"; color:var(--good)}
   .fstat{flex:none; text-align:right; display:flex; flex-direction:column; gap:1px; font-family:"JetBrains Mono",monospace; font-size:10.5px; color:var(--muted)}
   .fstat b{font-size:14px; color:var(--ink)}
+  .svgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0 4px}
+  .svgrid div{background:var(--surface2); border:1px solid var(--line); border-radius:10px; padding:8px 6px; text-align:center}
+  .svgrid b{display:block; font-size:15px; color:var(--ink)} .svgrid span{font-family:"JetBrains Mono",monospace; font-size:10px; color:var(--muted)}
+  .svbar{display:flex; align-items:center; gap:8px; font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--muted); margin:4px 0}
+  .svbar i{flex:1; height:6px; border-radius:4px; background:var(--surface2); overflow:hidden} .svbar i u{display:block; height:100%; background:var(--accent)}
+  .svbar em{font-style:normal; width:44px} .svbar s{text-decoration:none; width:22px; text-align:right; color:var(--ink)}
   .sres.lost{background:rgba(255,70,107,.08); border-radius:10px; padding-left:6px; padding-right:6px}
   .sres.lost .fstat b{color:var(--bad)}
   .failbtns{display:flex; gap:8px; padding:14px 18px calc(14px + var(--pad-bot)); border-top:1px solid var(--line); flex:none}
@@ -636,7 +642,23 @@
       </div>
     </div>
     <div class="sheetbody" id="failList"></div>
-    <div class="failbtns"><button class="btn big" id="failRetry">&#8635; Retry</button><button class="ghost" id="failMenu">Menu</button></div>
+    <div class="failbtns"><button class="btn big" id="failRetry">&#8635; Retry</button><button class="ghost" id="failShare">Share</button><button class="ghost" id="failMenu">Menu</button></div>
+  </div>
+</div>
+
+<div id="shareView" class="modal mid">
+  <div class="sheet">
+    <div class="failtop">
+      <h2 id="svTitle">Shared score</h2>
+      <div class="failsub" id="svSub"></div>
+      <div class="failscores">
+        <div class="fbox"><div class="fl">score</div><div class="fv" id="svScore">0</div></div>
+        <div class="fbox"><div class="fl">solved</div><div class="fv" id="svSolved">0</div></div>
+        <div class="fbox"><div class="fl">accuracy</div><div class="fv" id="svAcc">0%</div></div>
+      </div>
+    </div>
+    <div class="sheetbody" id="svBody"></div>
+    <div class="failbtns"><button class="btn big" id="svPlay">Beat it</button><button class="ghost" id="svClose">Close</button></div>
   </div>
 </div>
 
@@ -922,6 +944,7 @@ function boot(){
   var dbs=document.querySelectorAll("#diffRow .seg");
   for(var di=0;di<dbs.length;di++){ (function(b){ b.onclick=function(){ prefs.diff=b.getAttribute("data-d"); savePrefs(); renderDiff(); }; })(dbs[di]); }
   $("poolInfo").textContent="Tap a name to play only that artist";
+  showShared();
 }
 // ================= ON-DEMAND LOADING =================
 var EMB=null; try{ var ce=document.getElementById("catalog-data"); EMB=JSON.parse((ce&&ce.textContent)||"null"); }catch(e){}
@@ -1104,7 +1127,9 @@ var DIFFS={
   hard:   {lo:.2,  hi:1, min:8, mult:1.15, w:function(p){ return 0.3+p; },                   label:"Hard",    note:"Skips the biggest hits, leans deep"},
   extreme:{lo:.55, hi:1, min:8, mult:1.5,  w:function(p){ return 0.15+p*p; },               label:"Extreme", note:"Only the least popular songs"}
 };
-function popOf(t){ return t.pop!=null ? t.pop : 0.5; }
+// songs out in the last ~3 months play like hits: they sit higher in the pool and show up more on easy
+function freshF(t){ var d=(Date.now()-Date.parse(t.date||""))/864e5; if(!(d>=0) || d>120) return 1; return d<=90 ? 0.3+0.3*(d/90) : 0.6+0.4*((d-90)/30); }
+function popOf(t){ return (t.pop!=null ? t.pop : 0.5)*freshF(t); }
 function weightedPick(list){
   var f=DIFFS[curDiff()].w, ws=list.map(function(t){ return Math.max(0.0001,f(popOf(t))); }), tot=ws.reduce(function(a,b){return a+b;},0), r=Math.random()*tot;
   for(var i=0;i<list.length;i++){ r-=ws[i]; if(r<=0) return list[i]; }
@@ -1114,7 +1139,7 @@ function multOf(d){ return DIFFS[d||curDiff()].mult; }
 function multTxt(d){ var m=multOf(d); return "\u00d7"+(m%1?m.toFixed(m*100%10?2:1):m); }
 function ptsAt(i){ return Math.round(PTS[Math.min(i,PTS.length-1)]*multOf()); }
 function curDiff(){ return DIFFS[prefs.diff]?prefs.diff:"normal"; }
-function rankOf(t){ return t.rank!=null ? t.rank : 999; }
+function rankOf(t){ return t.rank!=null ? t.rank*freshF(t) : 999; }
 function windowed(p,dk){
   var d=DIFFS[dk||curDiff()], subs={}, out=[];
   p.forEach(function(t){ (subs[t.sub]=subs[t.sub]||[]).push(t); });
@@ -1451,6 +1476,53 @@ $("moreBtn").onclick=hearMore;
 $("nextBtn").onclick=function(){ if(wonAll) showWin(); else if(R&&R.over&&R.picked!==R.answer.id) showFail(); else nextSong(); };
 $("failRetry").onclick=function(){ closeModal($("failModal")); if(lastStart) lastStart(); };
 $("failMenu").onclick=function(){ closeModal($("failModal")); goHome(); };
+// ---- share: the whole run is packed into the link (?r=...), no server needed ----
+function b64u(str){ return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function unb64u(str){ str=str.replace(/-/g,"+").replace(/_/g,"/"); while(str.length%4) str+="="; return decodeURIComponent(escape(atob(str))); }
+function shareLink(){
+  var m = mode==="artist" ? pickArtist : mode==="multi" ? $("modeLabel").textContent : "All artists";
+  var d={v:1, s:score, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(),
+    r:runLog.map(function(x){ return [x.t.id, x.t.title, x.t.credit||x.t.artist, x.win?1:0, Math.round(x.secs*100), x.clip, x.pts]; })};
+  return location.origin+location.pathname+"?r="+b64u(JSON.stringify(d));
+}
+$("failShare").onclick=function(){
+  var b=this, url=shareLink(), txt="I scored "+score+" on "+DIFFS[curDiff()].label+", can you beat it?";
+  function done(){ b.textContent="Link copied"; setTimeout(function(){ b.textContent="Share"; },1600); }
+  if(navigator.share && matchMedia("(pointer:coarse)").matches){ navigator.share({title:document.title, text:txt, url:url}).catch(function(){}); return; }
+  if(navigator.clipboard) navigator.clipboard.writeText(url).then(done,function(){ prompt("Copy this link:",url); });
+  else prompt("Copy this link:",url);
+};
+function trackArt(id){ for(var k in byArtist){ var tr=byArtist[k]&&byArtist[k].tracks; if(!tr) continue; for(var i=0;i<tr.length;i++) if(String(tr[i].id)===String(id)) return tr[i].art; } return ""; }
+function showShared(){
+  var q=new URLSearchParams(location.search).get("r"); if(!q) return;
+  var d; try{ d=JSON.parse(unb64u(q)); }catch(e){ return; }
+  if(!d || !Array.isArray(d.r)) return;
+  var dk=DIFFS[d.d]?d.d:"normal", runs=d.r.map(function(x){ return {id:x[0], t:String(x[1]||"?"), a:String(x[2]||""), win:!!x[3], secs:(+x[4]||0)/100, clip:+x[5]||0, pts:+x[6]||0}; });
+  var wins=runs.filter(function(x){return x.win;}), n=runs.length, E=escapeHtml;
+  var times=wins.map(function(x){return x.secs;}), avg=times.length?times.reduce(function(a,b){return a+b;},0)/times.length:0;
+  var clipAvg=wins.length?wins.reduce(function(a,x){return a+x.clip;},0)/wins.length:0;
+  var st=0, best=0; runs.forEach(function(x){ st=x.win?st+1:0; if(st>best) best=st; });
+  var arts={}; runs.forEach(function(x){ var a=x.a||"?"; arts[a]=arts[a]||[0,0]; arts[a][1]++; if(x.win) arts[a][0]++; });
+  $("svTitle").textContent = d.w ? "Every song, no misses" : "Shared score";
+  $("svSub").innerHTML = E(String(d.m||"All artists"))+" on <b>"+DIFFS[dk].label+"</b>"+(d.at?"<br>"+E(new Date(+d.at).toLocaleDateString()):"");
+  $("svScore").textContent=+d.s||0; $("svSolved").textContent=wins.length; $("svAcc").textContent=n?Math.round(wins.length/n*100)+"%":"0%";
+  var h="<div class='sslabel'>Advanced</div><div class='svgrid'>"+
+    [[avg.toFixed(2)+"s","avg guess"],[times.length?Math.min.apply(null,times).toFixed(2)+"s":"-","fastest"],[times.length?Math.max.apply(null,times).toFixed(2)+"s":"-","slowest"],
+     [clipAvg.toFixed(1)+"s","avg snippet"],[best,"best streak"],[wins.length?Math.round((+d.s||0)/wins.length):0,"pts / song"]]
+     .map(function(c){ return "<div><b>"+E(String(c[0]))+"</b><span>"+c[1]+"</span></div>"; }).join("")+"</div>";
+  h+="<div class='sslabel'>Snippet needed</div>"+STAGES.map(function(sg){ var c=wins.filter(function(x){return x.clip===sg;}).length;
+    return "<div class='svbar'><em>"+sg+"s</em><i><u style='width:"+(wins.length?c/wins.length*100:0)+"%'></u></i><s>"+c+"</s></div>"; }).join("");
+  var ak=Object.keys(arts); if(ak.length>1){ h+="<div class='sslabel'>By artist</div>"+ak.sort(function(x,y){ return arts[y][1]-arts[x][1]; }).map(function(a){
+    return "<div class='svbar'><em style='width:auto;flex:0 0 38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+E(a)+"</em><i><u style='width:"+(arts[a][0]/arts[a][1]*100)+"%'></u></i><s style='width:36px'>"+arts[a][0]+"/"+arts[a][1]+"</s></div>"; }).join(""); }
+  h+="<div class='sslabel'>Run: "+n+" song"+(n===1?"":"s")+"</div>"+runs.map(function(x){ var art=trackArt(x.id);
+    return "<div class='sres"+(x.win?"":" lost")+"'>"+(art?"<img src='"+E(art)+"' alt=''>":"")+"<div class='st'><div class='stt'>"+(x.win?"\u2713 ":"\u2717 ")+E(x.t)+"</div><div class='sta'>"+E(x.a)+"</div></div>"+
+      "<div class='fstat'><b>"+x.secs.toFixed(2)+"s</b><span>"+x.clip+"s snippet"+(x.win?", +"+x.pts:"")+"</span></div></div>"; }).join("");
+  $("svBody").innerHTML=h;
+  $("svPlay").onclick=function(){ closeShared(); prefs.diff=dk; savePrefs(); renderDiff(); if(ARTISTS.indexOf(d.m)!==-1) startGame(d.m); else if(d.m==="All artists") startGame(); };
+  openModal($("shareView"));
+}
+function closeShared(){ closeModal($("shareView")); try{ history.replaceState(null,"",location.pathname); }catch(e){} }
+$("svClose").onclick=closeShared;
 $("homeBtn").onclick=goHome; $("logoBtn").onclick=goHome;
 
 // ---- "Is my song in it?": pick an artist, then search only their in-game songs ----
