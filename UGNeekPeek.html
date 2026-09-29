@@ -540,6 +540,8 @@
   .lu.tilt:hover{--ps:1.12}
   .lsep{display:inline-block; margin:0 .2em 0 .35em; font-size:9px; color:var(--muted); opacity:.6; vertical-align:.25em}
   .menu .cap{font-size:12.5px; color:var(--muted); margin-top:6px}
+  .tally{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:5px; font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--ink)}
+  .tally .tall{color:var(--muted)}
   /* rolling-loud style headliners */
   .hlrow{display:block; white-space:normal; margin-bottom:6px; line-height:1.05}
   .lu.hl{font-size:22px; font-weight:700; opacity:1; color:var(--ink); text-shadow:0 0 22px color-mix(in srgb,var(--accent) 55%,transparent)}
@@ -1176,7 +1178,7 @@ function boot(){
   renderArtistList(); renderDiff(); renderModBtn();
   var dbs=document.querySelectorAll("#diffRow .seg");
   for(var di=0;di<dbs.length;di++){ (function(b){ b.onclick=function(){ prefs.diff=b.getAttribute("data-d"); savePrefs(); renderDiff(); }; })(dbs[di]); }
-  $("poolInfo").textContent="Tap a name to play only that artist";
+
   BGV.resume();
   showShared();
 }
@@ -1250,6 +1252,11 @@ function renderArtistList(){            // festival-flyer lineup: headliners on 
       (i<ARTISTS.length-1?"<span class='lsep' aria-hidden='true'>\u2726</span>":"")+"</span> ";
   }).join("");
   $("artistList").innerHTML=h;
+  var cnt={diamond:0,gold:0,silver:0,bronze:0}; ARTISTS.forEach(function(a){ if(tiers[a]) cnt[tiers[a]]++; });
+  var got=cnt.diamond+cnt.gold+cnt.silver+cnt.bronze;
+  $("poolInfo").innerHTML = "Tap a name to play only that artist" + (got ? "<div class='tally'>"+
+    [["diamond","\uD83D\uDC8E"],["gold","\uD83E\uDD47"],["silver","\uD83E\uDD48"],["bronze","\uD83E\uDD49"]].map(function(t){ return "<span>"+t[1]+" "+cnt[t[0]]+"</span>"; }).join("")+
+    "<span class='tall'>"+cnt.diamond+"/"+ARTISTS.length+" diamond</span></div>" : "");
   var cs=$("artistList").querySelectorAll(".lu");
   for(var i=0;i<cs.length;i++){ (function(c){ c.onclick=function(){ startGame(c.getAttribute("data-a")); }; })(cs[i]); }
 }
