@@ -69,8 +69,9 @@
     animation:nz .7s steps(1) infinite}
   @keyframes nz{0%{transform:translate(0,0)} 20%{transform:translate(-47px,23px)} 40%{transform:translate(41px,-37px)} 60%{transform:translate(-23px,-53px)} 80%{transform:translate(59px,31px)}}
   .tilt{transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--ps,1)) !important;
-    transition:transform .22s cubic-bezier(.2,.8,.2,1), background .15s, border-color .15s, color .15s; will-change:transform}
+    transition:transform .3s cubic-bezier(.2,.8,.2,1), background .15s, border-color .15s, color .2s, opacity .2s, box-shadow .3s, filter .2s !important; will-change:transform}
   .tilt.pressed{--ps:.95}
+  .lu.tilt.pressed{--ps:1.05}
   .ring-fx{position:fixed; z-index:90; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%; pointer-events:none;
     border:2px solid var(--accent); box-shadow:0 0 12px var(--accent); animation:ringfx .5s cubic-bezier(.2,.7,.3,1) forwards}
   @keyframes ringfx{from{transform:scale(1); opacity:.9} to{transform:scale(5.5); opacity:0}}
@@ -1556,7 +1557,7 @@ var CONF=(function(){
   function size(){ dpr=Math.min(2,window.devicePixelRatio||1); W=window.innerWidth; H=window.innerHeight; cv.width=W*dpr; cv.height=H*dpr; }
   window.addEventListener("resize",size); size();
   function burst(n){
-    if(!prefs.confetti || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if(!prefs.confetti) return;
     var cs=getComputedStyle(document.documentElement);
     var cols=[cs.getPropertyValue("--accent").trim()||"#8c5cff", cs.getPropertyValue("--spot").trim()||"#9b6bff", "#ffffff", "#39e08b"];
     if(W!==window.innerWidth||H!==window.innerHeight) size();
