@@ -1914,23 +1914,34 @@ var BGV=(function(){
   var vids=[$("bgA"),$("bgB")], cur=0, timer=0, loading=false, started=0, CUT=5200, lastSrc="", recentA=[];
   // clips cached per artist for a week: {artist:{at, list:[previewUrl]}} (empty list = no videos on Apple)
   var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips2")||"{}")||{}; }catch(e){ CACHE={}; }
+  try{ var old=JSON.parse(localStorage.getItem("drop_bgclips")||"null");        // clips from the older version: play them while new ones load
+    if(old && old.list && old.list.length && !CACHE.__mix) CACHE.__mix={at:Date.now(), list:old.list}; }catch(e){}
+  var batches=0;
   function fresh(a){ var c=CACHE[a]; return c && Date.now()-c.at<7*864e5; }
   function saveCache(){ try{ localStorage.setItem("drop_bgclips2", JSON.stringify(CACHE)); }catch(e){} }
   function haveClips(){ for(var a in CACHE) if(fresh(a) && CACHE[a].list.length) return true; return false; }
   function want(){ return prefs.bgvid && !document.body.classList.contains("playing") && !document.hidden; }
-  // a few artists per menu visit: mastered ones first, then random others, until every artist has been looked up
+  // look artists up in batches: mastered first, then the bigger names (most likely to have videos), then everyone else.
+  // keeps going right away until something is found, then a batch every 20s while the menu is open (max 8 per page load)
   function fetchClips(){
-    if(loading) return;
+    if(loading || batches>=8) return;
     var tiers=mastery(), todo=ARTISTS.filter(function(a){ return !fresh(a); });
     if(!todo.length) return;
-    var pri=shuffle(todo.filter(function(a){ return tiers[a]; })), rest=shuffle(todo.filter(function(a){ return !tiers[a]; }));
-    var pool=pri.concat(rest).slice(0,4); loading=true;
+    var big=ARTISTS.slice(0,30);
+    var pri=shuffle(todo.filter(function(a){ return tiers[a]; })),
+        mid=shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)!==-1; })),
+        rest=shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)===-1; }));
+    var pool=pri.concat(mid,rest).slice(0,6); loading=true; batches++;
     Promise.all(pool.map(function(a){
       return getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(termsOf(a)[0])+"&entity=musicVideo&limit=10").then(function(d){
         var got=[]; (d.results||[]).forEach(function(r){ if(r.previewUrl && artistMatch(r.artistName||"",termsOf(a)[0]) && got.indexOf(r.previewUrl)===-1) got.push(r.previewUrl); });
         CACHE[a]={at:Date.now(), list:got};
       },function(){});
-    })).then(function(){ loading=false; saveCache(); if(want() && !vids[cur].classList.contains("on")) next(); });
+    })).then(function(){
+      loading=false; saveCache();
+      if(want() && !vids[cur].classList.contains("on")) next();
+      if(want()) setTimeout(fetchClips, haveClips() ? 20000 : 300);
+    });
   }
   // pick an artist (diamond x6, gold x4, others x1, avoiding the last few), then a random clip of theirs
   function pickClip(){
@@ -1962,7 +1973,7 @@ var BGV=(function(){
   function resume(){
     document.body.classList.toggle("bgv-on", !!prefs.bgvid);
     if(!want()){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); return; }
-    if(Date.now()-started>60000){ started=Date.now(); setTimeout(fetchClips, 2500); }     // look up a few more artists each visit
+    if(Date.now()-started>60000){ started=Date.now(); setTimeout(fetchClips, 1500); }     // look up more artists each visit
     if(!haveClips()) return;
     var v=vids[cur]; if(v.src && v.classList.contains("on")){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); clearTimeout(timer); timer=setTimeout(next, CUT); } else next();
   }
