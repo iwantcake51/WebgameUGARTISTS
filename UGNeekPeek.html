@@ -916,12 +916,12 @@ function artistMatch(res,target){var a=norm(leadArtist(res)),t=norm(target);retu
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function fmtDate(iso){ if(!iso) return ""; var d=new Date(iso); if(isNaN(d.getTime())) return String(iso).slice(0,4);
   var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return m[d.getMonth()]+" "+d.getFullYear(); }
-// title without featured artists (for "My ears are trained"); keeps remix/version tags so choices stay distinct
+// title without featured-artist credits, used everywhere titles are shown; keeps remix/version tags
 function noFeat(name){
   var s=String(name);
-  s=s.replace(/[\(\[]\s*(feat\.?|ft\.?|featuring|with|w\/)\s[^)\]]*[\)\]]/ig," ");
-  s=s.replace(/\s+(feat\.?|ft\.?|featuring|w\/)\s+.*$/i,"");
-  s=s.replace(/\s*[-\u2013]\s*(feat\.?|ft\.?|with)\s.*$/i,"");
+  s=s.replace(/[\(\[\{][^)\]\}]*(?:\b(?:feat|ft|featuring|features?|with)\b|\bw\/)[^)\]\}]*[\)\]\}]/ig," ");
+  s=s.replace(/\s+(feat\.?|ft\.?|featuring|features?|w\/)\s+.*$/i,"");
+  s=s.replace(/\s*[-\u2013]\s*(feat\.?|ft\.?|featuring|with)\s.*$/i,"");
   s=s.replace(/\s+/g," ").trim();
   return s || String(name);
 }
@@ -1168,7 +1168,7 @@ function songsFor(term){
 function encodeTracks(tracks){ return tracks.map(function(t){ return [t.id,t.title,t.sub,t.credit===t.sub?0:t.credit,String(t.date||"").slice(0,10),t.preview,t.art,t.album,(typeof t.albumId==="number"?t.albumId:0)]; }); }
 function decodeTracks(a, rows){
   var tracks=rows.map(function(r){ var sub=r[2], alb=r[8];
-    return {id:r[0],title:r[1],artist:a,sub:sub,credit:r[3]||sub,date:r[4]||"",year:parseInt(String(r[4]||"").slice(0,4),10)||0,
+    return {id:r[0],title:noFeat(r[1]),artist:a,sub:sub,credit:r[3]||sub,date:r[4]||"",year:parseInt(String(r[4]||"").slice(0,4),10)||0,
       preview:r[5],art:r[6],album:r[7]||"Singles",albumId:alb||("s"+sub),viewUrl:alb?("https://music.apple.com/us/album/"+alb+"?i="+r[0]):""}; });
   var subs={}; tracks.forEach(function(t){ (subs[t.sub]=subs[t.sub]||[]).push(t); });
   for(var k in subs){ var m=subs[k]; m.forEach(function(t,ix){ t.rank=ix; t.pop=m.length>1?ix/(m.length-1):0; }); }
@@ -1210,7 +1210,7 @@ function buildArtist(a, terms, lists){
       if(seen[t.trackId]) continue;
       var k=norm(baseTitle(t.trackName)); if(keys[k]) continue;
       seen[t.trackId]=1; keys[k]=1; n++;
-      tracks.push({id:t.trackId,title:t.trackName,artist:a,sub:sub,credit:(t.artistName||sub),date:t.releaseDate||"",
+      tracks.push({id:t.trackId,title:noFeat(t.trackName),artist:a,sub:sub,credit:(t.artistName||sub),date:t.releaseDate||"",
         year:parseInt(String(t.releaseDate||"").slice(0,4),10)||0,
         preview:t.previewUrl,art:t.artworkUrl100.replace("100x100","400x400"),
         viewUrl:t.trackViewUrl||"",
@@ -1618,7 +1618,7 @@ function render(){
   var box=$("opts"); box.innerHTML="";
   R.opts.forEach(function(o){
     var b=document.createElement("button"); b.className="opt";
-    b.innerHTML="<img class='optart' src='"+escapeHtml(o.art)+"' alt=''><span class='opttext'><span class='optt'>"+escapeHtml(modActive("blind")?noFeat(o.title):o.title)+"</span><span class='opta'>"+escapeHtml(o.credit||o.artist)+"</span></span>";
+    b.innerHTML="<img class='optart' src='"+escapeHtml(o.art)+"' alt=''><span class='opttext'><span class='optt'>"+escapeHtml(o.title)+"</span><span class='opta'>"+escapeHtml(o.credit||o.artist)+"</span></span>";
     if(R.over){ b.disabled=true; if(o.id===R.answer.id) b.classList.add("correct"); else if(o.id===R.picked) b.classList.add("wrong"); else b.classList.add(R.tried[o.id]?"tried":"dim"); }
     else if(R.tried[o.id]){ b.disabled=true; b.classList.add("tried"); }
     b.onclick=function(){ guess(o); };
@@ -1757,7 +1757,7 @@ function histEntries(){
     var t=e.t, a=e.a;
     if(!t){ for(var k in byArtist){ var f=byArtist[k].tracks.filter(function(x){ return String(x.id)===String(id); })[0]; if(f){ t=f.title; a=f.artist; e.cr=f.credit; e.al=f.album; break; } } }
     if(!t) continue;
-    out.push({id:id,t:t,a:a||"?",cr:e.cr||a,al:e.al||"",art:e.art||"",vu:e.vu||"",c:e.c||0,s:e.s||0,at:e.at||0}); }
+    out.push({id:id,t:noFeat(t),a:a||"?",cr:e.cr||a,al:e.al||"",art:e.art||"",vu:e.vu||"",c:e.c||0,s:e.s||0,at:e.at||0}); }
   return out;
 }
 var catOpen={};
@@ -1785,7 +1785,7 @@ function openCatalog(){
       body+="<div class='sslabel'>Recent</div><div class='recent'>"+RECENT.slice(0,40).map(function(r){
         var href=r.vu||("https://music.apple.com/search?term="+encodeURIComponent(leadArtist(r.cr||r.a||"")+" "+baseTitle(r.t||"")));
         return "<div class='rcard"+(r.w?" got":" lost")+"'><button class='rimg' data-a='"+E(r.a||"")+"' data-id='"+E(String(r.id))+"' title='Show in history'>"+(r.art?"<img src='"+E(r.art)+"' alt='' loading='lazy'>":"")+"<span class='rbadge'>"+(r.w?"✓":"✗")+"</span></button>"+
-          "<button class='rt' data-a='"+E(r.a||"")+"' data-id='"+E(String(r.id))+"' title='Show in history'>"+E(r.t)+"</button><button class='ra' data-a='"+E(r.a||"")+"' title='Go to artist'>"+E(r.cr||r.a)+" · "+agoTxt(r.at)+"</button></div>"; }).join("")+"</div>";
+          "<button class='rt' data-a='"+E(r.a||"")+"' data-id='"+E(String(r.id))+"' title='Show in history'>"+E(noFeat(r.t||""))+"</button><button class='ra' data-a='"+E(r.a||"")+"' title='Go to artist'>"+E(r.cr||r.a)+" · "+agoTxt(r.at)+"</button></div>"; }).join("")+"</div>";
     }
     body+="<div class='sslabel'>By artist</div>";
   }
@@ -1919,7 +1919,7 @@ function showShared(){
   var d; try{ d=JSON.parse(unb64u(q)); }catch(e){ return; }
   if(!d || !Array.isArray(d.r)) return;
   var dk=DIFFS[d.d]?d.d:"normal", E=escapeHtml;
-  var runs=d.r.map(function(x){ return {id:x[0], t:String(x[1]||"?"), a:String(x[2]||""), win:!!x[3], secs:(+x[4]||0)/100, clip:+x[5]||0, pts:+x[6]||0, art:unpackArt(x[7])||trackArt(x[0])}; });
+  var runs=d.r.map(function(x){ return {id:x[0], t:noFeat(String(x[1]||"?")), a:String(x[2]||""), win:!!x[3], secs:(+x[4]||0)/100, clip:+x[5]||0, pts:+x[6]||0, art:unpackArt(x[7])||trackArt(x[0])}; });
   var wins=runs.filter(function(x){return x.win;}), n=runs.length, miss=runs.filter(function(x){return !x.win;}).pop();
   var times=wins.map(function(x){return x.secs;}), avg=times.length?times.reduce(function(a,b){return a+b;},0)/times.length:0;
   var clipAvg=wins.length?wins.reduce(function(a,x){return a+x.clip;},0)/wins.length:0;

@@ -26,6 +26,9 @@ function sharedAt(ms, tz) {
   const zone = Number.isFinite(+tz) ? "UTC" + (off <= 0 ? "+" : "-") + Math.abs(off / 60) : "UTC";
   return `${mon} ${t.getUTCDate()}, ${t.getUTCFullYear()} at ${h % 12 || 12}:${m} ${h < 12 ? "AM" : "PM"} (${zone})`;
 }
+const noFeat = (t) => t.replace(/[\(\[\{][^)\]\}]*(?:\b(?:feat|ft|featuring|features?|with)\b|\bw\/)[^)\]\}]*[\)\]\}]/gi, " ")
+  .replace(/\s+(feat\.?|ft\.?|featuring|features?|w\/)\s+.*$/i, "").replace(/\s*[-\u2013]\s*(feat\.?|ft\.?|featuring|with)\s.*$/i, "")
+  .replace(/\s+/g, " ").trim() || t;
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 export default async (request, context) => {
@@ -46,7 +49,7 @@ export default async (request, context) => {
   try { d = decode(r); } catch { return res; }
   if (!d || !Array.isArray(d.r)) return res;
 
-  const runs = d.r.map((x) => ({ t: String(x[1] || "?"), a: String(x[2] || ""), win: !!x[3], secs: (+x[4] || 0) / 100, clip: +x[5] || 0, art: unpackArt(x[7]) }));
+  const runs = d.r.map((x) => ({ t: noFeat(String(x[1] || "?")), a: String(x[2] || ""), win: !!x[3], secs: (+x[4] || 0) / 100, clip: +x[5] || 0, art: unpackArt(x[7]) }));
   const wins = runs.filter((x) => x.win), n = runs.length;
   const miss = runs.filter((x) => !x.win).pop();
   let st = 0, best = 0;
