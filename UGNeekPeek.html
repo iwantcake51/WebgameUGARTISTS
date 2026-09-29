@@ -538,26 +538,25 @@
   html.bsd .lu.hl{font-size:31px; font-weight:900; letter-spacing:.015em}
   .lu.t1{font-weight:700} html.bsd .lu.t1{font-weight:900}
   /* menu background: blurred, crossfading music video previews */
-  #bgv{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; opacity:0; transition:opacity 1.2s ease}
+  /* perf: the video is drawn small and blurred, then scaled up (blur on a small texture is cheap);
+     overlays are static and only the scan bar moves, via transform, so nothing repaints per frame */
+  #bgv{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; opacity:0; transition:opacity 1.2s ease; contain:strict}
   body.bgv-on:not(.playing) #bgv{opacity:1}
-  #bgv video{position:absolute; inset:-6%; width:112%; height:112%; object-fit:cover; opacity:0; transition:opacity 1.4s ease;
-    filter:blur(14px) saturate(1.25) brightness(.62); transform:scale(1.04)}
+  #bgv video{position:absolute; left:50%; top:50%; width:40vw; height:40vh; object-fit:cover; opacity:0; transition:opacity 1.4s ease;
+    filter:blur(5px) saturate(1.25) brightness(.62); transform:translate(-50%,-50%) scale(2.8); will-change:transform,opacity}
   #bgv video.on{opacity:1; animation:bgZoom 7s ease-out forwards}
-  @keyframes bgZoom{from{transform:scale(1.04)} to{transform:scale(1.14)}}
+  @keyframes bgZoom{from{transform:translate(-50%,-50%) scale(2.8)} to{transform:translate(-50%,-50%) scale(3.1)}}
   .bgvshade{position:absolute; inset:0; background:
     radial-gradient(ellipse at 50% 42%, rgba(10,7,17,.15) 0%, rgba(10,7,17,.72) 70%, rgba(10,7,17,.92) 100%),
     linear-gradient(180deg, rgba(10,7,17,.35), rgba(10,7,17,.55))}
-  .bgvfx{position:absolute; inset:0; pointer-events:none; mix-blend-mode:overlay; opacity:.9;
+  .bgvfx{position:absolute; inset:0; pointer-events:none;
     background-image:
-      repeating-linear-gradient(0deg, rgba(0,0,0,.38) 0 1px, transparent 1px 3px),
-      radial-gradient(circle at 50% 50%, rgba(255,255,255,.22) 0 .9px, transparent 1.4px);
-    background-size:100% 3px, 5px 5px; animation:scanRoll 8s linear infinite}
-  .bgvfx::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,.06) 50%,transparent 100%);
-    background-size:100% 220px; background-repeat:no-repeat; animation:scanBar 6s linear infinite; mix-blend-mode:screen}
-  @keyframes scanRoll{from{background-position:0 0, 0 0} to{background-position:0 30px, 0 0}}
-  @keyframes scanBar{from{background-position:0 -220px} to{background-position:0 110vh}}
-  #bgv video.on{animation:bgZoom 7s ease-out forwards, flick 4s steps(1) infinite}
-  @keyframes flick{0%,96%{opacity:1} 97%{opacity:.86} 98%{opacity:1} 99%{opacity:.92}}
+      repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px),
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,.07) 0 .9px, transparent 1.4px);
+    background-size:100% 3px, 5px 5px}
+  .bgvfx::after{content:""; position:absolute; left:0; right:0; top:0; height:220px; will-change:transform;
+    background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,.05) 50%,transparent 100%); animation:scanBar 6s linear infinite}
+  @keyframes scanBar{from{transform:translateY(-220px)} to{transform:translateY(110vh)}}
   .lu.diamond{color:transparent !important; opacity:1 !important; text-shadow:none !important;
     background-image:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.95) 47%,transparent 59%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='24' viewBox='0 0 28 24'%3E%3Cpath d='M0 0L14 0L7 12Z' fill='%23ffffff' fill-opacity='.55'/%3E%3Cpath d='M14 0L28 0L21 12Z' fill='%23bfe9ff' fill-opacity='.35'/%3E%3Cpath d='M7 12L14 0L21 12Z' fill='%238fd3ff' fill-opacity='.25'/%3E%3Cpath d='M0 24L7 12L14 24Z' fill='%23e6f7ff' fill-opacity='.45'/%3E%3Cpath d='M14 24L21 12L28 24Z' fill='%23ffffff' fill-opacity='.3'/%3E%3Cpath d='M7 12L21 12L14 24Z' fill='%23a7c7ff' fill-opacity='.4'/%3E%3C/svg%3E"),
       linear-gradient(135deg,#dff6ff 0%,#8fd8ff 28%,#ffffff 48%,#b7a8ff 70%,#9eeaff 100%);
