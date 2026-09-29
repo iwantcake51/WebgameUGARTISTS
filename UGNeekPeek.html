@@ -342,13 +342,20 @@
 
   /* fail screen */
   .modal.mid{align-items:center; padding:14px}
-  #failModal{--mbg:rgba(3,2,7,.86); --mblur:7px}
-  #failModal .sheet{border-radius:20px; max-height:92vh; max-height:92dvh; padding-bottom:0}
+  #failModal,#shareView{--mbg:rgba(3,2,7,.86); --mblur:7px}
+  #failModal .sheet,#shareView .sheet{border-radius:20px; max-height:92vh; max-height:92dvh; padding-bottom:0}
   @keyframes failFade{from{opacity:0} to{opacity:1}}
   @keyframes failRise{from{opacity:0; transform:translateY(14px) scale(.97)} to{opacity:1; transform:none}}
   .failtop{text-align:center; padding:20px 18px 12px; border-bottom:1px solid var(--line); flex:none}
   .failtop h2{margin:0; font-size:30px; letter-spacing:-1px; color:var(--bad)}
   #failModal.won .failtop h2{color:var(--good)}
+  #shareView .failtop h2{color:var(--accent)} #shareView.won .failtop h2{color:var(--good)}
+  .svkick{font-family:"JetBrains Mono",monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:4px}
+  .svhero{font-size:54px; font-weight:800; letter-spacing:-2px; line-height:1; margin:8px 0 2px; color:var(--ink)}
+  .svhero small{display:block; font-family:"JetBrains Mono",monospace; font-size:10px; letter-spacing:1px; font-weight:400; color:var(--muted); margin-top:4px}
+  .svacc{height:6px; border-radius:4px; background:rgba(255,70,107,.35); overflow:hidden; margin:12px auto 0; max-width:260px}
+  .svacc u{display:block; height:100%; background:var(--good)}
+  .sres .snum{font-family:"JetBrains Mono",monospace; font-size:10px; color:var(--muted); width:16px; text-align:right; flex:none}
   .failsub{font-size:13px; color:var(--muted); margin-top:4px; line-height:1.45}
   .failsub b{color:var(--ink)}
   .failscores{display:flex; gap:8px; justify-content:center; margin-top:14px}
@@ -649,13 +656,16 @@
 <div id="shareView" class="modal mid">
   <div class="sheet">
     <div class="failtop">
-      <h2 id="svTitle">Shared score</h2>
+      <div class="svkick">a friend sent you a score</div>
+      <h2 id="svTitle">Can you beat this?</h2>
       <div class="failsub" id="svSub"></div>
+      <div class="svhero" id="svScore">0<small>points</small></div>
       <div class="failscores">
-        <div class="fbox"><div class="fl">score</div><div class="fv" id="svScore">0</div></div>
-        <div class="fbox"><div class="fl">solved</div><div class="fv" id="svSolved">0</div></div>
-        <div class="fbox"><div class="fl">accuracy</div><div class="fv" id="svAcc">0%</div></div>
+        <div class="fbox"><div class="fl">songs right</div><div class="fv" id="svSolved">0</div></div>
+        <div class="fbox"><div class="fl">best streak</div><div class="fv" id="svStreak">0</div></div>
+        <div class="fbox"><div class="fl">avg guess</div><div class="fv" id="svAvg">-</div></div>
       </div>
+      <div class="svacc"><u id="svAccBar"></u></div>
     </div>
     <div class="sheetbody" id="svBody"></div>
     <div class="failbtns"><button class="btn big" id="svPlay">Beat it</button><button class="ghost" id="svClose">Close</button></div>
@@ -1479,10 +1489,13 @@ $("failMenu").onclick=function(){ closeModal($("failModal")); goHome(); };
 // ---- share: the whole run is packed into the link (?r=...), no server needed ----
 function b64u(str){ return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
 function unb64u(str){ str=str.replace(/-/g,"+").replace(/_/g,"/"); while(str.length%4) str+="="; return decodeURIComponent(escape(atob(str))); }
+var ART_RE=/^https:\/\/is(\d)-ssl\.mzstatic\.com\/image\/thumb\/([\w.\-\/]+)\/400x400bb\.jpg$/;
+function packArt(u){ var m=ART_RE.exec(u||""); return m ? m[1]+m[2] : ""; }
+function unpackArt(a){ a=String(a||""); return /^\d[\w.\-\/]+$/.test(a) ? "https://is"+a[0]+"-ssl.mzstatic.com/image/thumb/"+a.slice(1)+"/400x400bb.jpg" : ""; }
 function shareLink(){
   var m = mode==="artist" ? pickArtist : mode==="multi" ? $("modeLabel").textContent : "All artists";
   var d={v:1, s:score, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(),
-    r:runLog.map(function(x){ return [x.t.id, x.t.title, x.t.credit||x.t.artist, x.win?1:0, Math.round(x.secs*100), x.clip, x.pts]; })};
+    r:runLog.map(function(x,i){ return [x.t.id, x.t.title, x.t.credit||x.t.artist, x.win?1:0, Math.round(x.secs*100), x.clip, x.pts, i>=runLog.length-15?packArt(x.t.art):""]; })};
   return location.origin+location.pathname+"?r="+b64u(JSON.stringify(d));
 }
 $("failShare").onclick=function(){
@@ -1497,26 +1510,33 @@ function showShared(){
   var q=new URLSearchParams(location.search).get("r"); if(!q) return;
   var d; try{ d=JSON.parse(unb64u(q)); }catch(e){ return; }
   if(!d || !Array.isArray(d.r)) return;
-  var dk=DIFFS[d.d]?d.d:"normal", runs=d.r.map(function(x){ return {id:x[0], t:String(x[1]||"?"), a:String(x[2]||""), win:!!x[3], secs:(+x[4]||0)/100, clip:+x[5]||0, pts:+x[6]||0}; });
-  var wins=runs.filter(function(x){return x.win;}), n=runs.length, E=escapeHtml;
+  var dk=DIFFS[d.d]?d.d:"normal", E=escapeHtml;
+  var runs=d.r.map(function(x){ return {id:x[0], t:String(x[1]||"?"), a:String(x[2]||""), win:!!x[3], secs:(+x[4]||0)/100, clip:+x[5]||0, pts:+x[6]||0, art:unpackArt(x[7])||trackArt(x[0])}; });
+  var wins=runs.filter(function(x){return x.win;}), n=runs.length, miss=runs.filter(function(x){return !x.win;}).pop();
   var times=wins.map(function(x){return x.secs;}), avg=times.length?times.reduce(function(a,b){return a+b;},0)/times.length:0;
   var clipAvg=wins.length?wins.reduce(function(a,x){return a+x.clip;},0)/wins.length:0;
   var st=0, best=0; runs.forEach(function(x){ st=x.win?st+1:0; if(st>best) best=st; });
+  var instant=wins.filter(function(x){return x.clip<=1;}).length;
   var arts={}; runs.forEach(function(x){ var a=x.a||"?"; arts[a]=arts[a]||[0,0]; arts[a][1]++; if(x.win) arts[a][0]++; });
-  $("svTitle").textContent = d.w ? "Every song, no misses" : "Shared score";
-  $("svSub").innerHTML = E(String(d.m||"All artists"))+" on <b>"+DIFFS[dk].label+"</b>"+(d.at?"<br>"+E(new Date(+d.at).toLocaleDateString()):"");
-  $("svScore").textContent=+d.s||0; $("svSolved").textContent=wins.length; $("svAcc").textContent=n?Math.round(wins.length/n*100)+"%":"0%";
-  var h="<div class='sslabel'>Advanced</div><div class='svgrid'>"+
-    [[avg.toFixed(2)+"s","avg guess"],[times.length?Math.min.apply(null,times).toFixed(2)+"s":"-","fastest"],[times.length?Math.max.apply(null,times).toFixed(2)+"s":"-","slowest"],
-     [clipAvg.toFixed(1)+"s","avg snippet"],[best,"best streak"],[wins.length?Math.round((+d.s||0)/wins.length):0,"pts / song"]]
+  $("shareView").classList.toggle("won",!!d.w);
+  $("svTitle").textContent = d.w ? "Perfect run" : "Can you beat this?";
+  $("svSub").innerHTML = "<b>"+E(String(d.m||"All artists"))+"</b> on <b>"+DIFFS[dk].label+"</b>"+(d.at?"  ·  "+E(new Date(+d.at).toLocaleDateString()):"")+
+    (miss?"<br>went out on <b>"+E(miss.t)+"</b>":"");
+  $("svScore").innerHTML=(+d.s||0)+"<small>points</small>";
+  $("svSolved").textContent=wins.length+"/"+n; $("svStreak").textContent=best; $("svAvg").textContent=times.length?avg.toFixed(1)+"s":"-";
+  $("svAccBar").style.width=(n?wins.length/n*100:0)+"%";
+  function row(x,i){ return "<div class='sres"+(x.win?"":" lost")+"'><span class='snum'>"+(i+1)+"</span>"+(x.art?"<img src='"+E(x.art)+"' alt=''>":"")+
+      "<div class='st'><div class='stt'>"+(x.win?"✓ ":"✗ ")+E(x.t)+"</div><div class='sta'>"+E(x.a)+"</div></div>"+
+      "<div class='fstat'><b>"+x.secs.toFixed(2)+"s</b><span>"+x.clip+"s snippet</span>"+(x.win?"<span>+"+x.pts+"</span>":"")+"</div></div>"; }
+  var h="<div class='sslabel'>Songs: "+wins.length+" right"+(n-wins.length?", "+(n-wins.length)+" missed":"")+"</div>"+runs.map(row).join("");
+  h+="<div class='sslabel'>Advanced</div><div class='svgrid'>"+
+    [[times.length?Math.min.apply(null,times).toFixed(2)+"s":"-","fastest"],[times.length?Math.max.apply(null,times).toFixed(2)+"s":"-","slowest"],[n?Math.round(wins.length/n*100)+"%":"0%","accuracy"],
+     [clipAvg.toFixed(1)+"s","avg snippet"],[instant,"got in ≤1s"],[wins.length?Math.round((+d.s||0)/wins.length):0,"pts / song"]]
      .map(function(c){ return "<div><b>"+E(String(c[0]))+"</b><span>"+c[1]+"</span></div>"; }).join("")+"</div>";
   h+="<div class='sslabel'>Snippet needed</div>"+STAGES.map(function(sg){ var c=wins.filter(function(x){return x.clip===sg;}).length;
     return "<div class='svbar'><em>"+sg+"s</em><i><u style='width:"+(wins.length?c/wins.length*100:0)+"%'></u></i><s>"+c+"</s></div>"; }).join("");
   var ak=Object.keys(arts); if(ak.length>1){ h+="<div class='sslabel'>By artist</div>"+ak.sort(function(x,y){ return arts[y][1]-arts[x][1]; }).map(function(a){
     return "<div class='svbar'><em style='width:auto;flex:0 0 38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+E(a)+"</em><i><u style='width:"+(arts[a][0]/arts[a][1]*100)+"%'></u></i><s style='width:36px'>"+arts[a][0]+"/"+arts[a][1]+"</s></div>"; }).join(""); }
-  h+="<div class='sslabel'>Run: "+n+" song"+(n===1?"":"s")+"</div>"+runs.map(function(x){ var art=trackArt(x.id);
-    return "<div class='sres"+(x.win?"":" lost")+"'>"+(art?"<img src='"+E(art)+"' alt=''>":"")+"<div class='st'><div class='stt'>"+(x.win?"\u2713 ":"\u2717 ")+E(x.t)+"</div><div class='sta'>"+E(x.a)+"</div></div>"+
-      "<div class='fstat'><b>"+x.secs.toFixed(2)+"s</b><span>"+x.clip+"s snippet"+(x.win?", +"+x.pts:"")+"</span></div></div>"; }).join("");
   $("svBody").innerHTML=h;
   $("svPlay").onclick=function(){ closeShared(); prefs.diff=dk; savePrefs(); renderDiff(); if(ARTISTS.indexOf(d.m)!==-1) startGame(d.m); else if(d.m==="All artists") startGame(); };
   openModal($("shareView"));
