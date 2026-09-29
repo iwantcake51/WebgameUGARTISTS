@@ -807,7 +807,7 @@ function renderToggles(){
   });
   $("toggles").innerHTML=h;
   var sw=$("toggles").querySelectorAll(".sw");
-  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); }; })(sw[i]); }
+  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); }; })(sw[i]); }
 }
 function applyPrefs(){ document.body.classList.toggle("noholo", !prefs.holo); document.documentElement.classList.toggle("bw", !!prefs.bw); document.body.classList.toggle("noanim", !prefs.anim); document.body.classList.toggle("nodim", !prefs.dim); }
 
@@ -1067,6 +1067,20 @@ function renderArtistList(){            // festival-flyer lineup: headliners on 
   var cs=$("artistList").querySelectorAll(".lu");
   for(var i=0;i<cs.length;i++){ (function(c){ c.onclick=function(){ startGame(c.getAttribute("data-a")); }; })(cs[i]); }
 }
+(function(){                              // lineup: eased wheel scrolling at ~35% speed
+  var el=$("artistList"), target=null, raf=0;
+  el.addEventListener("wheel",function(e){
+    if(e.ctrlKey) return;
+    var dy=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?el.clientHeight:1), max=el.scrollHeight-el.clientHeight;
+    if(max<=0) return;
+    if(target==null) target=el.scrollTop;
+    var next=Math.max(0,Math.min(max,target+dy*0.35));
+    if(next===target && (target===0||target===max)) return;   // at the end: let the page scroll
+    e.preventDefault(); target=next;
+    if(!raf) raf=requestAnimationFrame(step);
+  },{passive:false});
+  function step(){ var d=target-el.scrollTop; if(Math.abs(d)<0.5){ el.scrollTop=target; target=null; raf=0; return; } el.scrollTop+=(d>0?1:-1)*Math.max(1,Math.abs(d)*0.14); raf=requestAnimationFrame(step); }
+})();
 var audio=$("audio"), stopT=null, rafId=null, fadeI=null;
 var AC=null, analyser=null, srcNode=null, freqData=null, graphReady=false, corsFail=false;
 function buildGraph(){
@@ -1200,9 +1214,9 @@ function multTxt(d){ var m=multOf(d); return "\u00d7"+(m%1?m.toFixed(m*100%10?2:
 function ptsAt(i){ return Math.round(PTS[Math.min(i,PTS.length-1)]*multOf()*modMult()); }
 // ---- modifiers ----
 var MODS=[
-  {k:"blind", icon:"\uD83D\uDE48", label:"Blind",       mult:1.10, desc:"Artist names are hidden on every choice. Only counts with 3+ artists (all artists, or 3+ picked in Choose artists)."},
-  {k:"peek",  icon:"\uD83D\uDDBC\uFE0F", label:"Cover peek", mult:0.75, desc:"The album cover and artist show as soon as the round starts, but the choices lose their covers."},
-  {k:"lives", icon:"\u2764\uFE0F", label:"Double life", mult:0.5,  desc:"One extra guess per song. A miss greys out that choice and unlocks the next snippet length."}
+  {k:"blind", icon:"\uD83D\uDE48", label:"My ears are trained", mult:1.10, desc:"Artist names are hidden on every choice. Only counts with 3+ artists (all artists, or 3+ picked in Choose artists)."},
+  {k:"peek",  icon:"\uD83D\uDDBC\uFE0F", label:"Just a peek", mult:0.75, desc:"The album cover and artist show as soon as the round starts, but the choices lose their covers."},
+  {k:"lives", icon:"\u2764\uFE0F", label:"Extra life", mult:0.5,  desc:"One extra guess per song. A miss greys out that choice and unlocks the next snippet length."}
 ];
 function modPct(m){ return (m.mult>1?"+":"\u2212")+Math.round(Math.abs(m.mult-1)*100)+"%"; }
 function modActive(k){ if(!prefs.mods[k]) return false; if(k==="blind") return mode!=="artist" && includedArtists().length>=3; return true; }
@@ -1222,7 +1236,7 @@ function renderMods(){
   for(var i=0;i<cs.length;i++){ (function(c){ c.onclick=function(){ var k=c.getAttribute("data-k"); prefs.mods[k]=!prefs.mods[k];
     if(prefs.mods[k] && k==="blind") prefs.mods.peek=false;       // blind hides the artist, peek shows it: can't have both
     if(prefs.mods[k] && k==="peek") prefs.mods.blind=false;
-    savePrefs(); renderMods(); renderModBtn(); }; })(cs[i]); }
+    savePrefs(); renderMods(); renderModBtn(); CLICK.toggle(prefs.mods[k]); }; })(cs[i]); }
 }
 function curDiff(){ return DIFFS[prefs.diff]?prefs.diff:"normal"; }
 function rankOf(t){ return t.rank!=null ? t.rank*freshF(t) : 999; }
@@ -1717,15 +1731,34 @@ var CLICK=(function(){
       if(!ctx) init(); if(ctx.state==="suspended") ctx.resume();
       var t=ctx.currentTime, v=prefs.volume*(up?0.45:1), jit=0.92+Math.random()*0.16;
       var s=ctx.createBufferSource(), bp=ctx.createBiquadFilter(), g=ctx.createGain();
-      s.buffer=buf; s.playbackRate.value=(up?1.3:1)*jit; bp.type="bandpass"; bp.frequency.value=(up?3400:2300)*jit; bp.Q.value=1.4; g.gain.value=0.32*v;
+      s.buffer=buf; s.playbackRate.value=(up?1.3:1)*jit; bp.type="bandpass"; bp.frequency.value=(up?3400:2300)*jit; bp.Q.value=1.4; g.gain.value=0.13*v;
       s.connect(bp); bp.connect(g); g.connect(ctx.destination); s.start(t);
       var o=ctx.createOscillator(), og=ctx.createGain();
       o.type="sine"; o.frequency.setValueAtTime((up?280:180)*jit,t); o.frequency.exponentialRampToValueAtTime(80,t+0.05);
-      og.gain.setValueAtTime(0.22*v,t); og.gain.exponentialRampToValueAtTime(0.0001,t+0.06);
+      og.gain.setValueAtTime(0.09*v,t); og.gain.exponentialRampToValueAtTime(0.0001,t+0.06);
       o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t+0.07);
     }catch(e){}
   }
-  return {play:play};
+  function blip(f1,f2,dur,gain){           // short pitched tone
+    if(!prefs.clicks || !prefs.volume) return;
+    try{
+      if(!ctx) init(); if(ctx.state==="suspended") ctx.resume();
+      var t=ctx.currentTime, o=ctx.createOscillator(), g=ctx.createGain();
+      o.type="triangle"; o.frequency.setValueAtTime(f1,t); o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(gain*prefs.volume,t+0.006); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+dur+0.02);
+    }catch(e){}
+  }
+  function toggle(on){ if(on){ blip(520,780,0.07,0.09); setTimeout(function(){ blip(780,1040,0.06,0.07); },55); } else { blip(700,460,0.07,0.08); setTimeout(function(){ blip(460,330,0.06,0.06); },55); } }
+  var lastTick=0;
+  function tick(){ var n=performance.now(); if(n-lastTick<45) return; lastTick=n; blip(1900+Math.random()*300,1500,0.018,0.035); }
+  return {play:play, toggle:toggle, tick:tick};
+})();
+// scroll ticks: a soft detent every ~36px scrolled in any list
+(function(){ var acc=new WeakMap();
+  document.addEventListener("scroll",function(e){ var el=e.target===document?document.scrollingElement:e.target; if(!el||el.scrollTop==null) return;
+    var a=acc.get(el)||{y:el.scrollTop,d:0}; a.d+=Math.abs(el.scrollTop-a.y); a.y=el.scrollTop;
+    if(a.d>=36){ a.d=0; CLICK.tick(); } acc.set(el,a); },{capture:true,passive:true});
 })();
 // ---- button tilt + ripple ----
 (function(){
