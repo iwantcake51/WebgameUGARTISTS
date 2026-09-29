@@ -3,6 +3,7 @@ import { getStore } from "@netlify/blobs";
 // Adds Discord/iMessage/Twitter link-preview tags to shared score links (/s/<id> short links and long ?r=... links).
 // The run data is packed in the link by shareLink() in UGNeekPeek.html.
 const DIFFS = { easy: "Easy", normal: "Normal", hard: "Hard", extreme: "Extreme" };
+const MODS = { blind: "Blind +10%", peek: "Cover peek −25%", lives: "Double life −50%" };
 const COLORS = { easy: "#39e08b", normal: "#8c5cff", hard: "#ff9a4a", extreme: "#ff466b" };
 
 function decode(r) {
@@ -14,6 +15,15 @@ function decode(r) {
 function unpackArt(a) {
   a = String(a || "");
   return /^\d[\w.\-\/]+$/.test(a) ? `https://is${a[0]}-ssl.mzstatic.com/image/thumb/${a.slice(1)}/400x400bb.jpg` : "";
+}
+// shown in the sharer's own timezone (tz = their getTimezoneOffset() in minutes)
+function sharedAt(ms, tz) {
+  const off = Number.isFinite(+tz) ? +tz : 0;
+  const t = new Date(ms - off * 60000);
+  const mon = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][t.getUTCMonth()];
+  const h = t.getUTCHours(), m = String(t.getUTCMinutes()).padStart(2, "0");
+  const zone = Number.isFinite(+tz) ? "UTC" + (off <= 0 ? "+" : "-") + Math.abs(off / 60) : "UTC";
+  return `${mon} ${t.getUTCDate()}, ${t.getUTCFullYear()} at ${h % 12 || 12}:${m} ${h < 12 ? "AM" : "PM"} (${zone})`;
 }
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
@@ -52,6 +62,8 @@ export default async (request, context) => {
     `✅ ${wins.length}/${n} songs right  ·  🔥 best streak ${best}`,
     times.length ? `⚡ avg guess ${avg.toFixed(1)}s  ·  fastest ${Math.min(...times).toFixed(2)}s  ·  ${quick} in ≤1s` : "",
     `🎧 ${mode}`,
+    Array.isArray(d.mo) && d.mo.length ? `🎛️ ${d.mo.map((k) => MODS[k]).filter(Boolean).join(", ")}` : "",
+    d.at ? `🕒 ${sharedAt(+d.at, d.tz)}` : "",
     miss ? `❌ went out on "${miss.t}" by ${miss.a}` : "",
   ].filter(Boolean);
   const desc = lines.join("\n");
