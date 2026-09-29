@@ -14,7 +14,8 @@ function decode(r) {
 }
 function unpackArt(a) {
   a = String(a || "");
-  return /^\d[\w.\-\/]+$/.test(a) ? `https://is${a[0]}-ssl.mzstatic.com/image/thumb/${a.slice(1)}/400x400bb.jpg` : "";
+  if (/^@https:\/\/[\w.-]+\.mzstatic\.com\/[^"'<>\s]+$/.test(a)) return a.slice(1);
+  return /^\d[^"'<>\s]+$/.test(a) ? `https://is${a[0]}-ssl.mzstatic.com/image/thumb/${a.slice(1)}/400x400bb.jpg` : "";
 }
 // shown in the sharer's own timezone (tz = their getTimezoneOffset() in minutes)
 function sharedAt(ms, tz) {
@@ -61,7 +62,7 @@ export default async (request, context) => {
   const title0 = d.w ? `Perfect run: ${score} points on ${DIFFS[dk]}` : `${score} points on ${DIFFS[dk]}, can you beat it?`;
   const title = who ? `${who}: ${title0}` : title0;
   const lines = [
-    `✅ ${wins.length}/${n} songs right  ·  🔥 best streak ${best}`,
+    `✅ ${+d.tt > 0 ? `${wins.length}/${+d.tt} ${mode} songs` : `${wins.length}/${n} songs right`}  ·  🔥 best streak ${best}`,
     times.length ? `⚡ avg guess ${avg.toFixed(1)}s  ·  fastest ${Math.min(...times).toFixed(2)}s  ·  ${quick} in ≤1s` : "",
     `🎧 ${mode}`,
     Array.isArray(d.mo) && d.mo.length ? `🎛️ ${d.mo.map((k) => MODS[k]).filter(Boolean).join(", ")}` : "",
