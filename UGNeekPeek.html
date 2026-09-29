@@ -542,6 +542,24 @@
   .bgvshade{position:absolute; inset:0; background:
     radial-gradient(ellipse at 50% 42%, rgba(10,7,17,.15) 0%, rgba(10,7,17,.72) 70%, rgba(10,7,17,.92) 100%),
     linear-gradient(180deg, rgba(10,7,17,.35), rgba(10,7,17,.55))}
+  .bgvfx{position:absolute; inset:0; pointer-events:none; mix-blend-mode:overlay; opacity:.9;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.38) 0 1px, transparent 1px 3px),
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,.22) 0 .9px, transparent 1.4px);
+    background-size:100% 3px, 5px 5px; animation:scanRoll 8s linear infinite}
+  .bgvfx::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,.06) 50%,transparent 100%);
+    background-size:100% 220px; background-repeat:no-repeat; animation:scanBar 6s linear infinite; mix-blend-mode:screen}
+  @keyframes scanRoll{from{background-position:0 0, 0 0} to{background-position:0 30px, 0 0}}
+  @keyframes scanBar{from{background-position:0 -220px} to{background-position:0 110vh}}
+  #bgv video.on{animation:bgZoom 7s ease-out forwards, flick 4s steps(1) infinite}
+  @keyframes flick{0%,96%{opacity:1} 97%{opacity:.86} 98%{opacity:1} 99%{opacity:.92}}
+  .lu.diamond{color:transparent !important; opacity:1 !important; text-shadow:none !important;
+    background-image:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.95) 47%,transparent 59%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='24' viewBox='0 0 28 24'%3E%3Cpath d='M0 0L14 0L7 12Z' fill='%23ffffff' fill-opacity='.55'/%3E%3Cpath d='M14 0L28 0L21 12Z' fill='%23bfe9ff' fill-opacity='.35'/%3E%3Cpath d='M7 12L14 0L21 12Z' fill='%238fd3ff' fill-opacity='.25'/%3E%3Cpath d='M0 24L7 12L14 24Z' fill='%23e6f7ff' fill-opacity='.45'/%3E%3Cpath d='M14 24L21 12L28 24Z' fill='%23ffffff' fill-opacity='.3'/%3E%3Cpath d='M7 12L21 12L14 24Z' fill='%23a7c7ff' fill-opacity='.4'/%3E%3C/svg%3E"),
+      linear-gradient(135deg,#dff6ff 0%,#8fd8ff 28%,#ffffff 48%,#b7a8ff 70%,#9eeaff 100%);
+    background-size:300% 100%, 14px 12px, 100% 100%; background-position:120% 0, 0 0, 0 0;
+    -webkit-background-clip:text; background-clip:text; animation:diamondShine 5s ease-in-out infinite;
+    filter:drop-shadow(0 0 7px rgba(150,220,255,.55)) drop-shadow(0 0 1px rgba(255,255,255,.8))}
+  @keyframes diamondShine{0%,62%{background-position:120% 0, 0 0, 0 0} 82%,100%{background-position:-20% 0, 14px 12px, 0 0}}
   .lu.gold{color:transparent !important; opacity:1 !important; background:linear-gradient(100deg,#b8862b 0%,#f7d27a 30%,#fff3c4 45%,#f2c14e 55%,#b8862b 100%);
     background-size:250% 100%; background-position:100% 0; -webkit-background-clip:text; background-clip:text; animation:goldShine 7s ease-in-out infinite; text-shadow:none !important;
     filter:drop-shadow(0 0 6px rgba(242,193,78,.35))}
@@ -631,7 +649,7 @@
   </filter>
   <filter id="chC"><feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter>
 </defs></svg>
-<div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div></div>
+<div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
   <div class="screen active" id="startScreen">
@@ -1150,11 +1168,17 @@ function ensureArtist(a){
   });
   return LOADING[a];
 }
+// mastery: 5+ guesses on an artist and 75%+ right = gold, 90%+ right = diamond
+function mastery(){
+  var acc={}, out={};
+  for(var id in STATS){ var e=STATS[id]; if(!e||!e.s||!e.a) continue; var o=acc[e.a]=acc[e.a]||{c:0,s:0}; o.c+=(e.c||0); o.s+=e.s; }
+  for(var a in acc){ var r=acc[a].c/acc[a].s; if(acc[a].s>=5) out[a] = r>=0.9 ? "diamond" : r>=0.75 ? "gold" : ""; if(!out[a]) delete out[a]; }
+  return out;
+}
 function renderArtistList(){            // festival-flyer lineup: headliners on top, biggest and boldest
   function btn(a,cls){ cls+=gold(a); return "<button class='lu "+cls+"' data-a='"+escapeHtml(a)+"'>"+escapeHtml(a)+"</button>"; }
-  var acc={};                           // artists you get 75%+ right on (5+ songs heard) turn gold
-  for(var id in STATS){ var e=STATS[id]; if(!e||!e.s||!e.a) continue; var o=acc[e.a]=acc[e.a]||{c:0,s:0}; o.c+=(e.c||0); o.s+=e.s; }
-  function gold(a){ var o=acc[a]; return o && o.s>=5 && o.c/o.s>=0.75 ? " gold" : ""; }
+  var tiers=mastery();
+  function gold(a){ return tiers[a] ? " "+tiers[a] : ""; }
   var HL=3, sep="<span class='lsep' aria-hidden='true'>\u2726</span>";
   var h="<span class='lhead'>FEATURED ARTISTS</span><span class='hlrow'>"+ARTISTS.slice(0,HL).map(function(a){ return "<span class='luw'>"+btn(a,"hl")+"</span>"; }).join(sep)+"</span>";
   h+=ARTISTS.slice(HL).map(function(a,j){
@@ -1878,21 +1902,44 @@ $("vol2").oninput=function(){ setVolume(parseFloat(this.value)); };
 })();
 // ---- menu background: an edit of music video previews from the artists (Apple previews, muted, blurred) ----
 var BGV=(function(){
-  var vids=[$("bgA"),$("bgB")], cur=0, clips=[], idx=0, timer=0, loading=false, started=false, CUT=5200;
-  try{ var c=JSON.parse(localStorage.getItem("drop_bgclips")||"null"); if(c && Date.now()-c.at<3*864e5 && c.list.length) clips=c.list; }catch(e){}
+  var vids=[$("bgA"),$("bgB")], cur=0, timer=0, loading=false, started=0, CUT=5200, lastSrc="", recentA=[];
+  // clips cached per artist for a week: {artist:{at, list:[previewUrl]}} (empty list = no videos on Apple)
+  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips2")||"{}")||{}; }catch(e){ CACHE={}; }
+  function fresh(a){ var c=CACHE[a]; return c && Date.now()-c.at<7*864e5; }
+  function saveCache(){ try{ localStorage.setItem("drop_bgclips2", JSON.stringify(CACHE)); }catch(e){} }
+  function haveClips(){ for(var a in CACHE) if(fresh(a) && CACHE[a].list.length) return true; return false; }
   function want(){ return prefs.bgvid && !document.body.classList.contains("playing") && !document.hidden; }
+  // a few artists per menu visit: mastered ones first, then random others, until every artist has been looked up
   function fetchClips(){
-    if(loading) return; loading=true;
-    var pool=shuffle(ARTISTS.slice(0,30)).slice(0,6), got=[];
+    if(loading) return;
+    var tiers=mastery(), todo=ARTISTS.filter(function(a){ return !fresh(a); });
+    if(!todo.length) return;
+    var pri=shuffle(todo.filter(function(a){ return tiers[a]; })), rest=shuffle(todo.filter(function(a){ return !tiers[a]; }));
+    var pool=pri.concat(rest).slice(0,4); loading=true;
     Promise.all(pool.map(function(a){
-      return getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(termsOf(a)[0])+"&entity=musicVideo&limit=8").then(function(d){
-        (d.results||[]).forEach(function(r){ if(r.previewUrl && artistMatch(r.artistName||"",termsOf(a)[0])) got.push(r.previewUrl); });
+      return getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(termsOf(a)[0])+"&entity=musicVideo&limit=10").then(function(d){
+        var got=[]; (d.results||[]).forEach(function(r){ if(r.previewUrl && artistMatch(r.artistName||"",termsOf(a)[0]) && got.indexOf(r.previewUrl)===-1) got.push(r.previewUrl); });
+        CACHE[a]={at:Date.now(), list:got};
       },function(){});
-    })).then(function(){ loading=false; if(got.length){ clips=shuffle(got); try{ localStorage.setItem("drop_bgclips", JSON.stringify({at:Date.now(),list:clips})); }catch(e){} if(want()) next(); } });
+    })).then(function(){ loading=false; saveCache(); if(want() && !vids[cur].classList.contains("on")) next(); });
+  }
+  // pick an artist (diamond x6, gold x4, others x1, avoiding the last few), then a random clip of theirs
+  function pickClip(){
+    var tiers=mastery(), cands=[], tot=0;
+    for(var a in CACHE){ if(!fresh(a) || !CACHE[a].list.length) continue;
+      var w=(tiers[a]==="diamond"?6:tiers[a]==="gold"?4:1)*(recentA.indexOf(a)!==-1?0.3:1); cands.push([a,w]); tot+=w; }
+    if(!cands.length) return null;
+    var r=Math.random()*tot, pick=cands[cands.length-1][0];
+    for(var i=0;i<cands.length;i++){ r-=cands[i][1]; if(r<=0){ pick=cands[i][0]; break; } }
+    recentA.unshift(pick); recentA=recentA.slice(0,1);
+    var list=CACHE[pick].list, src=list[Math.random()*list.length|0];
+    if(src===lastSrc && list.length>1) src=list[(list.indexOf(src)+1)%list.length];
+    lastSrc=src; return src;
   }
   function next(){
-    clearTimeout(timer); if(!want() || !clips.length) return;
-    var v=vids[1-cur], old=vids[cur], src=clips[idx++ % clips.length];
+    clearTimeout(timer); if(!want()) return;
+    var src=pickClip(); if(!src) return;
+    var v=vids[1-cur], old=vids[cur];
     v.src=src; v.muted=true;
     var shown=false;
     function show(){ if(shown) return; shown=true; v.classList.remove("on"); void v.offsetWidth; v.classList.add("on"); old.classList.remove("on"); cur=1-cur;
@@ -1906,11 +1953,12 @@ var BGV=(function(){
   function resume(){
     document.body.classList.toggle("bgv-on", !!prefs.bgvid);
     if(!want()){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); return; }
-    if(!clips.length){ if(!started){ started=true; setTimeout(fetchClips, 2500); } return; }
+    if(Date.now()-started>60000){ started=Date.now(); setTimeout(fetchClips, 2500); }     // look up a few more artists each visit
+    if(!haveClips()) return;
     var v=vids[cur]; if(v.src && v.classList.contains("on")){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); clearTimeout(timer); timer=setTimeout(next, CUT); } else next();
   }
   document.addEventListener("visibilitychange", resume);
-  return {resume:resume, toggle:resume, pause:function(){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); }};
+  return {pickClip:pickClip, cache:CACHE, resume:resume, toggle:resume, pause:function(){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); }};
 })();
 // ---- click sounds: soft keyboard-style "thock", synthesized so there are no sound files to host ----
 var CLICK=(function(){
