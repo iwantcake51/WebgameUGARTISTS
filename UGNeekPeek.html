@@ -210,6 +210,10 @@
   html[data-cb="protan"], html[data-cb="deutan"]{--good:#3fa7ff !important; --bad:#ff9d1c !important}
   html[data-cb="tritan"]{--good:#2fd6c8 !important; --bad:#ff4f8b !important}
   html[data-cb="mono"]{--good:#ffffff !important; --bad:#7a7a86 !important}
+  /* the whole page (UI, covers, video, confetti) goes through a daltonize filter so reds/greens separate */
+  html[data-cb="protan"]{filter:url(#cb-protan)} html[data-cb="deutan"]{filter:url(#cb-deutan)} html[data-cb="tritan"]{filter:url(#cb-tritan)}
+  html[data-cb="mono"]{filter:grayscale(1) contrast(1.08)}
+  html.bw{filter:grayscale(1) !important}
   .cbrow{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:22px}
   .opt.correct .optt,.opt.correct .opta{color:var(--ink)}
 
@@ -320,8 +324,9 @@
   .recent{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:66px;gap:10px 8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:thin}
   .rcard{display:block;width:66px;color:inherit}
   .rimg{padding:0;cursor:pointer;display:block}
-  .rt{display:block;color:inherit;text-decoration:none} .rt:hover{color:var(--accent)}
+  .rt{display:block;width:100%;background:none;border:0;padding:0;cursor:pointer;text-align:left;font-family:inherit;color:inherit} .rt:hover{color:var(--accent)}
   .ra{display:block;width:100%;background:none;border:0;padding:0;cursor:pointer;text-align:left;font-family:inherit} .ra:hover{color:var(--ink)}
+  a.catrow{color:inherit;text-decoration:none;cursor:pointer} a.catrow:hover .ct{color:var(--accent)}
   .catrow.hit,.catsec.hit{animation:hitFlash 1.6s ease}
   @keyframes hitFlash{0%,35%{background:color-mix(in srgb,var(--accent) 28%,transparent)} 100%{background:transparent}}
   .catsec.hit{animation-name:hitRing} @keyframes hitRing{0%,35%{box-shadow:0 0 0 2px var(--accent)} 100%{box-shadow:0 0 0 0 transparent}}
@@ -647,6 +652,9 @@
     <feFlood x="0" y="0" height="1" width="1"/><feComposite width="2" height="2"/><feTile result="a"/>
     <feComposite in="SourceGraphic" in2="a" operator="in"/><feMorphology operator="dilate" radius="1"/>
   </filter>
+  <filter id="cb-protan" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1.0000 0.0000 0.0000 0 0  0.4789 0.4769 0.0442 0 0  0.5973 -0.6887 1.0914 0 0  0 0 0 1 0"/></filter>
+  <filter id="cb-deutan" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1.4366 -0.6314 0.1948 0 0  0.0000 1.0000 0.0000 0 0  -0.1842 0.1863 0.9979 0 0  0 0 0 1 0"/></filter>
+  <filter id="cb-tritan" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.7412 -0.4072 0.6660 0 0  0.0751 0.5852 0.3397 0 0  0.0000 0.0000 1.0000 0 0  0 0 0 1 0"/></filter>
   <filter id="chC"><feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter>
 </defs></svg>
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
@@ -928,7 +936,7 @@ function saveStats(){ try{ localStorage.setItem("drop_stats", JSON.stringify(STA
 var RECENT=[]; try{ RECENT=JSON.parse(localStorage.getItem("drop_recent")||"[]")||[]; }catch(e){ RECENT=[]; }
 function logRecent(track,correct){ RECENT.unshift({id:track.id,t:track.title,a:track.artist,cr:track.credit,art:track.art,vu:track.viewUrl||"",w:correct?1:0,at:Date.now()}); RECENT=RECENT.slice(0,40);
   try{ localStorage.setItem("drop_recent", JSON.stringify(RECENT)); }catch(e){} }
-function bump(track,correct){ logRecent(track,correct); var e=STATS[track.id]; if(!e){ e=STATS[track.id]={c:0,s:0}; } e.t=track.title; e.a=track.artist; e.cr=track.credit; e.al=track.album; e.art=track.art; e.at=Date.now(); e.s=(e.s||0)+1; if(correct) e.c=(e.c||0)+1; saveStats(); }
+function bump(track,correct){ logRecent(track,correct); var e=STATS[track.id]; if(!e){ e=STATS[track.id]={c:0,s:0}; } e.t=track.title; e.a=track.artist; e.cr=track.credit; e.al=track.album; e.art=track.art; if(track.viewUrl) e.vu=track.viewUrl; e.at=Date.now(); e.s=(e.s||0)+1; if(correct) e.c=(e.c||0)+1; saveStats(); }
 
 // ================= NETWORK =================
 var DIAG=[], RAW=0;
@@ -1639,7 +1647,7 @@ function histEntries(){
     var t=e.t, a=e.a;
     if(!t){ for(var k in byArtist){ var f=byArtist[k].tracks.filter(function(x){ return String(x.id)===String(id); })[0]; if(f){ t=f.title; a=f.artist; e.cr=f.credit; e.al=f.album; break; } } }
     if(!t) continue;
-    out.push({id:id,t:t,a:a||"?",cr:e.cr||a,al:e.al||"",art:e.art||"",c:e.c||0,s:e.s||0,at:e.at||0}); }
+    out.push({id:id,t:t,a:a||"?",cr:e.cr||a,al:e.al||"",art:e.art||"",vu:e.vu||"",c:e.c||0,s:e.s||0,at:e.at||0}); }
   return out;
 }
 var catOpen={};
@@ -1667,7 +1675,7 @@ function openCatalog(){
       body+="<div class='sslabel'>Recent</div><div class='recent'>"+RECENT.slice(0,40).map(function(r){
         var href=r.vu||("https://music.apple.com/search?term="+encodeURIComponent(leadArtist(r.cr||r.a||"")+" "+baseTitle(r.t||"")));
         return "<div class='rcard"+(r.w?" got":" lost")+"'><button class='rimg' data-a='"+E(r.a||"")+"' data-id='"+E(String(r.id))+"' title='Show in history'>"+(r.art?"<img src='"+E(r.art)+"' alt='' loading='lazy'>":"")+"<span class='rbadge'>"+(r.w?"✓":"✗")+"</span></button>"+
-          "<a class='rt' target='_blank' rel='noopener' href='"+E(href)+"' title='Open on Apple Music'>"+E(r.t)+"</a><button class='ra' data-a='"+E(r.a||"")+"' title='Go to artist'>"+E(r.cr||r.a)+" · "+agoTxt(r.at)+"</button></div>"; }).join("")+"</div>";
+          "<button class='rt' data-a='"+E(r.a||"")+"' data-id='"+E(String(r.id))+"' title='Show in history'>"+E(r.t)+"</button><button class='ra' data-a='"+E(r.a||"")+"' title='Go to artist'>"+E(r.cr||r.a)+" · "+agoTxt(r.at)+"</button></div>"; }).join("")+"</div>";
     }
     body+="<div class='sslabel'>By artist</div>";
   }
@@ -1681,7 +1689,8 @@ function openCatalog(){
     body+="<div class='catbarwrap'><div class='catbar' style='width:"+pct+"%'></div></div>";
     if(open){ body+="<div class='catsongs'>";
       rows.forEach(function(x){ var m=x.s-x.c;
-        body+="<div class='catrow"+(x.c>0?" got":"")+"' data-id='"+E(String(x.id))+"'>"+(x.art?"<img src='"+E(x.art)+"' alt='' loading='lazy'>":"<span class='noart'></span>")+"<span class='ct'>"+E(x.t)+"</span><span class='cc'>"+(x.c?"✓"+x.c:"")+(m?" <span class='miss'>✗"+m+"</span>":"")+"</span></div>"; });
+        var href=x.vu||("https://music.apple.com/search?term="+encodeURIComponent(leadArtist(x.cr||x.a||"")+" "+baseTitle(x.t||"")));
+        body+="<a class='catrow"+(x.c>0?" got":"")+"' data-id='"+E(String(x.id))+"' href='"+E(href)+"' target='_blank' rel='noopener' title='Open on Apple Music'>"+(x.art?"<img src='"+E(x.art)+"' alt='' loading='lazy'>":"<span class='noart'></span>")+"<span class='ct'>"+E(x.t)+"</span><span class='cc'>"+(x.c?"✓"+x.c:"")+(m?" <span class='miss'>✗"+m+"</span>":"")+"</span></a>"; });
       body+="</div>"; }
     body+="</div>";
   });
@@ -1690,7 +1699,7 @@ function openCatalog(){
   var st=$("catalogBody").scrollTop; $("catalogBody").innerHTML=body; $("catalogBody").scrollTop=st;
   var hs=$("catalogBody").querySelectorAll(".cathdr");
   for(var j=0;j<hs.length;j++){ (function(h){ h.onclick=function(){ var a=h.getAttribute("data-a"); catOpen[a]=!catOpen[a]; CLICK.toggle(catOpen[a]); openCatalog(); }; })(hs[j]); }
-  var rc=$("catalogBody").querySelectorAll(".rimg,.ra");
+  var rc=$("catalogBody").querySelectorAll(".rimg,.rt,.ra");
   for(var k=0;k<rc.length;k++){ (function(b){ b.onclick=function(){ catJump(b.getAttribute("data-a"), b.getAttribute("data-id")); }; })(rc[k]); }
   openModal($("catalog"));
   syncCatSlider();
