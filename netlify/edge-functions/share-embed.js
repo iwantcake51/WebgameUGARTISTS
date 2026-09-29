@@ -3,6 +3,7 @@ import { getStore } from "@netlify/blobs";
 // Adds Discord/iMessage/Twitter link-preview tags to shared score links (/s/<id> short links and long ?r=... links).
 // The run data is packed in the link by shareLink() in UGNeekPeek.html.
 const DIFFS = { easy: "Easy", normal: "Normal", hard: "Hard", extreme: "Extreme" };
+const MODS = { blind: "Blind +10%", peek: "Cover peek −25%", lives: "Double life −50%" };
 const COLORS = { easy: "#39e08b", normal: "#8c5cff", hard: "#ff9a4a", extreme: "#ff466b" };
 
 function decode(r) {
@@ -61,6 +62,7 @@ export default async (request, context) => {
     `✅ ${wins.length}/${n} songs right  ·  🔥 best streak ${best}`,
     times.length ? `⚡ avg guess ${avg.toFixed(1)}s  ·  fastest ${Math.min(...times).toFixed(2)}s  ·  ${quick} in ≤1s` : "",
     `🎧 ${mode}`,
+    Array.isArray(d.mo) && d.mo.length ? `🎛️ ${d.mo.map((k) => MODS[k]).filter(Boolean).join(", ")}` : "",
     d.at ? `🕒 ${sharedAt(+d.at, d.tz)}` : "",
     miss ? `❌ went out on "${miss.t}" by ${miss.a}` : "",
   ].filter(Boolean);
