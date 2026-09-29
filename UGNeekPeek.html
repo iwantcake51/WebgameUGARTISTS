@@ -1499,7 +1499,7 @@ function packArt(u){ var m=ART_RE.exec(u||""); return m ? m[1]+m[2] : ""; }
 function unpackArt(a){ a=String(a||""); return /^\d[\w.\-\/]+$/.test(a) ? "https://is"+a[0]+"-ssl.mzstatic.com/image/thumb/"+a.slice(1)+"/400x400bb.jpg" : ""; }
 function shareLink(){
   var m = mode==="artist" ? pickArtist : mode==="multi" ? $("modeLabel").textContent : "All artists";
-  var d={v:1, s:score, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(),
+  var d={v:1, s:score, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(), tz:new Date().getTimezoneOffset(),
     r:runLog.map(function(x,i){ return [x.t.id, x.t.title, x.t.credit||x.t.artist, x.win?1:0, Math.round(x.secs*100), x.clip, x.pts, i>=runLog.length-15?packArt(x.t.art):""]; })};
   return location.origin+location.pathname+"?r="+b64u(JSON.stringify(d));
 }
@@ -1532,7 +1532,7 @@ function showShared(){
   var arts={}; runs.forEach(function(x){ var a=x.a||"?"; arts[a]=arts[a]||[0,0]; arts[a][1]++; if(x.win) arts[a][0]++; });
   $("shareView").classList.toggle("won",!!d.w);
   $("svTitle").textContent = d.w ? "Perfect run" : "Can you beat this?";
-  $("svSub").innerHTML = "<b>"+E(String(d.m||"All artists"))+"</b> on <b>"+DIFFS[dk].label+"</b>"+(d.at?"  ·  "+E(new Date(+d.at).toLocaleDateString()):"")+
+  $("svSub").innerHTML = "<b>"+E(String(d.m||"All artists"))+"</b> on <b>"+DIFFS[dk].label+"</b>"+(d.at?"<br>shared "+E(whenTxt(+d.at)):"")+
     (miss?"<br>went out on <b>"+E(miss.t)+"</b>":"");
   $("svScore").innerHTML=(+d.s||0)+"<small>points</small>";
   $("svSolved").textContent=wins.length+"/"+n; $("svStreak").textContent=best; $("svAvg").textContent=times.length?avg.toFixed(1)+"s":"-";
@@ -1552,6 +1552,11 @@ function showShared(){
   $("svBody").innerHTML=h;
   $("svPlay").onclick=function(){ closeShared(); prefs.diff=dk; savePrefs(); renderDiff(); if(ARTISTS.indexOf(d.m)!==-1) startGame(d.m); else if(d.m==="All artists") startGame(); };
   openModal($("shareView"));
+}
+function whenTxt(ms){
+  var t=new Date(ms), ago=(Date.now()-ms)/1000, rel;
+  if(ago<60) rel="just now"; else if(ago<3600) rel=Math.floor(ago/60)+"m ago"; else if(ago<86400) rel=Math.floor(ago/3600)+"h ago"; else rel=Math.floor(ago/86400)+"d ago";
+  return t.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})+", "+t.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})+" ("+rel+")";
 }
 function closeShared(){ closeModal($("shareView")); try{ history.replaceState(null,"",/^\/s\//.test(location.pathname)?"/":location.pathname); }catch(e){} }
 $("svClose").onclick=closeShared;
