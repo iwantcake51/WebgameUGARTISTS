@@ -1393,6 +1393,7 @@ function showFail(){
       "<div class='fstat'><b>"+x.secs.toFixed(2)+"s</b><span>"+x.clip+"s snippet"+(x.win?", +"+x.pts:"")+"</span><span"+(miss?" class='miss'":"")+">"+(miss?"\u2717"+miss+" missed total":"never missed")+"</span></div></div>";
   }).join("");
   openModal($("failModal"));
+  if(location.protocol!=="file:") makeShortLink();
 }
 
 // ---- history ----
@@ -1502,8 +1503,15 @@ function shareLink(){
     r:runLog.map(function(x,i){ return [x.t.id, x.t.title, x.t.credit||x.t.artist, x.win?1:0, Math.round(x.secs*100), x.clip, x.pts, i>=runLog.length-15?packArt(x.t.art):""]; })};
   return location.origin+location.pathname+"?r="+b64u(JSON.stringify(d));
 }
+var shortLink=null;
+function makeShortLink(){
+  var long=shareLink(), r=long.split("?r=")[1]; shortLink={long:long, url:null};
+  var mine=shortLink;
+  fetch("/api/share",{method:"POST", body:r}).then(function(res){ return res.ok?res.json():null; })
+    .then(function(j){ if(j&&j.id) mine.url=location.origin+"/s/"+j.id; }).catch(function(){});
+}
 $("failShare").onclick=function(){
-  var b=this, url=shareLink(), txt="I scored "+score+" on "+DIFFS[curDiff()].label+", can you beat it?";
+  var b=this, url=(shortLink&&shortLink.url)||shareLink(), txt="I scored "+score+" on "+DIFFS[curDiff()].label+", can you beat it?";
   function done(){ b.textContent="Link copied"; setTimeout(function(){ b.textContent="Share"; },1600); }
   if(navigator.share && matchMedia("(pointer:coarse)").matches){ navigator.share({title:document.title, text:txt, url:url}).catch(function(){}); return; }
   if(navigator.clipboard) navigator.clipboard.writeText(url).then(done,function(){ prompt("Copy this link:",url); });
@@ -1511,7 +1519,7 @@ $("failShare").onclick=function(){
 };
 function trackArt(id){ for(var k in byArtist){ var tr=byArtist[k]&&byArtist[k].tracks; if(!tr) continue; for(var i=0;i<tr.length;i++) if(String(tr[i].id)===String(id)) return tr[i].art; } return ""; }
 function showShared(){
-  var q=new URLSearchParams(location.search).get("r"); if(!q) return;
+  var sm=document.querySelector('meta[name="ugnp-share"]'), q=new URLSearchParams(location.search).get("r")||(sm&&sm.content); if(!q) return;
   var d; try{ d=JSON.parse(unb64u(q)); }catch(e){ return; }
   if(!d || !Array.isArray(d.r)) return;
   var dk=DIFFS[d.d]?d.d:"normal", E=escapeHtml;
@@ -1545,7 +1553,7 @@ function showShared(){
   $("svPlay").onclick=function(){ closeShared(); prefs.diff=dk; savePrefs(); renderDiff(); if(ARTISTS.indexOf(d.m)!==-1) startGame(d.m); else if(d.m==="All artists") startGame(); };
   openModal($("shareView"));
 }
-function closeShared(){ closeModal($("shareView")); try{ history.replaceState(null,"",location.pathname); }catch(e){} }
+function closeShared(){ closeModal($("shareView")); try{ history.replaceState(null,"",/^\/s\//.test(location.pathname)?"/":location.pathname); }catch(e){} }
 $("svClose").onclick=closeShared;
 $("homeBtn").onclick=goHome; $("logoBtn").onclick=goHome;
 

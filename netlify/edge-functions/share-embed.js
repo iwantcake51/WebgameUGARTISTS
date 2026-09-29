@@ -1,4 +1,6 @@
-// Adds Discord/iMessage/Twitter link-preview tags to shared score links (?r=...).
+import { getStore } from "@netlify/blobs";
+
+// Adds Discord/iMessage/Twitter link-preview tags to shared score links (/s/<id> short links and long ?r=... links).
 // The run data is packed in the link by shareLink() in UGNeekPeek.html.
 const DIFFS = { easy: "Easy", normal: "Normal", hard: "Hard", extreme: "Extreme" };
 const COLORS = { easy: "#39e08b", normal: "#8c5cff", hard: "#ff9a4a", extreme: "#ff466b" };
@@ -16,9 +18,17 @@ function unpackArt(a) {
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 export default async (request, context) => {
-  const r = new URL(request.url).searchParams.get("r");
-  if (!r) return;
-  const res = await context.next();
+  const url = new URL(request.url);
+  const short = url.pathname.match(/^\/s\/([A-Za-z0-9]{4,16})\/?$/);
+  let r = url.searchParams.get("r"), res;
+  if (short) {
+    r = await getStore("shares").get(short[1]);
+    if (!r) return Response.redirect(new URL("/", url), 302);
+    res = await fetch(new URL("/UGNeekPeek.html", url));
+  } else {
+    if (!r) return;
+    res = await context.next();
+  }
   if (!(res.headers.get("content-type") || "").includes("text/html")) return res;
 
   let d;
@@ -49,6 +59,7 @@ export default async (request, context) => {
 
   const meta = [
     `<title>${esc(title)}</title>`,
+    `<meta name="ugnp-share" content="${esc(r)}">`,
     `<meta property="og:site_name" content="UGNeekPeek">`,
     `<meta property="og:type" content="website">`,
     `<meta property="og:url" content="${esc(request.url)}">`,
