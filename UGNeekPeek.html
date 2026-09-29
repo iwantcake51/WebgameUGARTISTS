@@ -916,6 +916,15 @@ function artistMatch(res,target){var a=norm(leadArtist(res)),t=norm(target);retu
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function fmtDate(iso){ if(!iso) return ""; var d=new Date(iso); if(isNaN(d.getTime())) return String(iso).slice(0,4);
   var m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return m[d.getMonth()]+" "+d.getFullYear(); }
+// title without featured artists (for "My ears are trained"); keeps remix/version tags so choices stay distinct
+function noFeat(name){
+  var s=String(name);
+  s=s.replace(/[\(\[]\s*(feat\.?|ft\.?|featuring|with|w\/)\s[^)\]]*[\)\]]/ig," ");
+  s=s.replace(/\s+(feat\.?|ft\.?|featuring|w\/)\s+.*$/i,"");
+  s=s.replace(/\s*[-\u2013]\s*(feat\.?|ft\.?|with)\s.*$/i,"");
+  s=s.replace(/\s+/g," ").trim();
+  return s || String(name);
+}
 function baseTitle(name){
   var s=String(name);
   s=s.replace(/[\(\[]\s*(feat|ft|featuring|with|prod|produced|remaster|remastered|remix|version|sped|slowed|instrumental|mixed|clean|explicit|original|radio|live|edit|demo|vip|bonus)\b[^)\]]*[\)\]]/ig," ");
@@ -1407,7 +1416,7 @@ function multTxt(d){ var m=multOf(d); return "\u00d7"+(m%1?m.toFixed(m*100%10?2:
 function ptsAt(i){ return Math.round(PTS[Math.min(i,PTS.length-1)]*multOf()*modMult()); }
 // ---- modifiers ----
 var MODS=[
-  {k:"blind", icon:"\uD83D\uDE48", label:"My ears are trained", mult:1.25, desc:"Artist names are hidden on every choice. Only counts with 3+ artists (all artists, or 3+ picked in Choose artists)."},
+  {k:"blind", icon:"\uD83D\uDE48", label:"My ears are trained", mult:1.3, desc:"Artist names and features (feat./ft./with) are hidden on every choice. Only counts with 3+ artists (all artists, or 3+ picked in Choose artists)."},
   {k:"peek",  icon:"\uD83D\uDDBC\uFE0F", label:"Just a peek", mult:0.85, desc:"The album cover and artist show as soon as the round starts, but the choices lose their covers."},
   {k:"lives", icon:"\u2764\uFE0F", label:"Extra life", mult:0.7,  desc:"One extra guess per song. A miss greys out that choice and unlocks the next snippet length."},
   {k:"half",  icon:"\u23F1\uFE0F", label:"1 second is too much anyways", mult:1.3, desc:"You only get the 0.5 second snippet. No hearing more, no ifs, ands or buts."},
@@ -1609,7 +1618,7 @@ function render(){
   var box=$("opts"); box.innerHTML="";
   R.opts.forEach(function(o){
     var b=document.createElement("button"); b.className="opt";
-    b.innerHTML="<img class='optart' src='"+escapeHtml(o.art)+"' alt=''><span class='opttext'><span class='optt'>"+escapeHtml(o.title)+"</span><span class='opta'>"+escapeHtml(o.credit||o.artist)+"</span></span>";
+    b.innerHTML="<img class='optart' src='"+escapeHtml(o.art)+"' alt=''><span class='opttext'><span class='optt'>"+escapeHtml(modActive("blind")?noFeat(o.title):o.title)+"</span><span class='opta'>"+escapeHtml(o.credit||o.artist)+"</span></span>";
     if(R.over){ b.disabled=true; if(o.id===R.answer.id) b.classList.add("correct"); else if(o.id===R.picked) b.classList.add("wrong"); else b.classList.add(R.tried[o.id]?"tried":"dim"); }
     else if(R.tried[o.id]){ b.disabled=true; b.classList.add("tried"); }
     b.onclick=function(){ guess(o); };
