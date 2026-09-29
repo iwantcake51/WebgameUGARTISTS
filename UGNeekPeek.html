@@ -394,13 +394,15 @@
   .failtop{text-align:center; padding:20px 18px 12px; border-bottom:1px solid var(--line); flex:none}
   .failtop h2{margin:0; font-size:30px; letter-spacing:-1px; color:var(--bad)}
   #failModal.won .failtop h2{color:var(--good)}
-  #shareView .failtop h2{color:var(--accent)} #shareView.won .failtop h2{color:var(--good)}
+  #shareView .failtop h2{color:var(--accent); text-shadow:0 0 18px color-mix(in srgb,var(--accent) 45%,transparent)}
+  #shareView.won .failtop h2{color:var(--good); text-shadow:0 0 18px color-mix(in srgb,var(--good) 45%,transparent)}
   .skipnote{font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--muted); margin-top:6px} .skipnote b{color:var(--ink)}
   .svkick{font-family:"JetBrains Mono",monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:4px}
   .svhero{font-size:54px; font-weight:800; letter-spacing:-2px; line-height:1; margin:8px 0 2px; color:var(--ink)}
   .svhero small{display:block; font-family:"JetBrains Mono",monospace; font-size:10px; letter-spacing:1px; font-weight:400; color:var(--muted); margin-top:4px}
-  .svacc{height:6px; border-radius:4px; background:rgba(255,70,107,.35); overflow:hidden; margin:12px auto 0; max-width:260px}
-  .svacc u{display:block; height:100%; background:var(--good)}
+  .svacc{height:6px; border-radius:4px; background:color-mix(in srgb,var(--bad) 45%,transparent); margin:12px auto 0; max-width:260px; display:flex;
+    box-shadow:0 0 10px color-mix(in srgb,var(--bad) 35%,transparent)}
+  .svacc u{display:block; height:100%; background:var(--good); border-radius:4px; box-shadow:0 0 10px color-mix(in srgb,var(--good) 60%,transparent)}
   .sres .snum{font-family:"JetBrains Mono",monospace; font-size:10px; color:var(--muted); width:16px; text-align:right; flex:none}
   .failsub{font-size:13px; color:var(--muted); margin-top:4px; line-height:1.45}
   .failsub b{color:var(--ink)}
@@ -527,14 +529,14 @@
   .lu.t1{font-size:15px; opacity:.92} .lu.t2{font-size:13px; opacity:.72} .lu.t3{font-size:12px; opacity:.55}
   html.bsd .lu{font-family:"Big Shoulders Display",sans-serif; font-weight:800; letter-spacing:.02em}
   html.bsd .lu.t1{font-size:20px} html.bsd .lu.t2{font-size:16.5px} html.bsd .lu.t3{font-size:14.5px}
-  .lu:hover{color:var(--dc); opacity:1; z-index:2}
+  .lu:hover{color:var(--accent); opacity:1; z-index:2}
   .lu.tilt{--ps:1}
   .lu.tilt:hover{--ps:1.12}
   .lsep{display:inline-block; margin:0 .2em 0 .35em; font-size:9px; color:var(--muted); opacity:.6; vertical-align:.25em}
   .menu .cap{font-size:12.5px; color:var(--muted); margin-top:6px}
   /* rolling-loud style headliners */
   .hlrow{display:block; white-space:normal; margin-bottom:6px; line-height:1.05}
-  .lu.hl{font-size:22px; font-weight:700; opacity:1; color:var(--ink); text-shadow:0 0 22px color-mix(in srgb,var(--dc) 55%,transparent)}
+  .lu.hl{font-size:22px; font-weight:700; opacity:1; color:var(--ink); text-shadow:0 0 22px color-mix(in srgb,var(--accent) 55%,transparent)}
   html.bsd .lu.hl{font-size:31px; font-weight:900; letter-spacing:.015em}
   .lu.t1{font-weight:700} html.bsd .lu.t1{font-weight:900}
   /* menu background: blurred, crossfading music video previews */
@@ -577,12 +579,16 @@
     -webkit-background-clip:text; background-clip:text; animation:diamondShine 5s ease-in-out infinite;
     filter:drop-shadow(0 0 7px rgba(150,220,255,.55)) drop-shadow(0 0 1px rgba(255,255,255,.8))}
   @keyframes diamondShine{0%,62%{background-position:120% 0, 0 0, 0 0} 82%,100%{background-position:-20% 0, 14px 12px, 0 0}}
+  .lu.silver, .lu.bronze{color:transparent !important; opacity:1 !important; text-shadow:none !important;
+    background-size:250% 100%; background-position:100% 0; -webkit-background-clip:text; background-clip:text; animation:goldShine 8s ease-in-out infinite}
+  .lu.silver{background-image:linear-gradient(100deg,#8e96a3 0%,#d9dee6 30%,#ffffff 45%,#c3c9d3 55%,#8e96a3 100%); filter:drop-shadow(0 0 5px rgba(210,220,235,.3))}
+  .lu.bronze{background-image:linear-gradient(100deg,#8a4b22 0%,#c98247 30%,#f3c08f 45%,#b8743d 55%,#8a4b22 100%); filter:drop-shadow(0 0 5px rgba(205,127,50,.3))}
   .lu.gold{color:transparent !important; opacity:1 !important; background:linear-gradient(100deg,#b8862b 0%,#f7d27a 30%,#fff3c4 45%,#f2c14e 55%,#b8862b 100%);
     background-size:250% 100%; background-position:100% 0; -webkit-background-clip:text; background-clip:text; animation:goldShine 7s ease-in-out infinite; text-shadow:none !important;
     filter:drop-shadow(0 0 6px rgba(242,193,78,.35))}
   .lu.gold:nth-child(3n){animation-delay:-2.3s} .lu.gold:nth-child(3n+1){animation-delay:-4.6s}
   @keyframes goldShine{0%,70%{background-position:100% 0} 85%{background-position:0 0} 100%{background-position:0 0}}
-  .lineup .lhead{display:block; font-family:"JetBrains Mono",monospace; font-size:9.5px; letter-spacing:3px; color:var(--dc); opacity:.85; margin:2px 0 4px}
+  .lineup .lhead{display:block; font-family:"JetBrains Mono",monospace; font-size:9.5px; letter-spacing:3px; color:var(--accent); opacity:.85; margin:2px 0 4px}
   .menu .mk{filter:drop-shadow(0 8px 34px color-mix(in srgb,var(--dc) 45%,transparent))}
   #startScreen .sec .si{margin-right:6px; opacity:.85}
   .mcount{display:inline-block; margin-left:6px; font-family:"JetBrains Mono",monospace; font-size:10.5px; padding:2px 7px; border-radius:6px; background:var(--dc); color:#0a0711; vertical-align:1px}
@@ -1197,11 +1203,11 @@ function ensureArtist(a){
   });
   return LOADING[a];
 }
-// mastery: 5+ guesses on an artist and 75%+ right = gold, 90%+ right = diamond
+// mastery (5+ guesses on an artist): 50%+ right = bronze, 65%+ silver, 75%+ gold, 90%+ diamond
 function mastery(){
   var acc={}, out={};
   for(var id in STATS){ var e=STATS[id]; if(!e||!e.s||!e.a) continue; var o=acc[e.a]=acc[e.a]||{c:0,s:0}; o.c+=(e.c||0); o.s+=e.s; }
-  for(var a in acc){ var r=acc[a].c/acc[a].s; if(acc[a].s>=5) out[a] = r>=0.9 ? "diamond" : r>=0.75 ? "gold" : ""; if(!out[a]) delete out[a]; }
+  for(var a in acc){ var r=acc[a].c/acc[a].s; if(acc[a].s>=5) out[a] = r>=0.9 ? "diamond" : r>=0.75 ? "gold" : r>=0.65 ? "silver" : r>=0.5 ? "bronze" : ""; if(!out[a]) delete out[a]; }
   return out;
 }
 function renderArtistList(){            // festival-flyer lineup: headliners on top, biggest and boldest
