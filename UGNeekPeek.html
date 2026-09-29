@@ -549,9 +549,9 @@
   /* perf: the video is drawn small and blurred, then scaled up (blur on a small texture is cheap);
      overlays are static and only the scan bar moves, via transform, so nothing repaints per frame */
   /* TV / broadcast artifacts: grain, scanlines, rolling bar, vignette, and random signal glitches */
-  #tvfx{position:fixed; inset:0; z-index:44; pointer-events:none; display:none}
+  #tvfx{position:fixed; inset:0; z-index:0; pointer-events:none; display:none}     /* behind the UI (.wrap is z 1), above the menu video */
   body.tv-on #tvfx{display:block}
-  #tvgrain{position:absolute; inset:0; width:100%; height:100%; opacity:.07; image-rendering:pixelated; mix-blend-mode:screen}
+  #tvgrain{position:absolute; inset:0; opacity:.06; background-size:220px 220px; mix-blend-mode:screen}
   .tvlines{position:absolute; inset:0; background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
     box-shadow:inset 0 0 140px rgba(0,0,0,.55), inset 0 0 40px rgba(0,0,0,.35)}
   .tvroll{position:absolute; left:0; right:0; top:0; height:18vh; will-change:transform; opacity:.5;
@@ -562,10 +562,8 @@
     background:linear-gradient(90deg,rgba(255,40,90,.0),rgba(255,40,90,.35) 20%,rgba(255,255,255,.28) 50%,rgba(40,220,255,.35) 80%,rgba(40,220,255,0));
     mix-blend-mode:screen; animation:tear .22s steps(3) forwards}
   @keyframes tear{0%{opacity:.9; transform:translateX(-6px)} 50%{opacity:.6; transform:translateX(9px)} 100%{opacity:0; transform:translateX(-3px)}}
-  body.tv-glitch .wrap{animation:tvJit .24s steps(4) 1; filter:drop-shadow(2.5px 0 rgba(255,30,80,.55)) drop-shadow(-2.5px 0 rgba(30,220,255,.5))}
   body.tv-glitch #bgv{animation:tvJit .24s steps(4) 1}
   @keyframes tvJit{0%{transform:translate(0,0) skewX(0)} 25%{transform:translate(-4px,1px) skewX(-1.5deg)} 50%{transform:translate(5px,-1px) skewX(1deg)} 75%{transform:translate(-2px,0) skewX(0)} 100%{transform:none}}
-  body.launching.tv-glitch .wrap{animation:none}
   /* play transition */
   #blackout{position:fixed; inset:0; z-index:95; background:#000; opacity:0; pointer-events:none; transition:opacity .5s ease}
   #blackout.on{opacity:1; pointer-events:auto; transition:opacity .5s cubic-bezier(.4,0,.6,1) .1s}
@@ -875,7 +873,7 @@
 </div>
 
 <div id="vignette" aria-hidden="true"></div>
-<div id="tvfx" aria-hidden="true"><canvas id="tvgrain" width="160" height="120"></canvas><div class="tvlines"></div><div class="tvroll"></div><div class="tvtears"></div></div>
+<div id="tvfx" aria-hidden="true"><div id="tvgrain"></div><div class="tvlines"></div><div class="tvroll"></div><div class="tvtears"></div></div>
 <div id="blackout" aria-hidden="true"><div class="ld">loading</div></div>
 <div id="flash" class="flash"></div>
 <audio id="audio" preload="auto"></audio>
@@ -2078,17 +2076,18 @@ var BGV=(function(){
 })();
 // ---- TV effects: animated grain (tiny canvas scaled up, ~12fps) and random glitch bursts every few seconds ----
 var TVFX=(function(){
-  var cv=$("tvgrain"), cx=cv.getContext("2d"), img=cx.createImageData(cv.width,cv.height), gT=0, bT=0;
-  function grain(){
-    var d=img.data; for(var i=0;i<d.length;i+=4){ var v=Math.random()*255|0; d[i]=d[i+1]=d[i+2]=v; d[i+3]=255; }
-    cx.putImageData(img,0,0); gT=setTimeout(function(){ requestAnimationFrame(grain); }, 80);
-  }
+  // fine grain: 4 noise tiles made once at 1:1 pixels, cycled as a background (no per-frame drawing)
+  var el=$("tvgrain"), frames=[], fi=0, gT=0, bT=0;
+  (function(){ var c=document.createElement("canvas"); c.width=c.height=220; var x=c.getContext("2d");
+    for(var f=0;f<4;f++){ var im=x.createImageData(220,220), d=im.data; for(var i=0;i<d.length;i+=4){ var v=Math.random()*255|0; d[i]=d[i+1]=d[i+2]=v; d[i+3]=255; }
+      x.putImageData(im,0,0); frames.push("url("+c.toDataURL("image/png")+")"); } })();
+  function grain(){ el.style.backgroundImage=frames[fi=(fi+1)%frames.length]; gT=setTimeout(grain, 90); }
   function burst(){
     if(!prefs.tv || document.hidden || document.body.classList.contains("launching")) return schedule();
     var tears=document.querySelector(".tvtears"), n=1+(Math.random()*3|0), h="";
     for(var i=0;i<n;i++) h+="<i style='top:"+(Math.random()*96).toFixed(1)+"%;height:"+(2+Math.random()*10).toFixed(0)+"px;animation-delay:"+(i*45)+"ms'></i>";
     tears.innerHTML=h;
-    if(Math.random()<0.55){ document.body.classList.add("tv-glitch"); setTimeout(function(){ document.body.classList.remove("tv-glitch"); }, 240); }
+    if(Math.random()<0.4){ document.body.classList.add("tv-glitch"); setTimeout(function(){ document.body.classList.remove("tv-glitch"); }, 240); }   // only the background video jitters
     setTimeout(function(){ tears.innerHTML=""; }, 500);
     schedule();
   }
