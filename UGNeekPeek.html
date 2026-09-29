@@ -518,6 +518,8 @@
   /* "I want Minecraft": pixel font for all game text, pixelated cover/vinyl/visualizer, blocky corners */
   body.m-mc #gameScreen, body.m-mc #gameScreen *{font-family:"Pixelify Sans",monospace !important; border-radius:0 !important; letter-spacing:0 !important}
   body.m-mc #gameScreen .brand{-webkit-text-stroke:0}
+  body.m-mc #gameScreen{filter:url(#pixelSm)}
+  body.m-mc .optt{font-size:16px !important} body.m-mc .opta{font-size:13.5px !important} body.m-mc .modeline{font-size:12.5px !important}
   body.m-mc .stage{filter:url(#pixelate)} body.m-mc #gameScreen img{image-rendering:pixelated}
   body.m-mc .optart{filter:url(#pixelate)}
   /* shine sweep: gold theme and "my ears are trained" */
@@ -573,6 +575,10 @@
   <filter id="pixelate" x="0" y="0" width="100%" height="100%">
     <feFlood x="3" y="3" height="1" width="1"/><feComposite width="7" height="7"/><feTile result="a"/>
     <feComposite in="SourceGraphic" in2="a" operator="in"/><feMorphology operator="dilate" radius="3.5"/>
+  </filter>
+  <filter id="pixelSm" x="0" y="0" width="100%" height="100%">
+    <feFlood x="1" y="1" height="1" width="1"/><feComposite width="3" height="3"/><feTile result="a"/>
+    <feComposite in="SourceGraphic" in2="a" operator="in"/><feMorphology operator="dilate" radius="1"/>
   </filter>
   <filter id="chC"><feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter>
 </defs></svg>
