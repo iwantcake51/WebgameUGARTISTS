@@ -105,7 +105,8 @@
     50%{filter:drop-shadow(2.6px .4px rgba(255,45,110,.65)) drop-shadow(-2.6px -.4px rgba(40,220,255,.6))}}
   .center h1 .brand b{color:transparent}
   .logo b{color:var(--accent)}
-  .tools{display:flex; align-items:center; gap:10px}
+  .tools{display:flex; align-items:center; gap:6px; flex:none}
+  .top .logo{flex:none; font-size:20px; line-height:34px}
   .iconbtn{background:var(--surface2); border:none; color:var(--ink); width:34px; height:34px;
     border-radius:6px; cursor:pointer; font-size:15px; display:grid; place-items:center; line-height:1}
   .iconbtn:active{transform:translateY(1px)}
@@ -268,13 +269,15 @@
   .linkbtn{background:none;border:none;color:var(--accent);font-family:"JetBrains Mono",monospace;
     font-size:12px;cursor:pointer;padding:6px 2px;display:inline-block}
 
-  .vol{-webkit-appearance:none; appearance:none; width:110px; height:6px; border-radius:4px;
-    background:var(--surface2); outline:none; cursor:pointer}
+  .vol{-webkit-appearance:none; appearance:none; width:110px; height:5px; border-radius:4px; margin:0;
+    background:linear-gradient(90deg,var(--accent) var(--v,90%),var(--line) var(--v,90%)); outline:none; cursor:pointer}
   .vol::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px; border-radius:50%;
     background:var(--accent); cursor:pointer; box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
   .vol::-moz-range-thumb{width:16px; height:16px; border:none; border-radius:50%; background:var(--accent); cursor:pointer}
-  .volwrap{display:flex; align-items:center; gap:7px; background:var(--surface2); padding:6px 11px; border-radius:7px}
-  .volwrap .ic{font-size:13px}
+  .volwrap{display:flex; align-items:center; gap:6px; background:var(--surface2); height:34px; box-sizing:border-box; padding:0 9px; border-radius:6px}
+  .volwrap .ic{font-size:13px; line-height:1}
+  .volwrap .vol{width:50px}
+  .volwrap .volpct{min-width:28px; font-size:10.5px}
 
   .modal{position:fixed;inset:0;z-index:50;display:none;align-items:flex-end;justify-content:center;
     --mbg:rgba(5,3,10,.6); --mblur:6px; background:var(--mbg); -webkit-backdrop-filter:blur(var(--mblur)); backdrop-filter:blur(var(--mblur))}
@@ -552,6 +555,10 @@
   /* zoom uses only transform + opacity on layers promoted ahead of time, and scrolling is locked,
      so nothing re-rasterizes or reflows (no jump) when it starts */
   html.launching, html.launching body{overflow:hidden !important}
+  #blackout.quick.on{transition:opacity .4s cubic-bezier(.4,0,.6,1)} #blackout.quick .ld{display:none}
+  body.leaving #gameScreen{transform:scale(.96); opacity:.4; transition:transform .45s cubic-bezier(.4,0,.6,1), opacity .45s ease}
+  body.arriving #startScreen .menu{transform:scale(1.04); opacity:0}
+  #startScreen .menu{transition:transform .6s cubic-bezier(.2,.8,.2,1), opacity .5s ease}
   body.prelaunch .wrap{will-change:transform,opacity}
   body.launching .wrap, body.launching #bgv{transform:scale(1.18); opacity:.15;
     transition:transform .75s cubic-bezier(.33,0,.2,1), opacity .6s cubic-bezier(.4,0,.6,1)}
@@ -920,7 +927,7 @@ function renderSwatches(){
   var sw=$("swatches").querySelectorAll(".swatch");
   for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ applyTheme(b.getAttribute("data-t")); }; })(sw[i]); }
 }
-function setVolume(v){ prefs.volume=v; savePrefs(); try{audio.volume=v;}catch(e){} $("vol").value=v; $("vol2").value=v; $("volPct").textContent=$("volPct2").textContent=Math.round(v*100)+"%"; }
+function setVolume(v){ prefs.volume=v; savePrefs(); try{audio.volume=v;}catch(e){} $("vol").value=v; $("vol2").value=v; $("volPct").textContent=$("volPct2").textContent=Math.round(v*100)+"%"; $("vol").style.setProperty("--v",v*100+"%"); $("vol2").style.setProperty("--v",v*100+"%"); }
 var TOGGLES=[
   {k:"autoplay",  label:"Autoplay snippet",   desc:"Play the clip automatically each round"},
   {k:"chroma",    label:"Chromatic reveal",   desc:"RGB-split flourish on the cover"},
@@ -1469,6 +1476,21 @@ function startMultiNow(setObj){
   resizeViz();
   newRound();
 }
+// mute everything while the tab is in the background, unmute when you come back
+document.addEventListener("visibilitychange",function(){ try{ audio.muted=document.hidden; }catch(e){} });
+// ---- back to menu: fade the game (and its audio) to black, swap, fade the menu in ----
+var homing=false;
+function goHomeFade(){
+  if(homing) return; homing=true;
+  var v0=audio.volume||0, t0=performance.now();
+  (function dip(){ var k=Math.min(1,(performance.now()-t0)/450); try{ audio.volume=v0*(1-k); }catch(e){} if(k<1) requestAnimationFrame(dip); })();
+  document.body.classList.add("leaving"); $("blackout").classList.add("on","quick");
+  setTimeout(function(){
+    goHome(); document.body.classList.remove("leaving"); document.body.classList.add("arriving");
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ $("blackout").classList.remove("on"); document.body.classList.remove("arriving"); }); });
+    setTimeout(function(){ $("blackout").classList.remove("quick"); homing=false; }, 600);
+  }, 480);
+}
 function goHome(){ PENDING=[]; fading=false; pendingSrc=null; pendingPlay=false; clearInterval(fadeI); clearTimeout(stopT); cancelAnimationFrame(rafId); try{audio.pause();}catch(e){}
   document.body.classList.remove("playing","lastlife"); renderArtistList(); BGV.resume(); MODS.forEach(function(m){ document.body.classList.remove("m-"+m.k); });
   $("gameScreen").classList.remove("active"); $("startScreen").classList.add("active"); }
@@ -1823,7 +1845,7 @@ $("playBtn").onclick=play;
 $("moreBtn").onclick=hearMore; $("skipBtn").onclick=skipSong;
 $("nextBtn").onclick=function(){ if(wonAll) showWin(); else if(R&&R.over&&R.picked!==R.answer.id) showFail(); else nextSong(); };
 $("failRetry").onclick=function(){ closeModal($("failModal")); if(lastStart) lastStart(); };
-$("failMenu").onclick=function(){ closeModal($("failModal")); goHome(); };
+$("failMenu").onclick=function(){ closeModal($("failModal")); goHomeFade(); };
 // ---- share: the whole run is packed into the link (?r=...), no server needed ----
 function b64u(str){ return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
 function unb64u(str){ str=str.replace(/-/g,"+").replace(/_/g,"/"); while(str.length%4) str+="="; return decodeURIComponent(escape(atob(str))); }
@@ -1898,7 +1920,7 @@ function whenTxt(ms){
 }
 function closeShared(){ closeModal($("shareView")); try{ history.replaceState(null,"",/^\/s\//.test(location.pathname)?"/":location.pathname); }catch(e){} }
 $("svClose").onclick=closeShared;
-$("homeBtn").onclick=goHome; $("logoBtn").onclick=goHome;
+$("homeBtn").onclick=goHomeFade; $("logoBtn").onclick=goHomeFade;
 
 // ---- "Is my song in it?": pick an artist, then search only their in-game songs ----
 (function(){
