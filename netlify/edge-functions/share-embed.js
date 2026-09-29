@@ -3,7 +3,7 @@ import { getStore } from "@netlify/blobs";
 // Adds Discord/iMessage/Twitter link-preview tags to shared score links (/s/<id> short links and long ?r=... links).
 // The run data is packed in the link by shareLink() in UGNeekPeek.html.
 const DIFFS = { easy: "Easy", normal: "Normal", hard: "Hard", extreme: "Extreme" };
-const MODS = { blind: "My ears are trained +10%", peek: "Just a peek −25%", lives: "Extra life −50%", half: "1 second is too much anyways +30%", rand: "Anywhere but the beginning +15%", mc: "I want Minecraft +5%" };
+const MODS = { blind: "My ears are trained +25%", peek: "Just a peek −15%", lives: "Extra life −30%", half: "1 second is too much anyways +30%", rand: "Anywhere but the beginning +15%", mc: "I want Minecraft +25%", skip: "Get out of jail free −20%" };
 const COLORS = { easy: "#39e08b", normal: "#8c5cff", hard: "#ff9a4a", extreme: "#ff466b" };
 
 function decode(r) {
@@ -57,12 +57,15 @@ export default async (request, context) => {
   const score = +d.s || 0;
   const mode = String(d.m || "All artists");
 
-  const title = d.w ? `Perfect run: ${score} points on ${DIFFS[dk]}` : `${score} points on ${DIFFS[dk]}, can you beat it?`;
+  const who = typeof d.n === "string" && d.n.trim() ? d.n.trim().slice(0, 20) : "";
+  const title0 = d.w ? `Perfect run: ${score} points on ${DIFFS[dk]}` : `${score} points on ${DIFFS[dk]}, can you beat it?`;
+  const title = who ? `${who}: ${title0}` : title0;
   const lines = [
     `✅ ${wins.length}/${n} songs right  ·  🔥 best streak ${best}`,
     times.length ? `⚡ avg guess ${avg.toFixed(1)}s  ·  fastest ${Math.min(...times).toFixed(2)}s  ·  ${quick} in ≤1s` : "",
     `🎧 ${mode}`,
     Array.isArray(d.mo) && d.mo.length ? `🎛️ ${d.mo.map((k) => MODS[k]).filter(Boolean).join(", ")}` : "",
+    d.sk ? `⏭️ skipped "${String(d.sk)}"` : d.sk === 0 ? "⏭️ skip not used" : "",
     d.at ? `🕒 ${sharedAt(+d.at, d.tz)}` : "",
     miss ? `❌ went out on "${miss.t}" by ${miss.a}` : "",
   ].filter(Boolean);

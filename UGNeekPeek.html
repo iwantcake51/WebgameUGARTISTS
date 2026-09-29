@@ -188,6 +188,7 @@
     padding:15px; display:flex; align-items:center; justify-content:center; gap:9px}
   .play-btn:active{transform:translateY(1px)}
   .play-btn:disabled{opacity:.4; cursor:default; transform:none}
+  .skip-btn{display:none} body.m-skip .skip-btn{display:block}
   .more-btn{background:var(--surface2); color:var(--ink); padding:0 16px; font-size:13px; white-space:nowrap}
   .more-btn:disabled{opacity:.35; cursor:default}
 
@@ -300,8 +301,26 @@
   .cchip{flex:none;font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--surface2);
     border:1px solid var(--line);color:var(--muted);padding:6px 12px;border-radius:20px;cursor:pointer;white-space:nowrap}
   .cchip.on{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
-  .catsec{margin-bottom:24px}
-  .cathdr{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:16px 0 8px}
+  .catsec{margin-bottom:8px; background:var(--surface2); border:1px solid var(--line); border-radius:14px; padding:0 12px; transition:border-color .2s}
+  .catsec.open{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+  .cathdr{display:flex;align-items:center;gap:10px;width:100%;padding:12px 0 8px;background:none;border:0;color:var(--ink);cursor:pointer;font-family:inherit;text-align:left}
+  .cathdr .cname{flex:1}
+  .cathdr .chev{color:var(--muted);transition:transform .25s;font-size:12px}
+  .catsec.open .chev{transform:rotate(180deg)}
+  .catsec .catbarwrap{margin-bottom:12px}
+  .catrow img,.catrow .noart{width:34px;height:34px;border-radius:7px;object-fit:cover;flex:none;background:var(--surface)}
+  .catstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 4px}
+  .catstats div{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center}
+  .catstats b{display:block;font-size:19px} .catstats span{font-family:"JetBrains Mono",monospace;font-size:9.5px;color:var(--muted)}
+  .recent{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:thin}
+  .rcard{flex:none;width:96px}
+  .rimg{position:relative;width:96px;height:96px;border-radius:12px;overflow:hidden;background:var(--surface2);border:2px solid var(--good)}
+  .rcard.lost .rimg{border-color:var(--bad)}
+  .rimg img{width:100%;height:100%;object-fit:cover;display:block}
+  .rbadge{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--good);color:#0a0711}
+  .rcard.lost .rbadge{background:var(--bad);color:#fff}
+  .rt{font-size:12px;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ra{font-size:10.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .cname{font-weight:700;font-size:16px;letter-spacing:-.3px}
   .cprog{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);white-space:nowrap;flex:none}
   .catbarwrap{height:5px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-bottom:14px}
@@ -357,6 +376,7 @@
   .failtop h2{margin:0; font-size:30px; letter-spacing:-1px; color:var(--bad)}
   #failModal.won .failtop h2{color:var(--good)}
   #shareView .failtop h2{color:var(--accent)} #shareView.won .failtop h2{color:var(--good)}
+  .skipnote{font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--muted); margin-top:6px} .skipnote b{color:var(--ink)}
   .svkick{font-family:"JetBrains Mono",monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:4px}
   .svhero{font-size:54px; font-weight:800; letter-spacing:-2px; line-height:1; margin:8px 0 2px; color:var(--ink)}
   .svhero small{display:block; font-family:"JetBrains Mono",monospace; font-size:10px; letter-spacing:1px; font-weight:400; color:var(--muted); margin-top:4px}
@@ -642,6 +662,7 @@
     <div class="play">
       <button class="btn play-btn" id="playBtn">&#9654; Play</button>
       <button class="btn more-btn" id="moreBtn">+ hear more</button>
+      <button class="btn more-btn skip-btn" id="skipBtn" title="one skip per run">&#9197; skip</button>
     </div>
     <div class="opts" id="opts"></div>
     <button class="btn next" id="nextBtn">Next song &rarr;</button>
@@ -693,6 +714,8 @@
   <div class="sheet">
     <div class="sheethead"><div>Settings</div><button id="settingsClose" class="linkbtn">close</button></div>
     <div class="sheetbody">
+      <div class="setlabel">Username</div>
+      <input id="nameInput" class="catsearch" type="text" maxlength="20" placeholder="Shown when you share a score" autocomplete="off" style="margin-bottom:22px">
       <div class="setlabel">Gameplay &amp; effects</div>
       <div id="toggles"></div>
       <div class="setlabel" style="margin-top:20px">Background theme</div>
@@ -724,7 +747,7 @@
 <div id="shareView" class="modal mid">
   <div class="sheet">
     <div class="failtop">
-      <div class="svkick">a friend sent you a score</div>
+      <div class="svkick" id="svKick">a friend sent you a score</div>
       <h2 id="svTitle">Can you beat this?</h2>
       <div class="failsub" id="svSub"></div>
       <div class="svhero" id="svScore">0<small>points</small></div>
@@ -802,8 +825,8 @@ function setFavicon(c){
 }
 
 // ---- prefs ----
-var prefs={theme:"plum", volume:0.9, autoplay:false, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, diff:"normal"}, VIZ_ACCENT="#8c5cff";
-try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; ["autoplay","chroma","holo","bw","anim","dim","confetti","clicks"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
+var prefs={theme:"plum", volume:0.9, autoplay:false, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", diff:"normal"}, VIZ_ACCENT="#8c5cff";
+try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); ["autoplay","chroma","holo","bw","anim","dim","confetti","clicks"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
 function savePrefs(){ try{ localStorage.setItem("drop_prefs", JSON.stringify(prefs)); }catch(e){} }
 function applyTheme(id){
   var th=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){th=THEMES[i];break;} } if(!th) th=THEMES[0];
@@ -845,7 +868,10 @@ function applyPrefs(){ document.body.classList.toggle("noholo", !prefs.holo); do
 var STATS={};
 try{ STATS=JSON.parse(localStorage.getItem("drop_stats")||"{}")||{}; }catch(e){ STATS={}; }
 function saveStats(){ try{ localStorage.setItem("drop_stats", JSON.stringify(STATS)); }catch(e){} }
-function bump(track,correct){ var e=STATS[track.id]; if(!e){ e=STATS[track.id]={c:0,s:0}; } e.t=track.title; e.a=track.artist; e.cr=track.credit; e.al=track.album; e.art=track.art; e.at=Date.now(); e.s=(e.s||0)+1; if(correct) e.c=(e.c||0)+1; saveStats(); }
+var RECENT=[]; try{ RECENT=JSON.parse(localStorage.getItem("drop_recent")||"[]")||[]; }catch(e){ RECENT=[]; }
+function logRecent(track,correct){ RECENT.unshift({id:track.id,t:track.title,a:track.artist,cr:track.credit,art:track.art,w:correct?1:0,at:Date.now()}); RECENT=RECENT.slice(0,40);
+  try{ localStorage.setItem("drop_recent", JSON.stringify(RECENT)); }catch(e){} }
+function bump(track,correct){ logRecent(track,correct); var e=STATS[track.id]; if(!e){ e=STATS[track.id]={c:0,s:0}; } e.t=track.title; e.a=track.artist; e.cr=track.credit; e.al=track.album; e.art=track.art; e.at=Date.now(); e.s=(e.s||0)+1; if(correct) e.c=(e.c||0)+1; saveStats(); }
 
 // ================= NETWORK =================
 var DIAG=[], RAW=0;
@@ -1216,7 +1242,7 @@ function closeModal(el){
   el.classList.add("closing"); clearTimeout(el._ct);
   el._ct=setTimeout(function(){ el.classList.remove("open","closing"); }, 220);
 }
-function resetRun(){ runLog=[]; runSeen={}; runDone={}; wonAll=false; runBest0=BEST[curDiff()]||0; $("failModal").classList.remove("open","won"); }
+function resetRun(){ skipUsed=null; runLog=[]; runSeen={}; runDone={}; wonAll=false; runBest0=BEST[curDiff()]||0; $("failModal").classList.remove("open","won"); }
 
 function sample(arr,n){ var p=arr.slice(); for(var i=p.length-1;i>0;i--){var j=Math.random()*(i+1)|0;var t=p[i];p[i]=p[j];p[j]=t;} return p.slice(0,n); }
 function shuffle(a){ for(var i=a.length-1;i>0;i--){var j=Math.random()*(i+1)|0;var t=a[i];a[i]=a[j];a[j]=t;} return a; }
@@ -1244,17 +1270,19 @@ function multTxt(d){ var m=multOf(d); return "\u00d7"+(m%1?m.toFixed(m*100%10?2:
 function ptsAt(i){ return Math.round(PTS[Math.min(i,PTS.length-1)]*multOf()*modMult()); }
 // ---- modifiers ----
 var MODS=[
-  {k:"blind", icon:"\uD83D\uDE48", label:"My ears are trained", mult:1.10, desc:"Artist names are hidden on every choice. Only counts with 3+ artists (all artists, or 3+ picked in Choose artists)."},
-  {k:"peek",  icon:"\uD83D\uDDBC\uFE0F", label:"Just a peek", mult:0.75, desc:"The album cover and artist show as soon as the round starts, but the choices lose their covers."},
-  {k:"lives", icon:"\u2764\uFE0F", label:"Extra life", mult:0.5,  desc:"One extra guess per song. A miss greys out that choice and unlocks the next snippet length."},
+  {k:"blind", icon:"\uD83D\uDE48", label:"My ears are trained", mult:1.25, desc:"Artist names are hidden on every choice. Only counts with 3+ artists (all artists, or 3+ picked in Choose artists)."},
+  {k:"peek",  icon:"\uD83D\uDDBC\uFE0F", label:"Just a peek", mult:0.85, desc:"The album cover and artist show as soon as the round starts, but the choices lose their covers."},
+  {k:"lives", icon:"\u2764\uFE0F", label:"Extra life", mult:0.7,  desc:"One extra guess per song. A miss greys out that choice and unlocks the next snippet length."},
   {k:"half",  icon:"\u23F1\uFE0F", label:"1 second is too much anyways", mult:1.3, desc:"You only get the 0.5 second snippet. No hearing more, no ifs, ands or buts."},
   {k:"rand",  icon:"\uD83C\uDFB2", label:"Anywhere but the beginning", mult:1.15, desc:"The snippet starts at a random spot between 0 and 15 seconds into the song."},
-  {k:"mc",    icon:"\u26CF\uFE0F", label:"I want Minecraft", mult:1.05, desc:"Everything in the game gets pixelated, text included."}
+  {k:"mc",    icon:"\u26CF\uFE0F", label:"I want Minecraft", mult:1.25, desc:"Everything in the game gets pixelated, text included."},
+  {k:"skip",  icon:"\u23ED\uFE0F", label:"Get out of jail free", mult:0.8, desc:"One skip per run: pass on a song you don't know without losing. The end screen and shared scores show if you used it."}
 ];
 function modPct(m){ return (m.mult>1?"+":"\u2212")+Math.round(Math.abs(m.mult-1)*100)+"%"; }
 function modActive(k){ if(!prefs.mods[k]) return false; if(k==="blind") return mode!=="artist" && includedArtists().length>=3; return true; }
 function activeMods(){ return MODS.filter(function(m){ return modActive(m.k); }); }
 function modMult(){ return activeMods().reduce(function(a,m){ return a*m.mult; },1); }
+function skipTxt(used){ return used ? "<div class='skipnote'>\u23ED\uFE0F skip used on <b>"+escapeHtml(String(used))+"</b></div>" : ""; }
 function modTags(keys){ var ms=MODS.filter(function(m){ return keys.indexOf(m.k)!==-1; }); if(!ms.length) return "";
   return "<div class='modtags'>"+ms.map(function(m){ return "<span class='modtag"+(m.k==="blind"?" shiny":"")+"'>"+m.icon+" "+m.label+" "+modPct(m)+"</span>"; }).join("")+"</div>"; }
 function applyMods(){
@@ -1415,6 +1443,7 @@ function render(){
   });
   $("moreBtn").disabled = R.over || R.unlocked>=STAGES.length-1 || modActive("half");
   $("playBtn").disabled = R.over;
+  $("skipBtn").disabled = R.over || !!skipUsed; $("skipBtn").innerHTML = skipUsed ? "skip used" : "&#9197; skip";
   $("score").textContent=score; $("acc").textContent=solved+"/"+played; renderStreak();
   $("lives").innerHTML = modActive("lives") ? " &nbsp;\u00b7&nbsp; "+(R.over?"":(R.lives>1?"\u2764\uFE0F\u2764\uFE0F":"\u2764\uFE0F\uD83D\uDDA4")) : "";
 }
@@ -1492,6 +1521,12 @@ function finishFade(){
   if(pendingSrc){ audio.src=pendingSrc; audio.load(); pendingSrc=null; }
   if(pendingPlay){ pendingPlay=false; play(); }
 }
+var skipUsed=null;            // title of the song skipped this run (Get out of jail free)
+function skipSong(){
+  if(!R||R.over||skipUsed||!modActive("skip")) return;
+  skipUsed=R.answer.title+" by "+(R.answer.credit||R.answer.artist); runSeen[R.answer.id]=1;
+  R.over=true; nextSong();
+}
 function nextSong(){
   clearInterval(fadeI); cancelAnimationFrame(rafId); clearTimeout(stopT);
   if(!audio.paused){
@@ -1508,7 +1543,7 @@ function showWin(){
   var n=runLog.length, wins=runLog.filter(function(x){return x.win;});
   var avg=wins.length?wins.reduce(function(s,x){return s+x.secs;},0)/wins.length:0;
   $("failTitle").textContent="Every song, no misses"; $("failModal").classList.add("won"); $("failRetry").innerHTML="&#8635; Play again";
-  $("failSub").innerHTML="You got all <b>"+n+"</b> "+escapeHtml(pickArtist||"")+" songs on "+DIFFS[curDiff()].label+(wins.length?"<br>average "+avg.toFixed(2)+"s per song":"")+modTags(activeMods().map(function(m){return m.k;}));
+  $("failSub").innerHTML="You got all <b>"+n+"</b> "+escapeHtml(pickArtist||"")+" songs on "+DIFFS[curDiff()].label+(wins.length?"<br>average "+avg.toFixed(2)+"s per song":"")+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"");
 }
 // ---- fail screen ----
 function showFail(){
@@ -1519,7 +1554,7 @@ function showFail(){
   var avg=wins.length?wins.reduce(function(s,x){return s+x.secs;},0)/wins.length:0;
   $("fScore").textContent=score; $("fBest").textContent=BEST[dk]||0; $("fSolved").textContent=solved;
   $("fBestLbl").textContent="best ("+DIFFS[dk].label+")"; $("fBestBox").classList.toggle("new",isNew);
-  $("failSub").innerHTML = last ? "It was <b>"+escapeHtml(last.t.title)+"</b> by "+escapeHtml(last.t.credit||last.t.artist)+(wins.length?"<br>fastest "+fast.toFixed(2)+"s, average "+avg.toFixed(2)+"s":"")+modTags(activeMods().map(function(m){return m.k;})) : "";
+  $("failSub").innerHTML = last ? "It was <b>"+escapeHtml(last.t.title)+"</b> by "+escapeHtml(last.t.credit||last.t.artist)+(wins.length?"<br>fastest "+fast.toFixed(2)+"s, average "+avg.toFixed(2)+"s":"")+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"") : "";
   $("failList").innerHTML="<div class='sslabel'>This run: "+runLog.length+" song"+(runLog.length===1?"":"s")+"</div>"+runLog.slice().reverse().map(function(x){
     var st=STATS[x.t.id]||{}, miss=(st.s||0)-(st.c||0);
     return "<div class='sres"+(x.win?"":" lost")+"'><img src='"+escapeHtml(x.t.art)+"' alt=''><div class='st'><div class='stt'>"+(x.win?"\u2713 ":"\u2717 ")+escapeHtml(x.t.title)+"</div><div class='sta'>"+escapeHtml(x.t.credit||x.t.artist)+"</div></div>"+
@@ -1537,38 +1572,57 @@ function histEntries(){
     var t=e.t, a=e.a;
     if(!t){ for(var k in byArtist){ var f=byArtist[k].tracks.filter(function(x){ return String(x.id)===String(id); })[0]; if(f){ t=f.title; a=f.artist; e.cr=f.credit; e.al=f.album; break; } } }
     if(!t) continue;
-    out.push({id:id,t:t,a:a||"?",cr:e.cr||a,al:e.al||"",c:e.c||0,s:e.s||0,at:e.at||0}); }
+    out.push({id:id,t:t,a:a||"?",cr:e.cr||a,al:e.al||"",art:e.art||"",c:e.c||0,s:e.s||0,at:e.at||0}); }
   return out;
 }
+var catOpen={};
+function agoTxt(ms){ var d=(Date.now()-ms)/1000; return d<60?"now":d<3600?Math.floor(d/60)+"m":d<86400?Math.floor(d/3600)+"h":Math.floor(d/86400)+"d"; }
 function openCatalog(){
-  var all=histEntries(), q=($("catSearch").value||"").trim().toLowerCase();
+  var all=histEntries(), q=($("catSearch").value||"").trim().toLowerCase(), E=escapeHtml;
   var tot=all.length, right=0, miss=0; all.forEach(function(x){ right+=x.c; miss+=x.s-x.c; });
   var artists=[]; all.forEach(function(x){ if(artists.indexOf(x.a)===-1) artists.push(x.a); });
   artists.sort(function(x,y){ return ARTISTS.indexOf(x)-ARTISTS.indexOf(y); });
   if(catFilter!=="__all" && artists.indexOf(catFilter)===-1) catFilter="__all";
   var keepLeft=$("catFilterRow").scrollLeft;
   var chips="<button class='cchip"+(catFilter==="__all"?" on":"")+"' data-f='__all'>All</button>";
-  artists.forEach(function(a){ chips+="<button class='cchip"+(catFilter===a?" on":"")+"' data-f='"+escapeHtml(a)+"'>"+escapeHtml(a)+"</button>"; });
+  artists.forEach(function(a){ chips+="<button class='cchip"+(catFilter===a?" on":"")+"' data-f='"+E(a)+"'>"+E(a)+"</button>"; });
   $("catFilterRow").innerHTML=chips; $("catFilterRow").scrollLeft=keepLeft;
   var cr=$("catFilterRow").querySelectorAll(".cchip");
   for(var i=0;i<cr.length;i++){ (function(b){ b.onclick=function(){ catFilter=b.getAttribute("data-f"); openCatalog(); }; })(cr[i]); }
   var list=all.filter(function(x){ return (catFilter==="__all"||x.a===catFilter) &&
     (!q || (x.t+" "+x.cr+" "+x.a+" "+x.al).toLowerCase().indexOf(q)!==-1); });
   var body="";
-  if(!tot) body="<div class='roundwait'>Nothing yet \u2014 songs you hear while playing show up here.</div>";
+  if(!tot) body="<div class='roundwait'>Nothing yet — songs you hear while playing show up here.</div>";
+  else if(!q && catFilter==="__all"){
+    var acc=right+miss?Math.round(right/(right+miss)*100):0;
+    body+="<div class='catstats'>"+[[tot,"songs found"],[right,"got right"],[miss,"missed"],[acc+"%","accuracy"]].map(function(c){ return "<div><b>"+c[0]+"</b><span>"+c[1]+"</span></div>"; }).join("")+"</div>";
+    if(RECENT.length){
+      body+="<div class='sslabel'>Recent</div><div class='recent'>"+RECENT.slice(0,20).map(function(r){
+        return "<div class='rcard"+(r.w?" got":" lost")+"'><div class='rimg'>"+(r.art?"<img src='"+E(r.art)+"' alt='' loading='lazy'>":"")+"<span class='rbadge'>"+(r.w?"✓":"✗")+"</span></div>"+
+          "<div class='rt'>"+E(r.t)+"</div><div class='ra'>"+E(r.cr||r.a)+" · "+agoTxt(r.at)+"</div></div>"; }).join("")+"</div>";
+    }
+    body+="<div class='sslabel'>By artist</div>";
+  }
+  var forceOpen = !!q || catFilter!=="__all";
   (catFilter==="__all"?artists:[catFilter]).forEach(function(a){
     var rows=list.filter(function(x){ return x.a===a; }); if(!rows.length) return;
     rows.sort(function(x,y){ return (y.s-y.c)-(x.s-x.c) || y.at-x.at; });
     var c=0,sn=0; rows.forEach(function(x){ c+=x.c; sn+=x.s; });
-    body+="<div class='catsec'><div class='cathdr'><span class='cname'>"+escapeHtml(a)+"</span><span class='cprog'>"+rows.length+" found \u00b7 "+Math.round(c/sn*100)+"% right</span></div>";
-    body+="<div class='catbarwrap'><div class='catbar' style='width:"+Math.round(c/sn*100)+"%'></div></div><div class='catsongs'>";
-    rows.forEach(function(x){ var m=x.s-x.c;
-      body+="<div class='catrow"+(x.c>0?" got":"")+"'><span class='ct'>"+escapeHtml(x.t)+"</span><span class='cc'>"+(x.c?"\u2713"+x.c:"")+(m?" <span class='miss'>\u2717"+m+"</span>":"")+"</span></div>"; });
-    body+="</div></div>";
+    var open=forceOpen||catOpen[a], pct=Math.round(c/sn*100);
+    body+="<div class='catsec"+(open?" open":"")+"'><button class='cathdr' data-a='"+E(a)+"'><span class='cname'>"+E(a)+"</span><span class='cprog'>"+rows.length+" · "+pct+"%</span><span class='chev'>▾</span></button>";
+    body+="<div class='catbarwrap'><div class='catbar' style='width:"+pct+"%'></div></div>";
+    if(open){ body+="<div class='catsongs'>";
+      rows.forEach(function(x){ var m=x.s-x.c;
+        body+="<div class='catrow"+(x.c>0?" got":"")+"'>"+(x.art?"<img src='"+E(x.art)+"' alt='' loading='lazy'>":"<span class='noart'></span>")+"<span class='ct'>"+E(x.t)+"</span><span class='cc'>"+(x.c?"✓"+x.c:"")+(m?" <span class='miss'>✗"+m+"</span>":"")+"</span></div>"; });
+      body+="</div>"; }
+    body+="</div>";
   });
-  if(tot && !body) body="<div class='roundwait'>No matches.</div>";
-  $("catalogHead").innerHTML="Your history <span style='color:var(--muted);font-family:JetBrains Mono,monospace;font-size:11px;font-weight:400;margin-left:6px'>"+tot+" found \u00b7 \u2713"+right+" \u00b7 \u2717"+miss+"</span>";
-  $("catalogBody").innerHTML=body; openModal($("catalog"));
+  if(tot && !list.length) body+="<div class='roundwait'>No matches.</div>";
+  $("catalogHead").innerHTML="Your history";
+  var st=$("catalogBody").scrollTop; $("catalogBody").innerHTML=body; $("catalogBody").scrollTop=st;
+  var hs=$("catalogBody").querySelectorAll(".cathdr");
+  for(var j=0;j<hs.length;j++){ (function(h){ h.onclick=function(){ var a=h.getAttribute("data-a"); catOpen[a]=!catOpen[a]; CLICK.toggle(catOpen[a]); openCatalog(); }; })(hs[j]); }
+  openModal($("catalog"));
   syncCatSlider();
 }
 function syncCatSlider(){ var row=$("catFilterRow"), max=row.scrollWidth-row.clientWidth; $("catSlider").style.visibility=max>2?"visible":"hidden"; $("catSlider").value = max>0 ? Math.round(row.scrollLeft/max*1000) : 0; }
@@ -1622,7 +1676,7 @@ $("filAll").onclick=function(){ filterSetAll(true); };
 $("filNone").onclick=function(){ filterSetAll(false); };
 $("filStart").onclick=filStart;
 $("playBtn").onclick=play;
-$("moreBtn").onclick=hearMore;
+$("moreBtn").onclick=hearMore; $("skipBtn").onclick=skipSong;
 $("nextBtn").onclick=function(){ if(wonAll) showWin(); else if(R&&R.over&&R.picked!==R.answer.id) showFail(); else nextSong(); };
 $("failRetry").onclick=function(){ closeModal($("failModal")); if(lastStart) lastStart(); };
 $("failMenu").onclick=function(){ closeModal($("failModal")); goHome(); };
@@ -1634,7 +1688,7 @@ function packArt(u){ var m=ART_RE.exec(u||""); return m ? m[1]+m[2] : ""; }
 function unpackArt(a){ a=String(a||""); return /^\d[\w.\-\/]+$/.test(a) ? "https://is"+a[0]+"-ssl.mzstatic.com/image/thumb/"+a.slice(1)+"/400x400bb.jpg" : ""; }
 function shareLink(){
   var m = mode==="artist" ? pickArtist : mode==="multi" ? $("modeLabel").textContent : "All artists";
-  var d={v:1, s:score, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(), tz:new Date().getTimezoneOffset(), mo:activeMods().map(function(m){return m.k;}),
+  var d={v:1, s:score, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(), tz:new Date().getTimezoneOffset(), mo:activeMods().map(function(m){return m.k;}), n:(prefs.name||"").trim(), sk:modActive("skip")?(skipUsed||0):undefined,
     r:runLog.map(function(x,i){ return [x.t.id, x.t.title, x.t.credit||x.t.artist, x.win?1:0, Math.round(x.secs*100), x.clip, x.pts, i>=runLog.length-15?packArt(x.t.art):""]; })};
   return location.origin+location.pathname+"?r="+b64u(JSON.stringify(d));
 }
@@ -1668,7 +1722,8 @@ function showShared(){
   $("shareView").classList.toggle("won",!!d.w);
   $("svTitle").textContent = d.w ? "Perfect run" : "Can you beat this?";
   $("svSub").innerHTML = "<b>"+E(String(d.m||"All artists"))+"</b> on <b>"+DIFFS[dk].label+"</b>"+(d.at?"<br>shared "+E(whenTxt(+d.at)):"")+
-    (miss?"<br>went out on <b>"+E(miss.t)+"</b>":"")+(Array.isArray(d.mo)?modTags(d.mo.map(String)):"");
+    (miss?"<br>went out on <b>"+E(miss.t)+"</b>":"")+(Array.isArray(d.mo)?modTags(d.mo.map(String)):"")+(d.sk?skipTxt(d.sk):d.sk===0?"<div class='skipnote'>\u23ED\uFE0F skip not used</div>":"");
+  $("svKick").textContent = d.n ? String(d.n).slice(0,20)+" sent you a score" : "a friend sent you a score";
   $("svScore").innerHTML=(+d.s||0)+"<small>points</small>";
   $("svSolved").textContent=wins.length+"/"+n; $("svStreak").textContent=best; $("svAvg").textContent=times.length?avg.toFixed(1)+"s":"-";
   $("svAccBar").style.width=(n?wins.length/n*100:0)+"%";
@@ -1741,6 +1796,8 @@ $("pickerClose").onclick=closePicker; $("picker").onclick=function(e){ if(e.targ
 $("setBtn").onclick=openSettings; $("setBtn2").onclick=openSettings; $("settingsClose").onclick=closeSettings;
 $("settings").onclick=function(e){ if(e.target===$("settings")) closeSettings(); };
 $("vol").oninput=function(){ setVolume(parseFloat(this.value)); };
+$("nameInput").value=prefs.name||"";
+$("nameInput").oninput=function(){ prefs.name=this.value.replace(/\s+/g," ").slice(0,20); savePrefs(); };
 $("vol2").oninput=function(){ setVolume(parseFloat(this.value)); };
 
 // ---- background sway ----
