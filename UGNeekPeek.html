@@ -540,6 +540,15 @@
   /* menu background: blurred, crossfading music video previews */
   /* perf: the video is drawn small and blurred, then scaled up (blur on a small texture is cheap);
      overlays are static and only the scan bar moves, via transform, so nothing repaints per frame */
+  /* play transition */
+  #blackout{position:fixed; inset:0; z-index:95; background:#000; opacity:0; pointer-events:none; transition:opacity .5s ease}
+  #blackout.on{opacity:1; pointer-events:auto; transition:opacity .45s ease .15s}
+  #blackout .ld{position:absolute; left:0; right:0; top:50%; text-align:center; font-family:"JetBrains Mono",monospace; font-size:11px; letter-spacing:4px;
+    text-transform:uppercase; color:rgba(255,255,255,.55); opacity:0}
+  #blackout.on .ld{animation:ldIn .6s ease 1.2s forwards, ldPulse 1.4s ease-in-out 1.8s infinite}
+  @keyframes ldIn{to{opacity:1}} @keyframes ldPulse{0%,100%{opacity:.35} 50%{opacity:.9}}
+  body.launching .wrap, body.launching #bgv{transform:scale(1.22); opacity:.25; filter:blur(3px);
+    transition:transform .6s cubic-bezier(.55,0,.8,.2), opacity .6s ease, filter .6s ease}
   #bgv{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; opacity:0; transition:opacity 1.2s ease; contain:strict}
   body.bgv-on:not(.playing) #bgv{opacity:1}
   #bgv video{position:absolute; left:50%; top:50%; width:40vw; height:40vh; object-fit:cover; opacity:0; transition:opacity 1.4s ease;
@@ -828,6 +837,7 @@
 </div>
 
 <div id="vignette" aria-hidden="true"></div>
+<div id="blackout" aria-hidden="true"><div class="ld">loading</div></div>
 <div id="flash" class="flash"></div>
 <audio id="audio" preload="auto"></audio>
 
@@ -1411,7 +1421,20 @@ function chooseArtist(){
   return list[Math.random()*list.length|0];
 }
 function prefetchNext(){ NEXT=chooseArtist(); if(NEXT) ensureArtist(NEXT); }
-function startGame(artistKey){
+// ---- play transition: menu zooms in, screen fades to black, game fades in once the first song has loaded ----
+var waitReveal=false, revealT=0;
+function menuTransition(go){
+  if(!$("startScreen").classList.contains("active")){ go(); return; }
+  document.body.classList.add("launching"); $("blackout").classList.add("on");
+  setTimeout(function(){
+    waitReveal=true; go(); document.body.classList.remove("launching");
+    clearTimeout(revealT); revealT=setTimeout(revealGame, 12000);        // never stay black forever
+  }, 600);
+}
+function revealGame(){ if(!waitReveal) return; waitReveal=false; clearTimeout(revealT); $("blackout").classList.remove("on"); }
+function startGame(artistKey){ menuTransition(function(){ startGameNow(artistKey); }); }
+function startMulti(setObj){ menuTransition(function(){ startMultiNow(setObj); }); }
+function startGameNow(artistKey){
   mode = artistKey ? "artist" : "all"; pickArtist=artistKey||null; multiSet=null;
   lastStart=function(){ startGame(artistKey); }; resetRun();
   usedCycle={}; recent=[]; lastAnswerId=null; lastArtist=null; NEXT=null; score=0; streak=0; played=0; solved=0;
@@ -1421,7 +1444,7 @@ function startGame(artistKey){
   resizeViz();
   newRound();
 }
-function startMulti(setObj){
+function startMultiNow(setObj){
   mode="multi"; pickArtist=null; multiSet=setObj;
   lastStart=function(){ startMulti(setObj); }; resetRun();
   usedCycle={}; recent=[]; lastAnswerId=null; lastArtist=null; NEXT=null; score=0; streak=0; played=0; solved=0;
@@ -1500,6 +1523,10 @@ function setupRound(a){
   render(); paintBar();
   if(prefs.autoplay){ if(fading) pendingPlay=true; else play(); }
   prefetchNext();
+  if(waitReveal){                                   // first round after pressing play: reveal once the song can play
+    var ready=function(){ audio.removeEventListener("canplay",ready); setTimeout(revealGame,150); };
+    if(audio.readyState>=3) ready(); else { audio.addEventListener("canplay",ready); setTimeout(revealGame,4000); }
+  }
   return true;
 }
 var PREVIEW_LEN=30, SPANS=[1.5,3,6,10,15,15], viewSpan=1.5, targetSpan=1.5, availSec=0.5, TICKS=[];
