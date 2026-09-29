@@ -936,7 +936,15 @@ function saveStats(){ try{ localStorage.setItem("drop_stats", JSON.stringify(STA
 var RECENT=[]; try{ RECENT=JSON.parse(localStorage.getItem("drop_recent")||"[]")||[]; }catch(e){ RECENT=[]; }
 function logRecent(track,correct){ RECENT.unshift({id:track.id,t:track.title,a:track.artist,cr:track.credit,art:track.art,vu:track.viewUrl||"",w:correct?1:0,at:Date.now()}); RECENT=RECENT.slice(0,40);
   try{ localStorage.setItem("drop_recent", JSON.stringify(RECENT)); }catch(e){} }
-function bump(track,correct){ logRecent(track,correct); var e=STATS[track.id]; if(!e){ e=STATS[track.id]={c:0,s:0}; } e.t=track.title; e.a=track.artist; e.cr=track.credit; e.al=track.album; e.art=track.art; if(track.viewUrl) e.vu=track.viewUrl; e.at=Date.now(); e.s=(e.s||0)+1; if(correct) e.c=(e.c||0)+1; saveStats(); }
+// stats only count finished games: guesses wait in PENDING until the run ends (wrong guess or every song done),
+// and are thrown away if you leave or restart mid-run
+var PENDING=[];
+function bump(track,correct){ PENDING.push([track,correct]); }
+function commitRun(){
+  PENDING.forEach(function(p){ saveGuess(p[0],p[1]); }); PENDING=[];
+  var dk=curDiff(); if(score>(BEST[dk]||0)){ BEST[dk]=score; saveBest(); }
+}
+function saveGuess(track,correct){ logRecent(track,correct); var e=STATS[track.id]; if(!e){ e=STATS[track.id]={c:0,s:0}; } e.t=track.title; e.a=track.artist; e.cr=track.credit; e.al=track.album; e.art=track.art; if(track.viewUrl) e.vu=track.viewUrl; e.at=Date.now(); e.s=(e.s||0)+1; if(correct) e.c=(e.c||0)+1; saveStats(); }
 
 // ================= NETWORK =================
 var DIAG=[], RAW=0;
@@ -1317,7 +1325,7 @@ function closeModal(el){
   el.classList.add("closing"); clearTimeout(el._ct);
   el._ct=setTimeout(function(){ el.classList.remove("open","closing"); }, 220);
 }
-function resetRun(){ skipUsed=null; runLog=[]; runSeen={}; runDone={}; wonAll=false; runBest0=BEST[curDiff()]||0; $("failModal").classList.remove("open","won"); }
+function resetRun(){ PENDING=[]; skipUsed=null; runLog=[]; runSeen={}; runDone={}; wonAll=false; runBest0=BEST[curDiff()]||0; $("failModal").classList.remove("open","won"); }
 
 function sample(arr,n){ var p=arr.slice(); for(var i=p.length-1;i>0;i--){var j=Math.random()*(i+1)|0;var t=p[i];p[i]=p[j];p[j]=t;} return p.slice(0,n); }
 function shuffle(a){ for(var i=a.length-1;i>0;i--){var j=Math.random()*(i+1)|0;var t=a[i];a[i]=a[j];a[j]=t;} return a; }
@@ -1424,7 +1432,7 @@ function startMulti(setObj){
   resizeViz();
   newRound();
 }
-function goHome(){ fading=false; pendingSrc=null; pendingPlay=false; clearInterval(fadeI); clearTimeout(stopT); cancelAnimationFrame(rafId); try{audio.pause();}catch(e){}
+function goHome(){ PENDING=[]; fading=false; pendingSrc=null; pendingPlay=false; clearInterval(fadeI); clearTimeout(stopT); cancelAnimationFrame(rafId); try{audio.pause();}catch(e){}
   document.body.classList.remove("playing","lastlife"); renderArtistList(); BGV.resume(); MODS.forEach(function(m){ document.body.classList.remove("m-"+m.k); });
   $("gameScreen").classList.remove("active"); $("startScreen").classList.add("active"); }
 
@@ -1562,8 +1570,9 @@ function guess(o){
   runSeen[R.answer.id]=1;
   if(win && mode==="artist"){ var pa=windowed(byArtist[pickArtist].tracks); wonAll=pa.every(function(t){ return runSeen[t.id]; });
     $("modeLabel").textContent=pickArtist+"  "+pa.filter(function(t){ return runSeen[t.id]; }).length+" of "+pa.length; }
-  if(win){ score+=pts; streak++; solved++; var dk=curDiff(); if(score>(BEST[dk]||0)){ BEST[dk]=score; saveBest(); } }
+  if(win){ score+=pts; streak++; solved++; }
   else { streak=0; if(mode==="artist"){ usedCycle={}; } }
+  if(!win || wonAll) commitRun();          // the run is over: now it counts
   end(win);
 }
 function end(win){
@@ -1624,6 +1633,7 @@ function showWin(){
 function showFail(){
   if($("failModal").classList.contains("open")) return;
   $("failTitle").textContent="Wrong song"; $("failModal").classList.remove("won"); $("failRetry").innerHTML="&#8635; Retry";
+  commitRun();
   var dk=curDiff(), isNew=score>runBest0 && score>0, last=runLog[runLog.length-1], wins=runLog.filter(function(x){return x.win;});
   var fast=wins.length?Math.min.apply(null,wins.map(function(x){return x.secs;})):0;
   var avg=wins.length?wins.reduce(function(s,x){return s+x.secs;},0)/wins.length:0;
