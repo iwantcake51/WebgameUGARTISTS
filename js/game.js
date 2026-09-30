@@ -174,7 +174,7 @@ function startGameNow(artistKey){
   mode = artistKey ? "artist" : "all"; pickArtist=artistKey||null; multiSet=null;
   lastStart=function(){ startGame(artistKey); }; resetRun();
   usedCycle={}; recent=[]; lastAnswerId=null; lastArtist=null; NEXT=null; score=0; streak=0; played=0; solved=0;
-  $("modeLabel").textContent = artistKey || "All artists";
+  setModeLabel();
   document.body.classList.add("playing"); if(!prefs.gamevid) BGV.pause();
   $("startScreen").classList.remove("active"); $("gameScreen").classList.add("active");
   resizeViz();
@@ -184,7 +184,7 @@ function startMultiNow(setObj){
   mode="multi"; pickArtist=null; multiSet=setObj;
   lastStart=function(){ startMulti(setObj); }; resetRun();
   usedCycle={}; recent=[]; lastAnswerId=null; lastArtist=null; NEXT=null; score=0; streak=0; played=0; solved=0;
-  $("modeLabel").textContent = ARTISTS.filter(function(a){return multiSet[a];}).length+" artists";
+  setModeLabel();
   document.body.classList.add("playing"); if(!prefs.gamevid) BGV.pause();
   $("startScreen").classList.remove("active"); $("gameScreen").classList.add("active");
   resizeViz();
@@ -240,12 +240,16 @@ function newRound(){
   }
   function waitMsg(t){ var w=$("roundWait"); if(w) w.textContent=t; }
 }
+// top bar: game mode + who's in it ("Classic · Featuring Ken Carson + Yeat + 3 more")
+function setModeLabel(){
+  var gm=GMODES.filter(function(m){ return m.k===gmode(); })[0], who=includedArtists();
+  var names=who.length>=ARTISTS.length ? "All artists" : "Featuring "+who.slice(0,3).join(" + ")+(who.length>3?" + "+(who.length-3)+" more":"");
+  $("modeLabel").textContent=(gm?gm.name:"Classic")+" \u00b7 "+names; }
 function setupRound(a){
   var all=byArtist[a].tracks, solo=mode==="artist", p=poolFor(a,solo), answer;
   var fresh=p.filter(function(t){ return !runSeen[t.id]; });
   if(!fresh.length){ runDone[a]=1; return false; }            // every allowed song by this artist already played this run
   answer=weightedPick(fresh);
-  if(mode==="artist") $("modeLabel").textContent=a+"  "+solved+" of "+(goalOf()||p.length);      // the run ends at the difficulty goal, not the whole pool
   lastAnswerId=answer.id; lastArtist=a;
   var strict = curDiff()==="hard" || curDiff()==="extreme";
   function near(list,n){
@@ -352,7 +356,7 @@ function guess(o){
     // down to the final two and you got it: the last standing song counts as won too, no need to pick it
     if(left.length===1){ lastOne=left[0]; runSeen[lastOne.id]=1; runLog.push({t:lastOne, win:true, secs:0, clip:0, pts:0, auto:true}); }
     wonAll=pa.every(function(t){ return runSeen[t.id]; });
-    $("modeLabel").textContent=pickArtist+"  "+pa.filter(function(t){ return runSeen[t.id]; }).length+" of "+(goalOf()||pa.length); }
+  }
   if(win){ score+=pts; streak++; solved++; if(lastOne){ solved++; streak++; } if(goalOf() && solved>=goalOf()) wonAll=true; }
   if(win) setProgress();
   else { streak=0; if(mode==="artist"){ usedCycle={}; } }

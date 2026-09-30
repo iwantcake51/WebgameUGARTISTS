@@ -8,7 +8,7 @@ function unpackArt(a){ a=String(a||"");
   if(/^@https:\/\/[\w.-]+\.mzstatic\.com\/[^"'<>\s]+$/.test(a)) return a.slice(1);
   return /^\d[^"'<>\s]+$/.test(a) ? "https://is"+a[0]+"-ssl.mzstatic.com/image/thumb/"+a.slice(1)+"/400x400bb.jpg" : ""; }
 function shareLink(){
-  var m = mode==="artist" ? pickArtist : mode==="multi" ? $("modeLabel").textContent : "All artists";
+  var m = mode==="artist" ? pickArtist : mode==="multi" ? includedArtists().length+" artists" : "All artists";
   var tt = runTotal(), gm=gmode(), ab=artistBonus();
   var d={v:1, s:score, tt:tt||undefined, gm:gm!=="classic"?gm:undefined, lk:diffLocked()?1:undefined, ab:ab>1?+ab.toFixed(2):undefined, na:includedArtists().length, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(), tz:new Date().getTimezoneOffset(), mo:activeMods().map(function(m){return m.k;}), n:(prefs.name||"").trim(), sk:modActive("skip")?(skipUsed||0):undefined,
     r:runLog.map(function(x,i){ return [x.t.id, x.t.title, x.t.credit||x.t.artist, x.win?1:0, Math.round(x.secs*100), x.clip, x.pts, packArt(x.t.art)]; })};
