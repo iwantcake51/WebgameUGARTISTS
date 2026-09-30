@@ -870,6 +870,13 @@
   .catsearch, .dsel{border-radius:3px}
   .cchip, .filchip{border-radius:2px !important; text-transform:uppercase; letter-spacing:.06em; font-family:var(--f-mono); font-size:10.5px}
   .cchip.on, .filchip.on{background:var(--ink) !important; color:var(--bg) !important; border-color:var(--ink) !important}
+  /* choose-artists chips: theme colour when picked, faint halftone (black on / grey off) that crossfades */
+  .filchip{position:relative; overflow:hidden; isolation:isolate; transition:background-color .35s ease, color .35s ease, border-color .35s ease}
+  .filchip::before, .filchip::after{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background-size:4px 4px; transition:opacity .35s ease}
+  .filchip::before{background-image:radial-gradient(circle, rgba(0,0,0,.32) 0 .8px, transparent 1.1px); opacity:0}
+  .filchip::after{background-image:radial-gradient(circle, rgba(160,160,170,.16) 0 .8px, transparent 1.1px); opacity:1}
+  .filchip.on{background:var(--accent) !important; border-color:var(--accent) !important; color:#0a0711 !important}
+  .filchip.on::before{opacity:1} .filchip.on::after{opacity:0}
   .toggle{border-bottom:1px solid var(--line)}
   .tlabel{font-weight:600}
   .sw{width:40px; height:22px; border-radius:2px; background:transparent; border:1px solid var(--line)}
