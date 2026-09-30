@@ -1340,8 +1340,8 @@ function setFavicon(c){
 }
 
 // ---- prefs ----
-var prefs={theme:"plum", volume:0.9, autoplay:false, endmusic:true, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, gamevid:false, vblur:"", bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
-try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.vblur==="string") prefs.vblur=pp.vblur; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","endmusic","gamevid","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
+var prefs={theme:"plum", volume:0.9, autoplay:false, endmusic:true, menumusic:true, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, gamevid:false, vblur:"", bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
+try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.vblur==="string") prefs.vblur=pp.vblur; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","endmusic","menumusic","gamevid","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
 function savePrefs(){ try{ localStorage.setItem("drop_prefs", JSON.stringify(prefs)); }catch(e){} }
 function applyTheme(id){
   var th=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){th=THEMES[i];break;} } if(!th) th=THEMES[0];
@@ -1362,6 +1362,7 @@ function renderSwatches(){
 function setVolume(v){ prefs.volume=v; savePrefs(); try{audio.volume=v;}catch(e){} $("vol").value=v; $("vol2").value=v; $("volPct").textContent=$("volPct2").textContent=Math.round(v*100)+"%"; $("vol").style.setProperty("--v",v*100+"%"); $("vol2").style.setProperty("--v",v*100+"%"); }
 var TOGGLES=[
   {k:"autoplay",  label:"Autoplay snippet",   desc:"Play the clip automatically each round"},
+  {k:"menumusic", label:"Music in menu",      desc:"Plays music while you hover over artists and while the game mode panel is open"},
   {k:"endmusic",  label:"Music on round end", desc:"Play the song when you win or lose a round"},
   {k:"chroma",    label:"Chromatic reveal",   desc:"RGB-split flourish on the cover"},
   {k:"holo",      label:"3D cover",           desc:"Makes the album cover 3D!!"},
@@ -2026,7 +2027,49 @@ function chooseArtist(){
 function prefetchNext(){ NEXT=chooseArtist(); if(NEXT) ensureArtist(NEXT); }
 // ---- play transition: menu zooms in, screen fades to black, game fades in once the first song has loaded ----
 var waitReveal=false, revealT=0;
+// ---- menu music: muffled previews of in-game songs while hovering artists / with the game mode panel open ----
+var MM=(function(){
+  var ctx=null, filt=null, cur=null, key="", hoverA=null, nextT=null, noCors=false, seq=0;
+  function vol(){ return prefs.volume*0.55; }
+  function graph(){ if(ctx||noCors) return;
+    try{ var C=window.AudioContext||window.webkitAudioContext; ctx=new C(); filt=ctx.createBiquadFilter(); filt.type="lowpass"; filt.frequency.value=650; filt.Q.value=0.8; filt.connect(ctx.destination); }catch(e){ noCors=true; } }
+  function gv(el){ return el._g ? el._g.gain.value : el.volume; }
+  function sv(el,v){ v=Math.max(0,Math.min(1,v)); if(el._g) el._g.gain.value=v; else el.volume=v; }
+  function fade(el,to,ms,done){ clearInterval(el._f); var from=gv(el), t0=performance.now();
+    el._f=setInterval(function(){ var k=Math.min(1,(performance.now()-t0)/ms); try{ sv(el,from+(to-from)*k); }catch(e){} if(k>=1){ clearInterval(el._f); if(done) done(); } },30); }
+  function kill(el,ms){ if(!el) return; fade(el,0,ms,function(){ try{ el.pause(); el.removeAttribute("src"); el.load(); }catch(e){} }); }
+  function targets(){
+    if(!prefs.menumusic || document.hidden || document.body.classList.contains("playing") || !$("startScreen").classList.contains("active")) return null;
+    if(hoverA) return [hoverA];
+    if(document.body.classList.contains("modes-open")) return modeArtist ? [modeArtist] : (setNames()||ARTISTS);
+    return null; }
+  function playFrom(list,my){
+    var a=list[Math.floor(Math.random()*list.length)];
+    ensureArtist(a).then(function(ok){
+      if(my!==seq) return;
+      var tr=ok&&byArtist[a]&&byArtist[a].tracks.filter(function(t){ return t.preview; });
+      if(!tr||!tr.length){ if(list.length>1) playFrom(list.filter(function(x){ return x!==a; }),my); return; }
+      var t=tr[Math.floor(Math.random()*tr.length)], el=new Audio();
+      graph(); if(!noCors) el.crossOrigin="anonymous";
+      el.preload="auto"; el.volume=0; el.src=t.preview;
+      if(ctx&&!noCors){ try{ var g=ctx.createGain(); g.gain.value=0; ctx.createMediaElementSource(el).connect(g); g.connect(filt); el._g=g; ctx.resume(); }catch(e){} }
+      el.addEventListener("loadedmetadata",function(){ try{ el.currentTime=Math.random()*Math.max(0,Math.min(15,(el.duration||30)-12)); }catch(e){} },{once:true});
+      el.addEventListener("error",function(){ if(el.crossOrigin&&my===seq){ noCors=true; ctx=null; playFrom(list,my); } },{once:true});
+      var pr=el.play(); if(pr&&pr.catch) pr.catch(function(){});
+      var old=cur; cur=el; kill(old,1800); fade(el,vol(),1800);
+      clearTimeout(nextT); nextT=setTimeout(function(){ if(my===seq) playFrom(list,my); }, 5000+Math.random()*10000);
+    }); }
+  function sync(){
+    var l=targets(), k=l?l.join("|"):"";
+    if(k===key) return; key=k; seq++; clearTimeout(nextT);
+    if(!l){ kill(cur,900); cur=null; return; }
+    playFrom(l,seq); }
+  document.addEventListener("mouseover",function(e){ var b=e.target.closest&&e.target.closest("#artistList .lu[data-a]"); var a=b?b.getAttribute("data-a"):null; if(a!==hoverA){ hoverA=a; setTimeout(sync,a?120:350); } });
+  setInterval(sync,600);
+  return {sync:sync, stop:function(ms){ seq++; key="~stopped"; clearTimeout(nextT); kill(cur,ms||250); cur=null; setTimeout(function(){ if(key==="~stopped") key=""; },1500); }};
+})();
 function menuTransition(go){
+  MM.stop(250);
   if(!$("startScreen").classList.contains("active")){ go(); return; }
   var w=document.querySelector(".wrap"), r=w.getBoundingClientRect();
   w.style.transformOrigin="50% "+Math.round(window.innerHeight/2-r.top)+"px";     // zoom toward the middle of the screen
