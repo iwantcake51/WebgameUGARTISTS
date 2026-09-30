@@ -268,9 +268,8 @@ function mastery(){
   for(var a in acc){ var r=acc[a].c/acc[a].s; if(acc[a].s>=5) out[a] = r>=0.9 ? "diamond" : r>=0.75 ? "gold" : r>=0.65 ? "silver" : r>=0.5 ? "bronze" : ""; if(!out[a]) delete out[a]; }
   return out;
 }
-var LU_RANK=["Playboi Carti","Lil Uzi Vert","Chief Keef","Ken Carson","Yeat","Destroy Lonely","Nettspend","OsamaSon","2hollis","EsDeeKid","Lucki","fakemink","Che","Nine Vicious","BKTHERULA",
-  "skaiwater","Rich Amiri","SoFaygo","Homixide Gang","Cochise","Molly Santana","YT","Lucy Bedroque","Hardrock","Glokk40Spaz","xaviersobased","Summrs",
-  "Autumn!","Kankan","tana","prettifun","Jace! / iayze","LAZER DIM 700","Edward Skeletrix","kuru","ksuuvi","1oneam","Dom Corleo","BabyChiefDoit","Duwap Kaine"];
+var LU_RANK=[      // ordered by Kworb total streams for the top names
+  "Lil Uzi Vert","Playboi Carti","Yeat","Chief Keef","Ken Carson","Lucki","Destroy Lonely","EsDeeKid","Rich Amiri","fakemink","OsamaSon","SoFaygo","2hollis","Nettspend","Che","BKTHERULA","Nine Vicious","skaiwater","Homixide Gang","Cochise","Molly Santana","YT","Lucy Bedroque","Hardrock","Glokk40Spaz","xaviersobased","Summrs","Autumn!","Kankan","tana","prettifun","Jace! / iayze","LAZER DIM 700","Edward Skeletrix","kuru","ksuuvi","1oneam","Dom Corleo","BabyChiefDoit","Duwap Kaine"];
 // diamond names shed a slow sparkle every so often (only while visible; skipped with reduced motion)
 (function(){ if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   setInterval(function(){ if(document.hidden || document.body.classList.contains("playing")) return;
@@ -289,8 +288,8 @@ function renderArtistList(){            // festival-flyer lineup: biggest artist
   var order=LU_RANK.filter(function(a){ return ARTISTS.indexOf(a)!==-1; }).concat(ARTISTS.filter(function(a){ return LU_RANK.indexOf(a)===-1; }));
   var sep="<span class='lsep' aria-hidden='true'>\u2726</span>";
   function row(list,cls){ return "<div class='lurow "+cls+"'>"+list.map(function(a,i){ return "<span class='luw'>"+btn(a,cls)+(i<list.length-1?sep:"")+"</span>"; }).join(" ")+"</div>"; }
-  var h="<span class='lhead'>Featured artists</span>"+row(order.slice(0,1),"hl hl1")+row(order.slice(1,3),"hl")+
-    "<div class='ludiv'></div>"+row(order.slice(3,9),"t1")+row(order.slice(9,21),"t2")+"<div class='ludiv'></div>"+row(order.slice(21),"t3");
+  var h="<span class='lhead'>Featured artists</span>"+row(order.slice(0,1),"hl hl1")+row(order.slice(1,3),"hl")+row(order.slice(3,5),"hl hl2")+
+    "<div class='ludiv'></div>"+row(order.slice(5,11),"t1")+row(order.slice(11,23),"t2")+"<div class='ludiv'></div>"+row(order.slice(23),"t3");
   $("artistList").innerHTML=h;
   var cnt={diamond:0,gold:0,silver:0,bronze:0}; ARTISTS.forEach(function(a){ if(tiers[a]) cnt[tiers[a]]++; });
   var got=cnt.diamond+cnt.gold+cnt.silver+cnt.bronze;

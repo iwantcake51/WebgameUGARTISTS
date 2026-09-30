@@ -659,7 +659,8 @@ html.nofrost .modal{--mbg:rgba(5,3,10,.82); --mblur:0px}
 .lineup{text-align:center}
 .lurow{margin:0 auto 5px; line-height:1.12}
 .lurow.hl{margin-bottom:2px}
-.lu.hl1{font-size:30px; letter-spacing:.01em} html.bsd .lu.hl1{font-size:42px}
+.lu.hl1{font-size:32px; letter-spacing:.01em} html.bsd .lu.hl1{font-size:45px}
+.lu.hl2{font-size:19px} html.bsd .lu.hl2{font-size:26px}
 .lurow.t3 .lu{font-weight:600}
 .ludiv{height:1px; width:62%; margin:7px auto 8px; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 70%,transparent),transparent); opacity:.7}
 .lineup .lhead{display:block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:3px; color:var(--accent); opacity:.85; margin:2px 0 4px}
