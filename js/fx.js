@@ -291,3 +291,21 @@ var CONF=(function(){
   return {burst:burst, count:function(){ return parts.length; }};
 })();
 boot();
+// ---- CRT bulge on the lineup: each name is nudged toward the middle by its distance from centre (barrel curve), text stays crisp ----
+var BULGE=(function(){
+  var raf=0;
+  function apply(){ raf=0; var box=$("artistList"); if(!box) return; var on=document.body.classList.contains("tv-on");
+    var ws=box.querySelectorAll(".luw"), br=box.getBoundingClientRect(); if(!br.width) return;
+    for(var i=0;i<ws.length;i++){ var w=ws[i];
+      if(!on){ if(w.style.transform) w.style.transform=""; continue; }
+      w.style.transform=""; var r=w.getBoundingClientRect();
+      var nx=((r.left+r.right)/2-br.left)/br.width*2-1, ny=((r.top+r.bottom)/2-br.top)/br.height*2-1;
+      nx=Math.max(-1,Math.min(1,nx)); ny=Math.max(-1,Math.min(1,ny));
+      var dy=-ny*nx*nx*7, dx=-nx*ny*ny*9, s=1-0.05*(nx*nx*ny*ny)-0.02*ny*ny, rot=nx*ny*1.6;
+      w.style.transform="translate("+dx.toFixed(2)+"px,"+dy.toFixed(2)+"px) rotate("+rot.toFixed(2)+"deg) scale("+s.toFixed(3)+")"; } }
+  function q(){ if(!raf) raf=requestAnimationFrame(apply); }
+  window.addEventListener("resize",q); document.addEventListener("scroll",q,true);
+  new MutationObserver(q).observe(document.body,{attributes:true,attributeFilter:["class"]});
+  setTimeout(q,300);
+  return {update:q};
+})();

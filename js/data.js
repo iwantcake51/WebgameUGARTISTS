@@ -291,7 +291,7 @@ function renderArtistList(){            // festival-flyer lineup: biggest artist
   function row(list,cls){ return "<div class='lurow "+cls+"'>"+list.map(function(a,i){ return "<span class='luw'>"+btn(a,cls)+(i<list.length-1?sep:"")+"</span>"; }).join(" ")+"</div>"; }
   var h="<span class='lhead'>Featured artists</span>"+row(order.slice(0,1),"hl hl1")+row(order.slice(1,3),"hl")+row(order.slice(3,5),"hl hl2")+
     "<div class='ludiv'></div>"+row(order.slice(5,11),"t1")+row(order.slice(11,23),"t2")+"<div class='ludiv'></div>"+row(order.slice(23),"t3");
-  $("artistList").innerHTML=h;
+  $("artistList").innerHTML=h; if(window.BULGE) BULGE.update();
   var cnt={diamond:0,gold:0,silver:0,bronze:0}; ARTISTS.forEach(function(a){ if(tiers[a]) cnt[tiers[a]]++; });
   var got=cnt.diamond+cnt.gold+cnt.silver+cnt.bronze;
   $("poolInfo").innerHTML = "Tap a name to play only that artist" + (got ? "<div class='tally'>"+
