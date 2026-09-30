@@ -159,10 +159,10 @@ var CLICK=(function(){
   function init(){ var C=window.AudioContext||window.webkitAudioContext; ctx=new C(); var n=Math.floor(ctx.sampleRate*0.03); buf=ctx.createBuffer(1,n,ctx.sampleRate);
     var d=buf.getChannelData(0); for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,7); }
   function play(up){
-    if(!prefs.clicks || !prefs.volume) return;
+    if(!prefs.clicks || !prefs.volume || !prefs.uivol) return;
     try{
       if(!ctx) init(); if(ctx.state==="suspended") ctx.resume();
-      var t=ctx.currentTime, v=prefs.volume*(up?0.45:1), jit=0.92+Math.random()*0.16;
+      var t=ctx.currentTime, v=prefs.volume*prefs.uivol*(up?0.45:1), jit=0.92+Math.random()*0.16;
       var s=ctx.createBufferSource(), bp=ctx.createBiquadFilter(), g=ctx.createGain();
       s.buffer=buf; s.playbackRate.value=(up?1.3:1)*jit; bp.type="bandpass"; bp.frequency.value=(up?3400:2300)*jit; bp.Q.value=1.4; g.gain.value=0.13*v;
       s.connect(bp); bp.connect(g); g.connect(ctx.destination); s.start(t);
@@ -173,12 +173,12 @@ var CLICK=(function(){
     }catch(e){}
   }
   function blip(f1,f2,dur,gain){           // short pitched tone
-    if(!prefs.clicks || !prefs.volume) return;
+    if(!prefs.clicks || !prefs.volume || !prefs.uivol) return;
     try{
       if(!ctx) init(); if(ctx.state==="suspended") ctx.resume();
       var t=ctx.currentTime, o=ctx.createOscillator(), g=ctx.createGain();
       o.type="triangle"; o.frequency.setValueAtTime(f1,t); o.frequency.exponentialRampToValueAtTime(f2,t+dur);
-      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(gain*prefs.volume,t+0.006); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(gain*prefs.volume*prefs.uivol,t+0.006); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
       o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+dur+0.02);
     }catch(e){}
   }
@@ -186,7 +186,7 @@ var CLICK=(function(){
   var lastTick=0;
   function tick(){ var n=performance.now(); if(n-lastTick<45) return; lastTick=n; blip(1900+Math.random()*300,1500,0.018,0.035); }
   function whoosh(){                      // quiet rising air sweep for the zoom into a game
-    if(!prefs.clicks || !prefs.volume) return;
+    if(!prefs.clicks || !prefs.volume || !prefs.uivol) return;
     try{
       if(!ctx) init(); if(ctx.state==="suspended") ctx.resume();
       var t=ctx.currentTime, dur=0.7, n=Math.floor(ctx.sampleRate*dur), nb=ctx.createBuffer(1,n,ctx.sampleRate), d=nb.getChannelData(0);
@@ -194,7 +194,7 @@ var CLICK=(function(){
       var src=ctx.createBufferSource(), bp=ctx.createBiquadFilter(), g=ctx.createGain();
       src.buffer=nb; bp.type="bandpass"; bp.Q.value=0.9;
       bp.frequency.setValueAtTime(260,t); bp.frequency.exponentialRampToValueAtTime(2600,t+dur*0.85);
-      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.07*prefs.volume,t+dur*0.55); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.07*prefs.volume*prefs.uivol,t+dur*0.55); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
       src.connect(bp); bp.connect(g); g.connect(ctx.destination); src.start(t); src.stop(t+dur);
     }catch(e){}
   }

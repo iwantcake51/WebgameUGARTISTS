@@ -114,7 +114,7 @@ var waitReveal=false, revealT=0;
 // ---- menu music: muffled previews of in-game songs while hovering artists / with the game mode panel open ----
 var MM=(function(){
   var ctx=null, filt=null, cur=null, key="", hoverA=null, nextT=null, noCors=false, seq=0;
-  function vol(){ return prefs.volume*0.55; }
+  function vol(){ return prefs.volume*prefs.mmvol*0.55; }
   function graph(){ if(ctx||noCors) return;
     try{ var C=window.AudioContext||window.webkitAudioContext; ctx=new C(); filt=ctx.createBiquadFilter(); filt.type="lowpass"; filt.frequency.value=650; filt.Q.value=0.8; filt.connect(ctx.destination); }catch(e){ noCors=true; } }
   function gv(el){ return el._g ? el._g.gain.value : el.volume; }
@@ -128,7 +128,8 @@ var MM=(function(){
     if(document.body.classList.contains("modes-open")) return modeArtist ? [modeArtist] : (setNames()||ARTISTS);
     return null; }
   function playFrom(list,my){
-    var a=list[Math.floor(Math.random()*list.length)];
+    var ready=list.filter(hasArtist), pool=ready.length?ready:list;      // artists already loaded start instantly
+    var a=pool[Math.floor(Math.random()*pool.length)];
     ensureArtist(a).then(function(ok){
       if(my!==seq) return;
       var tr=ok&&byArtist[a]&&byArtist[a].tracks.filter(function(t){ return t.preview; });
@@ -146,11 +147,11 @@ var MM=(function(){
   function sync(){
     var l=targets(), k=l?l.join("|"):"";
     if(k===key) return; key=k; seq++; clearTimeout(nextT);
-    if(!l){ kill(cur,900); cur=null; return; }
-    playFrom(l,seq); }
-  document.addEventListener("mouseover",function(e){ var b=e.target.closest&&e.target.closest("#artistList .lu[data-a]"); var a=b?b.getAttribute("data-a"):null; if(a!==hoverA){ hoverA=a; setTimeout(sync,a?120:350); } });
+    kill(cur,700); cur=null;      // old song fades out right away, not once the next one has loaded
+    if(l) playFrom(l,seq); }
+  document.addEventListener("mouseover",function(e){ var b=e.target.closest&&e.target.closest("#artistList .lu[data-a]"); var a=b?b.getAttribute("data-a"):null; if(a!==hoverA){ hoverA=a; setTimeout(sync,a?60:350); } });
   setInterval(sync,600);
-  return {sync:sync, stop:function(ms){ seq++; key="~stopped"; clearTimeout(nextT); kill(cur,ms||250); cur=null; setTimeout(function(){ if(key==="~stopped") key=""; },1500); }};
+  return {sync:sync, setVol:function(){ if(cur) fade(cur,vol(),150); }, stop:function(ms){ seq++; key="~stopped"; clearTimeout(nextT); kill(cur,ms||250); cur=null; setTimeout(function(){ if(key==="~stopped") key=""; },1500); }};
 })();
 function menuTransition(go){
   MM.stop(250);

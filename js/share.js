@@ -130,4 +130,6 @@ function greet(){ var n=(prefs.name||"").trim();
   $("greet").textContent = n ? greetWord+", "+n : firstVisit ? "Welcome, Enjoy your stay" : "Back so soon?"; }
 greet();
 $("vol2").oninput=function(){ setVolume(parseFloat(this.value)); };
+["uivol","mmvol"].forEach(function(k){ var el=$(k); function show(){ $(k+"Pct").textContent=Math.round(prefs[k]*100)+"%"; }
+  el.value=prefs[k]; show(); el.oninput=function(){ prefs[k]=parseFloat(this.value); savePrefs(); show(); if(k==="mmvol") MM.setVol(); else CLICK.toggle(true); }; });
 
