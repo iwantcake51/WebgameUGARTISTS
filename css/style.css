@@ -1063,3 +1063,41 @@ body.tv-on #nowVid{left:calc(14px + 3.5vmin); bottom:calc(10px + 2.5vmin); max-w
 .ver{left:14px; right:auto; bottom:30px}
 body.tv-on .ver{left:calc(14px + 3.5vmin); right:auto; bottom:30px}
 body.tv-on #nowVid{bottom:10px}
+
+/* ===== lineup v3: festival poster. Big condensed names, colour and size step down per tier, plain dot separators ===== */
+.lineup{max-height:340px; margin-top:30px; line-height:1.02; padding:8px 0 14px}
+.lineup .lhead{margin:0 0 12px; color:var(--muted)}
+.lurow{margin:0 auto 7px; line-height:1.02}
+.lu, html.bsd .lu{letter-spacing:-.005em; text-shadow:none}
+.lu.hl1, html.bsd .lu.hl1{font-size:clamp(38px,9vw,58px); color:var(--accent); letter-spacing:-.015em; line-height:.95}
+.lu.hl, html.bsd .lu.hl{font-weight:900}
+.lurow.hl:not(.hl1) .lu, html.bsd .lurow.hl:not(.hl1) .lu{font-size:clamp(26px,6vw,38px)}
+.lurow.hl2 .lu, html.bsd .lurow.hl2 .lu{font-size:clamp(21px,4.8vw,30px); opacity:.92}
+.lu.t1, html.bsd .lu.t1{font-size:clamp(17px,3.6vw,22px); opacity:.9}
+.lu.t2, html.bsd .lu.t2{font-size:clamp(14px,2.9vw,17px); opacity:.72}
+.lu.t3, html.bsd .lu.t3{font-size:clamp(12.5px,2.5vw,14.5px); opacity:.55}
+.lsep{font-size:1em; margin:0 .18em 0 .22em; vertical-align:0; color:var(--accent); opacity:.55}
+.lurow.hl .lsep{opacity:.35}
+.ludiv{width:100%; height:0; margin:12px auto 12px; background:none; border-top:1px solid var(--line); opacity:1}
+.lu:hover{opacity:1}
+.menu .tag{max-width:40ch}
+@media (max-width:600px){ .lineup{max-height:46vh; max-height:46dvh} }
+
+/* ===== background texture v2: calmer. Static fine scanlines, soft corner halftone, no RGB drift ===== */
+.bgfx .sl{left:0; right:0; animation:none; -webkit-mask-image:none; mask-image:none;
+  background:repeating-linear-gradient(to bottom, rgba(255,255,255,.028) 0 1px, transparent 1px 4px)}
+.bgfx .sl.r, .bgfx .sl.c{display:none}
+.bgfx .ht{opacity:.14; background-size:8px 8px;
+  background-image:radial-gradient(circle, var(--spot,var(--accent)) 0 1.3px, transparent 1.9px);
+  -webkit-mask-image:radial-gradient(90% 70% at 0% 100%, #000 0%, rgba(0,0,0,.4) 40%, transparent 72%);
+          mask-image:radial-gradient(90% 70% at 0% 100%, #000 0%, rgba(0,0,0,.4) 40%, transparent 72%)}
+.bgfx .ht2{opacity:.06; background-size:6px 6px;
+  -webkit-mask-image:radial-gradient(80% 60% at 100% 0%, #000 0%, transparent 70%);
+          mask-image:radial-gradient(80% 60% at 100% 0%, #000 0%, transparent 70%)}
+/* desktop: a wider menu so the poster lineup has room to breathe */
+@media (min-width:900px){
+  body:not(.playing) .wrap{max-width:600px}
+  #startScreen .segs, :is(#startScreen) .playall, #startScreen .row2{max-width:none}
+  .lineup{max-height:max(300px, calc(100dvh - 430px))}
+  .menu .tag{font-size:15px}
+}

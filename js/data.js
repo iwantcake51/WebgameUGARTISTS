@@ -268,8 +268,8 @@ function mastery(){
   for(var a in acc){ var r=acc[a].c/acc[a].s; if(acc[a].s>=5) out[a] = r>=0.9 ? "diamond" : r>=0.75 ? "gold" : r>=0.65 ? "silver" : r>=0.5 ? "bronze" : ""; if(!out[a]) delete out[a]; }
   return out;
 }
-var LU_RANK=[      // ordered by Kworb total streams for the top names
-  "Lil Uzi Vert","Playboi Carti","Yeat","Chief Keef","Ken Carson","Lucki","Destroy Lonely","EsDeeKid","Rich Amiri","fakemink","OsamaSon","SoFaygo","2hollis","Nettspend","Che","BKTHERULA","Nine Vicious","skaiwater","Homixide Gang","Cochise","Molly Santana","YT","Lucy Bedroque","Hardrock","Glokk40Spaz","xaviersobased","Summrs","Autumn!","Kankan","tana","prettifun","Jace! / iayze","LAZER DIM 700","Edward Skeletrix","kuru","ksuuvi","1oneam","Dom Corleo","BabyChiefDoit","Duwap Kaine"];
+var LU_RANK=[      // Kworb total Spotify streams, biggest first; everyone else is shuffled in after
+  "Lil Uzi Vert","Playboi Carti","Yeat","Chief Keef","Ken Carson","Lucki","Destroy Lonely","EsDeeKid","Cochise","Rich Amiri","wifiskeleton","fakemink","OsamaSon","SoFaygo","Autumn!","2hollis","jaydes","Summrs","BabyChiefDoit","Nettspend","Che","tana","Glokk40Spaz","Kankan","BKTHERULA","Nine Vicious","Lil Tony","Jace! / iayze","Homixide Gang","lelo","xaviersobased","1900rugrat","feng","Molly Santana","LAZER DIM 700","skaiwater","Dom Corleo","Duwap Kaine","YT","Protect","swapa","Hardrock"];
 // diamond names shed a slow sparkle every so often (only while visible; skipped with reduced motion)
 (function(){ if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   setInterval(function(){ if(document.hidden || document.body.classList.contains("playing")) return;
@@ -282,11 +282,12 @@ var LU_RANK=[      // ordered by Kworb total streams for the top names
       sp.style.setProperty("--d",(1.8+Math.random()*1.4).toFixed(2)+"s");
       el.appendChild(sp); setTimeout(function(n){ return function(){ n.remove(); }; }(sp), 3400); } }, 420);
 })();
+var LU_REST=ARTISTS.filter(function(a){ return LU_RANK.indexOf(a)===-1; }).sort(function(){ return Math.random()-0.5; });      // shuffled once per visit
 function renderArtistList(){            // festival-flyer lineup: biggest artists on top, shrinking tier by tier
   var tiers=mastery();
   function btn(a,cls){ if(tiers[a]) cls+=" "+tiers[a]; return "<button class='lu "+cls+"' data-a='"+escapeHtml(a)+"'>"+escapeHtml(a)+"</button>"; }
-  var order=LU_RANK.filter(function(a){ return ARTISTS.indexOf(a)!==-1; }).concat(ARTISTS.filter(function(a){ return LU_RANK.indexOf(a)===-1; }));
-  var sep="<span class='lsep' aria-hidden='true'>\u2726</span>";
+  var order=LU_RANK.filter(function(a){ return ARTISTS.indexOf(a)!==-1; }).concat(LU_REST);
+  var sep="<span class='lsep' aria-hidden='true'>\u00b7</span>";
   function row(list,cls){ return "<div class='lurow "+cls+"'>"+list.map(function(a,i){ return "<span class='luw'>"+btn(a,cls)+(i<list.length-1?sep:"")+"</span>"; }).join(" ")+"</div>"; }
   var h="<span class='lhead'>Featured artists</span>"+row(order.slice(0,1),"hl hl1")+row(order.slice(1,3),"hl")+row(order.slice(3,5),"hl hl2")+
     "<div class='ludiv'></div>"+row(order.slice(5,11),"t1")+row(order.slice(11,23),"t2")+"<div class='ludiv'></div>"+row(order.slice(23),"t3");
