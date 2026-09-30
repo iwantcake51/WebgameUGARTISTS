@@ -93,7 +93,8 @@
     background-image:radial-gradient(circle, rgba(255,255,255,.32) 0 .85px, transparent 1.3px),
                      linear-gradient(100deg, var(--accent) 0%, var(--spot,var(--accent)) 40%, #d9d2ea 72%, var(--accent) 100%);
     background-size:6px 6px, 260% 100%; -webkit-background-clip:text; background-clip:text;
-    animation:brandMove 7s linear infinite, brandSplit 4.5s cubic-bezier(.45,0,.55,1) infinite}
+    filter:drop-shadow(var(--ca) calc(var(--ca) * .15) rgba(255,45,110,.6)) drop-shadow(calc(var(--ca) * -1) calc(var(--ca) * -.15) rgba(40,220,255,.55));
+    animation:brandMove 7s linear infinite, brandSplit 5s ease-in-out infinite}
   .brand b{color:transparent;
     background-image:radial-gradient(circle, rgba(0,0,0,.22) 0 .85px, transparent 1.3px),
                      linear-gradient(100deg, #fff 0%, var(--spot,var(--accent)) 60%, #fff 100%);
@@ -103,8 +104,8 @@
   .brand.sm, .brand.sm b{background-size:4px 4px, 260% 100%}
   .brand, .brand b{-webkit-text-stroke:1px rgba(255,255,255,.22)} .brand.sm, .brand.sm b{-webkit-text-stroke:.6px rgba(255,255,255,.22)}
   @keyframes brandMove{0%{background-position:0 0, 0% 0} 50%{background-position:18px 18px, 100% 0} 100%{background-position:36px 36px, 0% 0}}
-  @keyframes brandSplit{0%,100%{filter:drop-shadow(0 0 rgba(255,45,110,0)) drop-shadow(0 0 rgba(40,220,255,0))}
-    50%{filter:drop-shadow(2.6px .4px rgba(255,45,110,.65)) drop-shadow(-2.6px -.4px rgba(40,220,255,.6))}}
+  @property --ca{syntax:"<length>"; inherits:true; initial-value:0px}
+  @keyframes brandSplit{0%,12%,100%{--ca:0px} 50%{--ca:2.6px}}
   .center h1 .brand b{color:transparent}
   .logo b{color:var(--accent)}
   .tools{display:flex; align-items:center; gap:6px; flex:none}
@@ -651,7 +652,7 @@
   html[data-th="gold"] #startScreen .playall, html[data-th="gold"] .play-btn{position:relative; overflow:hidden}
   html[data-th="gold"] #startScreen .playall::after, html[data-th="gold"] .play-btn::after{content:""; position:absolute; top:0; bottom:0; left:0; width:45%; pointer-events:none;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent); animation:shineSweep 3.2s ease-in-out infinite}
-  html[data-th="gold"] .brand{filter:drop-shadow(0 0 10px rgba(247,210,122,.45))}
+  html[data-th="gold"] .brand{filter:drop-shadow(var(--ca) calc(var(--ca) * .15) rgba(255,45,110,.6)) drop-shadow(calc(var(--ca) * -1) calc(var(--ca) * -.15) rgba(40,220,255,.55)) drop-shadow(0 0 10px rgba(247,210,122,.45))}
   body.m-blind #modeLabel{background:linear-gradient(100deg,var(--muted) 40%,#fff 50%,var(--muted) 60%); background-size:300% 100%;
     -webkit-background-clip:text; background-clip:text; color:transparent; animation:textShine 3.5s linear infinite}
   @keyframes textShine{0%{background-position:100% 0} 100%{background-position:0 0}}
@@ -697,7 +698,10 @@
   /* NEEK: solid accent box with black letters (UG/PEEK keep the halftone gradient) */
   .brand b{background:var(--accent) !important; -webkit-background-clip:border-box !important; background-clip:border-box !important;
     color:#0a0711 !important; -webkit-text-fill-color:#0a0711; -webkit-text-stroke:0 !important; animation:none !important;
-    padding:0 .08em; margin:0 .04em; display:inline-block; line-height:1.02}
+    padding:0 .08em; margin:0 .04em; display:inline-block; line-height:1.02; position:relative; isolation:isolate}
+  .brand b::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(circle, color-mix(in srgb,var(--accent) 40%,#000) 0 .9px, transparent 1.35px) 0 0/4px 4px;
+    -webkit-mask:radial-gradient(ellipse at center, transparent 35%, #000 100%); mask:radial-gradient(ellipse at center, transparent 35%, #000 100%)}
   html[data-font="editorial"] .brand{text-transform:none; font-style:italic}
   /* the logo and difficulty tabs are sized to the screen, so the text-size setting doesn't push them off it */
   .menu .mk{filter:none !important; font-size:calc(clamp(46px,14vw,74px) / var(--ui-zoom,1)); line-height:.9; margin:4px 0 0; white-space:nowrap}
