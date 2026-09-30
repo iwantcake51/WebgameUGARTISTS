@@ -314,7 +314,9 @@ function render(){
   $("lives").innerHTML = modActive("lives") ? "<i>Lives</i><span>"+(R.over?"\u2013":(R.lives>1?"2":"1"))+"</span>" : "";
 }
 function seek0(cb,at){ function go(){ try{audio.currentTime=at||0;}catch(e){} cb(); } if(audio.readyState>=2) go(); else { var h=function(){audio.removeEventListener("canplay",h); go();}; audio.addEventListener("canplay",h); } }
-function play(){ if(!R||R.over) return; if(!R.started){ R.started=true; R.t0=performance.now(); } if(fading){ pendingPlay=false; finishFade(); } runPlayback(true); }
+// the guess timer starts once the snippet is actually heard, not when Play is pressed
+audio.addEventListener("playing",function(){ if(R && R.started && !R.t0 && !R.over) R.t0=performance.now(); });
+function play(){ if(!R||R.over) return; if(!R.started){ R.started=true; R.t0=0; } if(fading){ pendingPlay=false; finishFade(); } runPlayback(true); }
 function runPlayback(fromStart){
   clearTimeout(stopT); cancelAnimationFrame(rafId);
   if(AC){ try{AC.resume();}catch(e){} }
@@ -347,7 +349,7 @@ function guess(o){
   R.over=true; R.picked=o.id; played++;
   var win=(o.id===R.answer.id);
   bump(R.answer, win);
-  R.secs=(performance.now()-R.t0)/1000;
+  R.secs=R.t0 ? (performance.now()-R.t0)/1000 : 0;
   var pts=win?ptsAt(R.unlocked):0;
   runLog.push({t:R.answer, win:win, secs:R.secs, clip:STAGES[R.unlocked], pts:pts});
   runSeen[R.answer.id]=1;
