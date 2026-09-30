@@ -997,6 +997,9 @@
   .toggle.off{opacity:.4; filter:grayscale(1); pointer-events:none; transition:opacity .2s}
   .modego.dead{opacity:.35 !important; filter:grayscale(1) !important; pointer-events:none; transition:opacity .3s, filter .3s}
   .modeartist em{display:block; font-style:normal; font-family:var(--f-body); font-weight:800; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:4px}
+  .modeartist .lu.mnm{font:inherit; letter-spacing:inherit; text-transform:inherit; cursor:default; opacity:1; color:var(--ink); padding:0; transform:none}
+  .lu.picked{color:var(--accent) !important; opacity:1 !important; background:none !important; -webkit-background-clip:border-box !important; background-clip:border-box !important;
+    filter:none !important; animation:none !important; text-shadow:none !important; transition:color .3s ease}
 </style>
 </head>
 <body>
@@ -1705,7 +1708,7 @@ function renderArtistList(){            // festival-flyer lineup: biggest artist
     [["diamond","\uD83D\uDC8E"],["gold","\uD83E\uDD47"],["silver","\uD83E\uDD48"],["bronze","\uD83E\uDD49"]].map(function(t){ return "<span>"+t[1]+" "+cnt[t[0]]+"</span>"; }).join("")+
     "<span class='tall'>"+cnt.diamond+"/"+ARTISTS.length+" diamond</span></div>" : "");
   var cs=$("artistList").querySelectorAll(".lu");
-  for(var i=0;i<cs.length;i++){ (function(c){ c.onclick=function(e){ e.stopPropagation(); openModes(c.getAttribute("data-a")); }; })(cs[i]); }
+  for(var i=0;i<cs.length;i++){ (function(c){ c.onclick=function(e){ e.stopPropagation(); [].forEach.call(document.querySelectorAll(".lu.picked"),function(x){ x.classList.remove("picked"); }); c.classList.add("picked"); openModes(c.getAttribute("data-a")); }; })(cs[i]); }
 }
 (function(){                              // lineup: eased wheel scrolling at ~35% speed
   var el=$("artistList"), target=null, raf=0;
@@ -2331,7 +2334,8 @@ function renderModes(){
   var head = names && !names.length ? "No one?..." : modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
   if(!canEndless && gmode()==="endless"){ prefs.gmode="classic"; }
   // header: "A + B + C", or "A + B + C and 32 more"
-  $("modeArtist").innerHTML = "<em>Featuring:</em>" + (head ? E(head) : names.slice(0,3).map(E).join("<i>+</i>") + (names.length>3 ? " <small>and "+(names.length-3)+" more</small>" : ""));
+  var tiers=mastery(); function nm(a){ return "<span class='lu mnm"+(tiers[a]?" "+tiers[a]:"")+"'>"+E(a)+"</span>"; }     // diamond / gold / ... effects like the lineup
+  $("modeArtist").innerHTML = "<em>Featuring:</em>" + (head ? E(head) : names.slice(0,3).map(nm).join("<i>+</i>") + (names.length>3 ? " <small>and "+(names.length-3)+" more</small>" : ""));
   $("modeArtist").style.display="";
   $("filterBtn").style.display=modeArtist?"none":"";
   var none=!!(names && !names.length); $("modeGo").disabled=none; $("modeGo").classList.toggle("dead",none);
@@ -2346,7 +2350,7 @@ function placeModes(){ var pn=$("modePanel"), desk=matchMedia("(min-width:900px)
   if(desk && pn.parentNode!==document.body) document.body.appendChild(pn);
   else if(!desk && pn.parentNode!==$("startScreen")) $("startScreen").appendChild(pn); }
 function openModes(a){ modeArtist=(typeof a==="string")?a:null; if(modeArtist) modeSet=null; placeModes(); renderModes(); void $("modePanel").offsetWidth; $("startScreen").classList.add("modes-open"); document.body.classList.add("modes-open"); $("modePanel").setAttribute("aria-hidden","false"); }
-function closeModes(){ $("startScreen").classList.remove("modes-open"); document.body.classList.remove("modes-open"); $("modePanel").setAttribute("aria-hidden","true"); }
+function closeModes(){ [].forEach.call(document.querySelectorAll(".lu.picked"),function(x){ x.classList.remove("picked"); }); $("startScreen").classList.remove("modes-open"); document.body.classList.remove("modes-open"); $("modePanel").setAttribute("aria-hidden","true"); }
 // click anywhere outside the panel (the greyed menu, the background) to close it; clicks inside open menus don't count
 document.addEventListener("click",function(e){ if(!document.body.classList.contains("modes-open") || document.body.classList.contains("playing")) return;
   // use the path from when the click happened: buttons that re-render themselves are detached by now and would look "outside"
