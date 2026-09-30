@@ -1013,6 +1013,7 @@
   .fgroup{font-family:var(--f-display); font-weight:800; font-size:14px; letter-spacing:.04em; text-transform:uppercase; padding:6px 11px; cursor:pointer;
     color:var(--ink); background:var(--surface2); border:1px solid var(--line); border-radius:2px; transition:border-color .2s, color .2s, transform .35s cubic-bezier(.34,1.56,.64,1)}
   .fgroup:hover{border-color:var(--accent); color:var(--accent)} .fgroup:active{transform:scale(.95); transition-duration:.1s}
+  .modeartist .mgrp{color:var(--accent)}
   .abonus{display:block; margin-top:4px; color:var(--accent); opacity:.85}
   .seg.blocked{opacity:.28; filter:grayscale(1); cursor:not-allowed; text-decoration:line-through; text-decoration-thickness:1px}
   .opt.ghostslot{opacity:.22; filter:grayscale(1); pointer-events:none; border-style:dashed}
@@ -1046,7 +1047,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.56</div>
+  <div class="ver" title="version">v1.12.57</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -1153,7 +1154,7 @@
       <div id="filChips" class="filchips"></div>
       <div id="filNote" class="filnote"></div>
     </div>
-    <div class="filfoot"><button class="btn big" id="filStart">Use these artists</button></div>
+    
   </div>
 </div>
 
@@ -2434,11 +2435,17 @@ function singlesCount(names){ var n=0, done=true;
   return {n:n, done:done}; }
 function renderModes(){ setTimeout(goalNote,0);
   var names=modeArtist ? [modeArtist] : setNames(), canEndless=!names || names.length>=5, E=escapeHtml;
-  var head = names && !names.length ? "No one?..." : modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
+  // whole groups in the mix show as their group name ("1C34 + Summrs and 7 more")
+  var items=names||[], grouped=false;
+  if(names && !modeArtist){ var left=names.slice(), gs=[];
+    GROUPS.slice().sort(function(x,y){ return groupArtists(y).length-groupArtists(x).length; }).forEach(function(g){ var m=groupArtists(g);
+      if(m.length && m.every(function(a){ return left.indexOf(a)!==-1; })){ gs.push({g:g.n}); left=left.filter(function(a){ return m.indexOf(a)===-1; }); } });
+    if(gs.length && names.length<=20){ grouped=true; items=gs.concat(left); } }
+  var head = names && !names.length ? "No one?..." : modeArtist || (names && (filBuilt||grouped)) ? null : (names ? names.length+" artists" : "All Artists");
   if(!canEndless && gmode()==="endless"){ prefs.gmode="classic"; }
   // header: "A + B + C", or "A + B + C and 32 more"
   var tiers=mastery(); function nm(a){ return "<span class='lu mnm"+(tiers[a]?" "+tiers[a]:"")+"'>"+E(a)+"</span>"; }     // diamond / gold / ... effects like the lineup
-  $("modeArtist").innerHTML = "<em>Featuring:</em>" + (head ? E(head) : names.slice(0,3).map(nm).join("<i>+</i>") + (names.length>3 ? " <small>and "+(names.length-3)+" more</small>" : ""));
+  $("modeArtist").innerHTML = "<em>Featuring:</em>" + (head ? E(head) : items.slice(0,3).map(function(x){ return typeof x==="string" ? nm(x) : "<span class='mgrp'>"+E(x.g)+"</span>"; }).join("<i>+</i>") + (items.length>3 ? " <small>and "+(items.length-3)+" more</small>" : ""));
   $("modeArtist").style.display="";
   $("filterBtn").style.display=modeArtist?"none":"";
   var none=!!(names && !names.length); $("modeGo").disabled=none; $("modeGo").classList.toggle("dead",none);
@@ -2477,7 +2484,7 @@ $("filterBtn").onclick=openFilter;
 $("filterClose").onclick=closeFilter; $("filter").onclick=function(e){ if(e.target===$("filter")) closeFilter(); };
 $("filAll").onclick=function(){ filterSetAll(true); };
 $("filNone").onclick=function(){ filterSetAll(false); };
-$("filStart").onclick=filStart;
+
 $("playBtn").onclick=play;
 document.addEventListener("keydown",function(e){
   if(!R || !$("gameScreen").classList.contains("active") || /INPUT|SELECT|TEXTAREA/.test((e.target||{}).tagName||"") || document.querySelector(".modal.open")) return;
