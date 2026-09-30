@@ -151,9 +151,9 @@ var TVFX=(function(){
   // fine grain: 4 noise tiles made once at 1:1 pixels, cycled as a background (no per-frame drawing)
   var el=$("tvgrain"), frames=[], fi=0, gT=0, bT=0;
   (function(){ var c=document.createElement("canvas"); c.width=c.height=220; var x=c.getContext("2d");
-    for(var f=0;f<4;f++){ var im=x.createImageData(220,220), d=im.data; for(var i=0;i<d.length;i+=4){ var v=Math.random()*255|0; d[i]=d[i+1]=d[i+2]=v; d[i+3]=255; }
+    for(var f=0;f<6;f++){ var im=x.createImageData(220,220), d=im.data; for(var i=0;i<d.length;i+=4){ var v=Math.random()*255|0; d[i]=d[i+1]=d[i+2]=v; d[i+3]=255; }
       x.putImageData(im,0,0); frames.push("url("+c.toDataURL("image/png")+")"); } })();
-  function grain(){ el.style.backgroundImage=frames[fi=(fi+1)%frames.length]; gT=setTimeout(grain, 90); }
+  function grain(){ el.style.backgroundImage=frames[fi=(fi+1)%frames.length]; gT=setTimeout(grain, 45); }
   function burst(){
     if(!prefs.tv || document.hidden || document.body.classList.contains("launching")) return schedule();
     var tears=document.querySelector(".tvtears"), n=1+(Math.random()*3|0), h="";

@@ -55,8 +55,8 @@ html{scroll-behavior:smooth}
 @keyframes slroll {from{background-position:0 0}   to{background-position:0 30px}}
 @keyframes slrollR{from{background-position:0 1px} to{background-position:0 31px}}
 @keyframes slrollC{from{background-position:0 -1px}to{background-position:0 29px}}
-.bgfx .nz{position:absolute; inset:-120px; opacity:.05; background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size:180px 180px;
-  animation:nz .7s steps(1) infinite}
+.bgfx .nz{position:absolute; inset:-120px; opacity:.05; background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size:180px 180px;
+  background-size:120px 120px; animation:nz .3s steps(1) infinite}      /* finer and faster so it reads as smooth film grain */
 @keyframes nz{0%{transform:translate(0,0)} 20%{transform:translate(-47px,23px)} 40%{transform:translate(41px,-37px)} 60%{transform:translate(-23px,-53px)} 80%{transform:translate(59px,31px)}}
 .tilt{transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--ps,1)) !important;
   transition:transform .3s cubic-bezier(.2,.8,.2,1), background .15s, border-color .15s, color .2s, opacity .2s, box-shadow .3s, filter .2s !important; will-change:transform}
@@ -586,7 +586,7 @@ body.tv-on #tvfx{display:block}
   box-shadow:0 0 0 60px #000, inset 0 0 9vmin 2vmin rgba(0,0,0,.62), inset 0 0 2px 1px rgba(0,0,0,.9);
   background:radial-gradient(120% 90% at 30% 18%, rgba(255,255,255,.045), transparent 45%), radial-gradient(ellipse at 50% 50%, transparent 62%, rgba(0,0,0,.28) 100%)}
 body.tv-on #tvcurve{display:block}
-#tvgrain{position:absolute; inset:0; opacity:.06; background-size:220px 220px; mix-blend-mode:screen}
+#tvgrain{position:absolute; inset:0; opacity:.06; background-size:110px 110px; mix-blend-mode:screen}
 .tvlines{position:absolute; inset:0; background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
   box-shadow:inset 0 0 140px rgba(0,0,0,.55), inset 0 0 40px rgba(0,0,0,.35)}
 .tvroll{position:absolute; left:0; right:0; top:0; height:18vh; will-change:transform; opacity:.5;
