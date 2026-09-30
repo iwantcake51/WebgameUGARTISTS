@@ -922,6 +922,8 @@
   /* plainer menus: no springy pop, flat edges, quieter headers, no glows */
   .modal.open .sheet{animation:mUpFlat .32s cubic-bezier(.2,.7,.2,1) both}
   @keyframes mUpFlat{from{opacity:0; transform:translateY(24px)} to{opacity:1; transform:none}}
+  .modal.closing .sheet, .modal.open.closing .sheet{animation:mDownFlat .22s cubic-bezier(.5,0,.75,.3) both}
+  @keyframes mDownFlat{from{opacity:1; transform:none} to{opacity:0; transform:translateY(40px)}}
   .sheet, .modal.mid .sheet, #failModal .sheet, #shareView .sheet{border-radius:2px !important; box-shadow:none}
   .sheet{border-top:2px solid var(--ink)}
   #shareView .failtop h2, #shareView.won .failtop h2{text-shadow:none}
