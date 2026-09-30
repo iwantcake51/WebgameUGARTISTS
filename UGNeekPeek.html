@@ -387,8 +387,17 @@
   .bgpick .tlabel{font-size:14px} .bgpick .tdesc{font-size:11px;color:var(--muted);margin:2px 0 8px}
   .bgpick.off{opacity:.4;pointer-events:none;filter:grayscale(1)}
   .bgpwrap{position:relative}
-  .bgpwrap .dsel{padding-right:34px; cursor:text}
-  .bgpx{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px}
+  .bgpwrap .dsel{padding-right:58px; cursor:text}
+  .bgpwrap .dsel, .ddwrap .dsel{background-image:none}
+  /* chevron that flips smoothly to point up while the list is open */
+  .bgpwrap::after, .ddwrap::after{content:"";position:absolute;right:14px;top:50%;width:6px;height:6px;margin-top:-5px;pointer-events:none;
+    border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);transition:transform .38s cubic-bezier(.34,1.56,.64,1), margin-top .38s, border-color .2s}
+  .bgpwrap.open::after, .ddwrap.open::after{transform:rotate(225deg);margin-top:-1px;border-color:var(--accent)}
+  .bgpwrap.open .dsel{border-color:var(--accent)}
+  .bgpo.gone{display:none}
+  .bgplist .bgpnone{display:none} .bgplist.empty .bgpnone{display:block}
+  .bgpwrap .dsel{transition:border-color .2s, box-shadow .2s} .bgpwrap .dsel:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+  .bgpx{position:absolute;right:30px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px}
   .bgpx:hover{color:var(--ink)}
   .bgplist{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;max-height:220px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:3px;box-shadow:0 10px 30px rgba(0,0,0,.45);
     visibility:hidden;clip-path:inset(0 0 100% 0);opacity:.6;transition:clip-path .42s cubic-bezier(.22,1,.36,1), opacity .3s, visibility 0s .42s}
@@ -1187,22 +1196,31 @@ function renderToggles(){
 }
 // background artist picker: type to filter, pick one (or "All artists"); greyed out while the video background is off
 function syncBgPick(){ var el=$("bgPick"); if(!el) return; var off=!prefs.bgvid; el.classList.toggle("off",off); $("bgPickIn").disabled=$("bgPickX").disabled=off;
-  $("bgPickIn").value=prefs.bgArtist||""; $("bgPickX").style.visibility=prefs.bgArtist?"visible":"hidden"; if(off) $("bgPickList").classList.remove("open"); }
-function setBgArtist(a){ prefs.bgArtist=a; savePrefs(); syncBgPick(); $("bgPickList").classList.remove("open"); if(window.BGV) BGV.setArtist(a); }
+  $("bgPickIn").value=prefs.bgArtist||""; $("bgPickX").style.visibility=prefs.bgArtist?"visible":"hidden"; if(off) $("bgPickList").classList.remove("open"); $("bgPickList").parentNode.classList.remove("open"); }
+function setBgArtist(a){ prefs.bgArtist=a; savePrefs(); syncBgPick(); $("bgPickList").classList.remove("open"); $("bgPickList").parentNode.classList.remove("open"); if(window.BGV) BGV.setArtist(a); }
 function initBgPick(){
-  var inp=$("bgPickIn"), list=$("bgPickList"), hi=0;
-  function draw(){ var q=norm(inp.value===prefs.bgArtist?"":inp.value), items=[""].concat(ARTISTS.slice().sort(function(x,y){ return x.toLowerCase()<y.toLowerCase()?-1:1; }))
-      .filter(function(a){ return !q || (a && norm(a).indexOf(q)!==-1); });
-    hi=Math.min(hi,Math.max(0,items.length-1));
-    list.innerHTML=items.length ? items.map(function(a,i){ return "<button style='--i:"+i+"' class='bgpo"+(i===hi?" hi":"")+(a===prefs.bgArtist?" sel":"")+"' data-a='"+escapeHtml(a)+"'>"+(a?escapeHtml(a):"All artists")+"</button>"; }).join("") : "<div class='bgpnone'>No artist found</div>";
-    var os=list.querySelectorAll(".bgpo"); for(var i=0;i<os.length;i++){ (function(o){ o.onmousedown=function(e){ e.preventDefault(); setBgArtist(o.getAttribute("data-a")); inp.blur(); }; })(os[i]); }
-    if(!list.classList.contains("open")){ void list.offsetWidth; } list.classList.add("open"); }
-  inp.onfocus=function(){ hi=0; inp.select(); draw(); };
-  inp.oninput=function(){ hi=0; draw(); };
-  inp.onblur=function(){ setTimeout(function(){ list.classList.remove("open"); inp.value=prefs.bgArtist||""; },120); };
-  inp.onkeydown=function(e){ var os=list.querySelectorAll(".bgpo");
-    if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); hi=(hi+(e.key==="ArrowDown"?1:-1)+os.length)%Math.max(1,os.length); draw(); var h=list.querySelector(".hi"); if(h) h.scrollIntoView({block:"nearest"}); }
-    else if(e.key==="Enter"){ e.preventDefault(); if(os[hi]){ setBgArtist(os[hi].getAttribute("data-a")); inp.blur(); } }
+  var inp=$("bgPickIn"), list=$("bgPickList"), wrap=inp.parentNode, hi=0, vis=[];
+  // artists Apple has confirmed have no music videos are left out
+  function hasVids(a){ var c=window.BGV&&BGV.cache[a]; return !(c && c.list && !c.list.length); }
+  function build(){        // all rungs rendered once per open; typing only shows/hides them (no rebuild, no flicker)
+    var items=[""].concat(ARTISTS.filter(hasVids).sort(function(x,y){ return x.toLowerCase()<y.toLowerCase()?-1:1; }));
+    list.innerHTML=items.map(function(a,i){ return "<button type='button' style='--i:"+i+"' class='bgpo"+(a===prefs.bgArtist?" sel":"")+"' data-a='"+escapeHtml(a)+"' data-n='"+norm(a)+"'>"+(a?escapeHtml(a):"All artists")+"</button>"; }).join("")+"<div class='bgpnone'>No artist found</div>";
+    [].forEach.call(list.querySelectorAll(".bgpo"),function(o){ o.onmousedown=function(e){ e.preventDefault(); setBgArtist(o.getAttribute("data-a")); inp.blur(); }; });
+  }
+  function filter(){
+    var q=norm(inp.value===(prefs.bgArtist||"")?"":inp.value); vis=[];
+    [].forEach.call(list.querySelectorAll(".bgpo"),function(o){ var n=o.getAttribute("data-n"), ok=!q || (n && n.indexOf(q)!==-1); o.classList.toggle("gone",!ok); if(ok) vis.push(o); });
+    list.classList.toggle("empty",!vis.length); hi=Math.min(hi,Math.max(0,vis.length-1)); mark();
+  }
+  function mark(){ vis.forEach(function(o,i){ o.classList.toggle("hi",i===hi); }); }
+  function open(){ build(); hi=0; filter(); void list.offsetWidth; list.classList.add("open"); wrap.classList.add("open"); }
+  function close(){ list.classList.remove("open"); wrap.classList.remove("open"); }
+  inp.onfocus=function(){ inp.select(); open(); };
+  inp.oninput=function(){ hi=0; filter(); list.scrollTop=0; };
+  inp.onblur=function(){ setTimeout(function(){ close(); inp.value=prefs.bgArtist||""; },120); };
+  inp.onkeydown=function(e){
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); if(!vis.length) return; hi=(hi+(e.key==="ArrowDown"?1:-1)+vis.length)%vis.length; mark(); vis[hi].scrollIntoView({block:"nearest"}); }
+    else if(e.key==="Enter"){ e.preventDefault(); if(vis[hi]){ setBgArtist(vis[hi].getAttribute("data-a")); inp.blur(); } }
     else if(e.key==="Escape"){ inp.blur(); } };
   $("bgPickX").onclick=function(){ setBgArtist(""); };
   syncBgPick();
