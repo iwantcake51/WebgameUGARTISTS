@@ -994,6 +994,7 @@
   .modeartist small{font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; white-space:nowrap; vertical-align:.3em}
   .modeopt{--dc:var(--accent)}         /* mode cards keep the theme colour whatever the difficulty */
   @media (min-width:900px){ .modes{background:linear-gradient(180deg, var(--surface) 0%, var(--surface) 35%, color-mix(in srgb, var(--accent) 14%, #050308) 100%)} }
+  .toggle.off{opacity:.4; filter:grayscale(1); pointer-events:none; transition:opacity .2s}
 </style>
 </head>
 <body>
@@ -1298,7 +1299,7 @@ var TOGGLES=[
   {k:"tv",        label:"TV effects",         desc:"Film grain, scanlines and the odd signal glitch over everything"},
   {k:"bgvid",     label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
   {k:"anim",      label:"Menu animations",    desc:"Menus slide up with a little bounce"},
-  {k:"frost",     label:"Frosted glass blur", desc:"Frosted blur behind menus and panels. \u26A0\uFE0F Performance heavy, can lag on phones and older computers"},
+  {k:"frost",     label:"Frosted glass blur", desc:"(Performant) Blurs background when videos are enabled"},
   {k:"dim",       label:"Dim & blur behind menus", desc:"Darkens and blurs the page behind menus and the results screen"}
 ];
 function renderToggles(){
@@ -1310,11 +1311,13 @@ function renderToggles(){
   var bt=$("toggles").querySelector(".sw[data-k='bgvid']").parentNode, pk=document.createElement("div");
   pk.id="bgPick"; pk.className="bgpick"; pk.innerHTML="<div class='tlabel'>Background artist</div><div class='tdesc'>Only play this artist's music videos behind the menu</div>"+
     "<div class='bgpwrap'><input id='bgPickIn' class='dsel' placeholder='All artists' autocomplete='off' spellcheck='false'><button id='bgPickX' class='bgpx' aria-label='Clear'>\u2715</button><div id='bgPickList' class='bgplist'></div></div>";
-  bt.parentNode.insertBefore(pk, bt.nextSibling); initBgPick();
+  bt.parentNode.insertBefore(pk, bt.nextSibling); initBgPick(); syncFrost();
   var sw=$("toggles").querySelectorAll(".sw");
-  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]= k==="frost" ? !frostOn() : !prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid") syncBgPick(); }; })(sw[i]); }
+  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]= k==="frost" ? !frostOn() : !prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid"){ syncBgPick(); syncFrost(); } }; })(sw[i]); }
 }
 // background artist picker: type to filter, pick one (or "All artists"); greyed out while the video background is off
+function syncFrost(){ var b=document.querySelector("#toggles .sw[data-k='frost']"); if(!b) return; var row=b.parentNode;
+  row.classList.toggle("off", !prefs.bgvid); b.disabled=!prefs.bgvid; }
 function syncBgPick(){ var el=$("bgPick"); if(!el) return; var off=!prefs.bgvid; el.classList.toggle("off",off); $("bgPickIn").disabled=$("bgPickX").disabled=off;
   $("bgPickIn").value=prefs.bgArtist||""; $("bgPickX").style.visibility=prefs.bgArtist?"visible":"hidden"; if(off) $("bgPickList").classList.remove("open"); $("bgPickList").parentNode.classList.remove("open"); }
 function setBgArtist(a){ prefs.bgArtist=a; savePrefs(); syncBgPick(); $("bgPickList").classList.remove("open"); $("bgPickList").parentNode.classList.remove("open"); if(window.BGV) BGV.setArtist(a); }
@@ -1407,7 +1410,7 @@ function renderCB(){
   for(var i=0;i<bs.length;i++){ (function(b){ b.onclick=function(){ prefs.cb=b.getAttribute("data-cb"); savePrefs(); applyPrefs(); renderCB(); }; })(bs[i]); }
 }
 function frostOn(){ return prefs.frost!=null ? prefs.frost : !(matchMedia("(pointer:coarse), (max-width:700px)").matches || (navigator.hardwareConcurrency||8)<=4); }
-function applyPrefs(){ document.documentElement.classList.toggle("nofrost", !frostOn()); document.body.classList.toggle("tv-on", !!prefs.tv); if(window.TVFX) TVFX.toggle(); document.documentElement.setAttribute("data-cb", prefs.cb||"off"); if(window.BGV) BGV.toggle(); document.body.classList.toggle("noholo", !prefs.holo); document.documentElement.classList.toggle("bw", !!prefs.bw); document.body.classList.toggle("noanim", !prefs.anim); document.body.classList.toggle("nodim", !prefs.dim); }
+function applyPrefs(){ document.documentElement.classList.toggle("nofrost", !frostOn() || !prefs.bgvid); document.body.classList.toggle("tv-on", !!prefs.tv); if(window.TVFX) TVFX.toggle(); document.documentElement.setAttribute("data-cb", prefs.cb||"off"); if(window.BGV) BGV.toggle(); document.body.classList.toggle("noholo", !prefs.holo); document.documentElement.classList.toggle("bw", !!prefs.bw); document.body.classList.toggle("noanim", !prefs.anim); document.body.classList.toggle("nodim", !prefs.dim); }
 
 // ---- stats ----
 var STATS={};
@@ -2507,7 +2510,7 @@ $("vol2").oninput=function(){ setVolume(parseFloat(this.value)); };
 var BGV=(function(){
   var vids=[$("bgA"),$("bgB")], cur=0, timer=0, loading=false, started=0, CUT=5200, lastSrc="", recentA=[];
   // clips cached per artist for a week: {artist:{at, list:[previewUrl]}} (empty list = no videos on Apple)
-  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips9")||"{}")||{}; }catch(e){ CACHE={}; }
+  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips10")||"{}")||{}; }catch(e){ CACHE={}; }
   var batches=0;
   // only videos whose lead artist IS this roster artist (no features, no similarly named artists)
   function credited(r,a){
@@ -2516,12 +2519,12 @@ var BGV=(function(){
     var names=[], parts=[];
     termsOf(a).concat([a]).forEach(function(t){ names.push(ex(t)); });
     (r.artistName||"").split(/\s*(?:,|&|\bx\b|\band\b|\bwith\b|feat\.?|ft\.?)\s*/i).forEach(function(p){ parts.push(p); });
-    var m=(r.trackName||"").match(/\((?:feat\.?|ft\.?|with)\s+([^)]*)\)/i); if(m) m[1].split(/\s*(?:,|&)\s*/).forEach(function(p){ parts.push(p); });
+    // title features ("Song (feat. X)") no longer count: those are other artists' videos (e.g. Brennan Jones) with a roster artist on the song
     return parts.some(function(p){ return names.indexOf(ex(p))!==-1; });
   }
   function onRoster(name,a){ var n=norm(leadArtist(name)); return termsOf(a).concat([a]).some(function(t){ return norm(t)===n; }); }
   function fresh(a){ var c=CACHE[a]; return ARTISTS.indexOf(a)!==-1 && c && Date.now()-c.at<7*864e5; }
-  function saveCache(){ try{ localStorage.setItem("drop_bgclips9", JSON.stringify(CACHE)); }catch(e){} }
+  function saveCache(){ try{ localStorage.setItem("drop_bgclips10", JSON.stringify(CACHE)); }catch(e){} }
   function haveClips(){ for(var a in CACHE) if(fresh(a) && CACHE[a].list.length) return true; return false; }
   function want(){ return prefs.bgvid && !document.body.classList.contains("playing") && !document.hidden; }
   // look artists up in batches: mastered first, then the bigger names (most likely to have videos), then everyone else.
