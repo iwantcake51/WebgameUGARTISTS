@@ -390,8 +390,17 @@
   .bgpwrap .dsel{padding-right:34px; cursor:text}
   .bgpx{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px}
   .bgpx:hover{color:var(--ink)}
-  .bgplist{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;max-height:220px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:3px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
-  .bgplist.open{display:block}
+  .bgplist{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;max-height:220px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:3px;box-shadow:0 10px 30px rgba(0,0,0,.45);
+    visibility:hidden;clip-path:inset(0 0 100% 0);opacity:.6;transition:clip-path .42s cubic-bezier(.22,1,.36,1), opacity .3s, visibility 0s .42s}
+  .bgplist.open{visibility:visible;clip-path:inset(0 0 0 0);opacity:1;transition:clip-path .42s cubic-bezier(.22,1,.36,1), opacity .3s, visibility 0s}
+  /* "ladder" drop: rungs slide down one after another */
+  .bgplist .bgpo{opacity:0;transform:translateY(-10px);transition:opacity .25s, transform .35s cubic-bezier(.22,1,.36,1), background .15s}
+  .bgplist.open .bgpo{opacity:1;transform:none;transition-delay:calc(min(var(--i,0),12) * 28ms), calc(min(var(--i,0),12) * 28ms), 0s}
+  .ddwrap{position:relative} .ddwrap select{display:none}
+  .ddbtn{text-align:left;cursor:pointer;display:block}
+  .ddwrap.open .ddbtn{border-color:var(--accent)}
+  ::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:#fff}
+  :focus-visible{outline-color:var(--accent)}
   .bgpo{display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink);font:inherit;font-size:13.5px;padding:8px 12px;cursor:pointer}
   .bgpo.hi,.bgpo:hover{background:color-mix(in srgb,var(--accent) 18%,transparent)}
   .bgpo.sel{color:var(--accent);font-weight:600}
@@ -1185,9 +1194,9 @@ function initBgPick(){
   function draw(){ var q=norm(inp.value===prefs.bgArtist?"":inp.value), items=[""].concat(ARTISTS.slice().sort(function(x,y){ return x.toLowerCase()<y.toLowerCase()?-1:1; }))
       .filter(function(a){ return !q || (a && norm(a).indexOf(q)!==-1); });
     hi=Math.min(hi,Math.max(0,items.length-1));
-    list.innerHTML=items.length ? items.map(function(a,i){ return "<button class='bgpo"+(i===hi?" hi":"")+(a===prefs.bgArtist?" sel":"")+"' data-a='"+escapeHtml(a)+"'>"+(a?escapeHtml(a):"All artists")+"</button>"; }).join("") : "<div class='bgpnone'>No artist found</div>";
+    list.innerHTML=items.length ? items.map(function(a,i){ return "<button style='--i:"+i+"' class='bgpo"+(i===hi?" hi":"")+(a===prefs.bgArtist?" sel":"")+"' data-a='"+escapeHtml(a)+"'>"+(a?escapeHtml(a):"All artists")+"</button>"; }).join("") : "<div class='bgpnone'>No artist found</div>";
     var os=list.querySelectorAll(".bgpo"); for(var i=0;i<os.length;i++){ (function(o){ o.onmousedown=function(e){ e.preventDefault(); setBgArtist(o.getAttribute("data-a")); inp.blur(); }; })(os[i]); }
-    list.classList.add("open"); }
+    if(!list.classList.contains("open")){ void list.offsetWidth; } list.classList.add("open"); }
   inp.onfocus=function(){ hi=0; inp.select(); draw(); };
   inp.oninput=function(){ hi=0; draw(); };
   inp.onblur=function(){ setTimeout(function(){ list.classList.remove("open"); inp.value=prefs.bgArtist||""; },120); };
@@ -1197,6 +1206,20 @@ function initBgPick(){
     else if(e.key==="Escape"){ inp.blur(); } };
   $("bgPickX").onclick=function(){ setBgArtist(""); };
   syncBgPick();
+}
+// native <select> -> themed dropdown that drops open like a ladder (the select stays as the source of truth)
+function ladderSelect(sel){
+  var w=document.createElement("div"); w.className="ddwrap"; sel.parentNode.insertBefore(w,sel); w.appendChild(sel);
+  var b=document.createElement("button"); b.type="button"; b.className="dsel ddbtn"; w.appendChild(b);
+  var l=document.createElement("div"); l.className="bgplist"; w.appendChild(l);
+  function label(){ var o=sel.options[sel.selectedIndex]; b.textContent=o?o.textContent:""; }
+  function close(){ l.classList.remove("open"); w.classList.remove("open"); }
+  function open(){ l.innerHTML=[].map.call(sel.options,function(o,i){ return "<button type='button' style='--i:"+i+"' class='bgpo"+(i===sel.selectedIndex?" sel":"")+"' data-i='"+i+"'>"+escapeHtml(o.textContent)+"</button>"; }).join("");
+    [].forEach.call(l.querySelectorAll(".bgpo"),function(o){ o.onclick=function(e){ e.preventDefault(); sel.selectedIndex=+o.getAttribute("data-i"); label(); close(); sel.dispatchEvent(new Event("change")); }; });
+    void l.offsetWidth; l.classList.add("open"); w.classList.add("open"); var s=l.querySelector(".sel"); if(s) l.scrollTop=s.offsetTop-l.clientHeight/2; }
+  b.onclick=function(e){ e.preventDefault(); l.classList.contains("open")?close():open(); };
+  document.addEventListener("click",function(e){ if(!w.contains(e.target)) close(); });
+  sel.addEventListener("change",label); sel._ladderLabel=label; label();
 }
 // ---- fonts: free Google Fonts pairings (display / body / mono); cond = condensed display face ----
 var FONTS=[
@@ -1232,7 +1255,7 @@ window.addEventListener("resize", fitLogo);
 try{ document.fonts.ready.then(fitLogo); document.fonts.addEventListener("loadingdone", fitLogo); }catch(e){}
 function renderFontSel(){
   $("fontSel").innerHTML=FONTS.map(function(f){ return "<option value='"+f.id+"'"+(f.id===prefs.font?" selected":"")+">"+f.name+"</option>"; }).join("");
-  $("sizeSel").value=prefs.fsize||"m";
+  $("sizeSel").value=prefs.fsize||"m"; ["fontSel","sizeSel"].forEach(function(id){ if($(id)._ladderLabel) $(id)._ladderLabel(); });
 }
 var CB_MODES=[["off","Off"],["protan","Protanopia"],["deutan","Deuteranopia"],["tritan","Tritanopia"],["mono","Monochrome"]];
 function renderCB(){
@@ -1435,7 +1458,8 @@ function boot(){
   setFavicon("#8c5cff"); renderSwatches(); renderToggles(); renderCB(); renderFontSel(); applyFont();
   $("metaCount").textContent=ARTISTS.length+" artists";
   $("fontSel").onchange=function(){ prefs.font=this.value; savePrefs(); applyFont(); };
-  $("sizeSel").onchange=function(){ prefs.fsize=this.value; savePrefs(); applyFont(); }; applyPrefs(); applyTheme(prefs.theme); setVolume(prefs.volume);
+  $("sizeSel").onchange=function(){ prefs.fsize=this.value; savePrefs(); applyFont(); };
+  ladderSelect($("fontSel")); ladderSelect($("sizeSel")); applyPrefs(); applyTheme(prefs.theme); setVolume(prefs.volume);
   audio.crossOrigin="anonymous";
   audio.addEventListener("playing", onPlaying);
   audio.addEventListener("error", onAudioError);
