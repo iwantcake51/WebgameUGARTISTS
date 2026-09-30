@@ -1058,3 +1058,7 @@ body.playing .ver{display:none}
 /* keep corner labels clear of the CRT curvature */
 body.tv-on .ver{right:calc(10px + 3.5vmin); bottom:calc(8px + 2.5vmin)}
 body.tv-on #nowVid{left:calc(14px + 3.5vmin); bottom:calc(10px + 2.5vmin); max-width:calc(100% - 28px - 7vmin)}
+/* version sits just above the now-playing line; CRT only nudges both in from the side */
+.ver{left:14px; right:auto; bottom:30px}
+body.tv-on .ver{left:calc(14px + 3.5vmin); right:auto; bottom:30px}
+body.tv-on #nowVid{bottom:10px}

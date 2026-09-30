@@ -313,15 +313,24 @@ function render(){
   $("score").textContent=score; $("acc").textContent=solved+"/"+played; renderStreak();
   $("lives").innerHTML = modActive("lives") ? "<i>Lives</i><span>"+(R.over?"\u2013":(R.lives>1?"2":"1"))+"</span>" : "";
 }
-function seek0(cb,at){ function go(){ try{audio.currentTime=at||0;}catch(e){} cb(); } if(audio.readyState>=2) go(); else { var h=function(){audio.removeEventListener("canplay",h); go();}; audio.addEventListener("canplay",h); } }
+// waits for the seek to land before playing, otherwise mobile browsers start late and clip the snippet
+function seek0(cb,at){ function go(){ var t=at||0; if(Math.abs((audio.currentTime||0)-t)<0.02){ cb(); return; }
+    var done=false, h=function(){ if(done) return; done=true; audio.removeEventListener("seeked",h); cb(); };
+    audio.addEventListener("seeked",h); setTimeout(h,700); try{audio.currentTime=t;}catch(e){ h(); } } if(audio.readyState>=2) go(); else { var h=function(){audio.removeEventListener("canplay",h); go();}; audio.addEventListener("canplay",h); } }
 // the guess timer starts once the snippet is actually heard, not when Play is pressed
 audio.addEventListener("playing",function(){ if(R && R.started && !R.t0 && !R.over) R.t0=performance.now(); });
 function play(){ if(!R||R.over) return; if(!R.started){ R.started=true; R.t0=0; } if(fading){ pendingPlay=false; finishFade(); } runPlayback(true); }
 function runPlayback(fromStart){
   clearTimeout(stopT); cancelAnimationFrame(rafId);
   if(AC){ try{AC.resume();}catch(e){} }
-  var off=R.offset||0, end = off+Math.min(STAGES[R.unlocked],BAR_FULL);
+  // output latency: on phones the sound reaches the speaker a moment after currentTime moves, so stop that much later
+  var lat=AC ? Math.min(0.5,(AC.outputLatency||0)+(AC.baseLatency||0)) : 0;
+  var off=R.offset||0, end = off+Math.min(STAGES[R.unlocked],BAR_FULL)+lat;
   function go(){
+    // a suspended audio context plays silence while the clock runs, so wait until it's actually running
+    if(AC && AC.state!=="running"){ var rs; try{ rs=AC.resume(); }catch(e){} if(rs&&rs.then){ rs.then(go2,go2); return; } }
+    go2(); }
+  function go2(){
     audio.volume=prefs.volume; var p=audio.play();
     function begin(){
       (function tick(){

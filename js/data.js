@@ -95,6 +95,7 @@ var ARTIST_IDS={"Jace!":{id:1696363433,name:"Jace"}, "iayze":{id:1490328498,name
   "Kankan":{id:1621798887,name:"Kankan"},
   "Cochise":{id:1464498584,name:"Cochise"},
   "Lucki":{id:589757880,name:"LUCKI"},
+  "Chief Keef":{id:516663045,name:"Chief Keef"},
   "Autumn!":{id:1451232200,name:"Autumn!"},
   "diamond*":{id:1705334117,name:"diamond"},
   "maxon":{id:1741486554,name:"maxon"},
@@ -267,7 +268,7 @@ function mastery(){
   for(var a in acc){ var r=acc[a].c/acc[a].s; if(acc[a].s>=5) out[a] = r>=0.9 ? "diamond" : r>=0.75 ? "gold" : r>=0.65 ? "silver" : r>=0.5 ? "bronze" : ""; if(!out[a]) delete out[a]; }
   return out;
 }
-var LU_RANK=["Playboi Carti","Lil Uzi Vert","Ken Carson","Yeat","Destroy Lonely","Nettspend","OsamaSon","2hollis","EsDeeKid","Lucki","fakemink","Che","Nine Vicious","BKTHERULA",
+var LU_RANK=["Playboi Carti","Lil Uzi Vert","Ken Carson","Yeat","Destroy Lonely","Nettspend","OsamaSon","2hollis","EsDeeKid","Lucki","Chief Keef","fakemink","Che","Nine Vicious","BKTHERULA",
   "skaiwater","Rich Amiri","SoFaygo","Homixide Gang","Cochise","Molly Santana","YT","Lucy Bedroque","Hardrock","Glokk40Spaz","xaviersobased","Summrs",
   "Autumn!","Kankan","tana","prettifun","Jace! / iayze","LAZER DIM 700","Edward Skeletrix","kuru","ksuuvi","1oneam","Dom Corleo","BabyChiefDoit","Duwap Kaine"];
 // diamond names shed a slow sparkle every so often (only while visible; skipped with reduced motion)
