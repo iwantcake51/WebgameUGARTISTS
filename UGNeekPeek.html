@@ -382,6 +382,7 @@
   .netlog{font-family:var(--f-mono);font-size:10.5px;line-height:1.55;color:var(--muted);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;margin:0}
   .toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid rgba(120,110,150,.1)}
   .toggle .tlabel{font-size:14px}
+  .ttag{display:inline-block; margin-left:8px; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; vertical-align:2px; color:#ffb347; border:1px solid rgba(255,179,71,.5)}
   .toggle .tdesc{font-size:11px;color:var(--muted);margin-top:2px}
   .bgpick{padding:12px 0;border-bottom:1px solid var(--line);transition:opacity .2s}
   .bgpick .tlabel{font-size:14px} .bgpick .tdesc{font-size:11px;color:var(--muted);margin:2px 0 8px}
@@ -620,6 +621,7 @@
     transition:transform 1.2s cubic-bezier(.3,0,.75,.9), opacity .7s cubic-bezier(.4,0,.6,1)}
   #bgv{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; opacity:0; transition:opacity 1.2s ease; contain:strict}
   body.bgv-on:not(.playing) #bgv{opacity:1}
+  body.bgv-on.gv-on.playing #bgv{opacity:.55}
   #bgv video{position:absolute; left:50%; top:50%; width:40vw; height:40vh; object-fit:cover; opacity:0; transition:opacity 1.4s ease;
     filter:blur(5px) saturate(1.25) brightness(.62); transform:translate(-50%,-50%) scale(2.8); will-change:transform,opacity}
   #bgv video.on{opacity:1; animation:bgZoom 7s ease-out forwards}
@@ -1338,8 +1340,8 @@ function setFavicon(c){
 }
 
 // ---- prefs ----
-var prefs={theme:"plum", volume:0.9, autoplay:false, endmusic:true, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, vblur:"", bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
-try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.vblur==="string") prefs.vblur=pp.vblur; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","endmusic","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
+var prefs={theme:"plum", volume:0.9, autoplay:false, endmusic:true, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, gamevid:false, vblur:"", bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
+try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.vblur==="string") prefs.vblur=pp.vblur; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","endmusic","gamevid","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
 function savePrefs(){ try{ localStorage.setItem("drop_prefs", JSON.stringify(prefs)); }catch(e){} }
 function applyTheme(id){
   var th=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){th=THEMES[i];break;} } if(!th) th=THEMES[0];
@@ -1369,13 +1371,14 @@ var TOGGLES=[
   {k:"ring",      label:"Click ripple",       desc:"The circle that expands where you tap or click"},
   {k:"tv",        label:"TV effects",         desc:"Film grain, scanlines and the odd signal glitch over everything"},
   {k:"bgvid",     label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
+  {k:"gamevid",   label:"Videos in round", tag:"Resource Intensive", desc:"Keep the music video clips playing behind the game during rounds"},
   {k:"anim",      label:"Menu animations",    desc:"Menus slide up with a little bounce"},
   {k:"dim",       label:"Dim & blur behind menus", desc:"Darkens and blurs the page behind menus and the results screen"}
 ];
 function renderToggles(){
   var h=""; TOGGLES.forEach(function(t){
     var val = prefs[t.k];
-    h+="<div class='toggle'><div><div class='tlabel'>"+t.label+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(val?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
+    h+="<div class='toggle'><div><div class='tlabel'>"+t.label+(t.tag?"<span class='ttag'>"+t.tag+"</span>":"")+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(val?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
   });
   $("toggles").innerHTML=h;
   var bt=$("toggles").querySelector(".sw[data-k='bgvid']").parentNode, pk=document.createElement("div");
@@ -1389,7 +1392,7 @@ function renderToggles(){
   $("vbSel").onchange=function(){ prefs.vblur=this.value; savePrefs(); applyPrefs(); };
   ladderSelect($("vbSel")); syncFrost();
   var sw=$("toggles").querySelectorAll(".sw");
-  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid"){ syncBgPick(); syncFrost(); } }; })(sw[i]); }
+  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid"){ syncBgPick(); syncFrost(); } if(k==="gamevid") try{ document.dispatchEvent(new Event("visibilitychange")); }catch(e){} }; })(sw[i]); }
 }
 // background artist picker: type to filter, pick one (or "All artists"); greyed out while the video background is off
 function syncFrost(){ var row=$("vbRow"); if(row) row.classList.toggle("off", !prefs.bgvid); }
@@ -1486,7 +1489,7 @@ function renderCB(){
 }
 // menu video blur: off (sharp video), basic (blurred video), quality (blurred video + frosted glass behind menus)
 function vblur(){ return ["off","basic","quality"].indexOf(prefs.vblur)!==-1 ? prefs.vblur : "basic"; }
-function applyPrefs(){ var h=document.documentElement; h.classList.toggle("nofrost", vblur()!=="quality" || !prefs.bgvid); h.classList.toggle("vb-off", vblur()==="off"); document.body.classList.toggle("tv-on", !!prefs.tv); if(window.TVFX) TVFX.toggle(); document.documentElement.setAttribute("data-cb", prefs.cb||"off"); if(window.BGV) BGV.toggle(); document.body.classList.toggle("noholo", !prefs.holo); document.documentElement.classList.toggle("bw", !!prefs.bw); document.body.classList.toggle("noanim", !prefs.anim); document.body.classList.toggle("nodim", !prefs.dim); }
+function applyPrefs(){ var h=document.documentElement; h.classList.toggle("nofrost", vblur()!=="quality" || !prefs.bgvid); h.classList.toggle("vb-off", vblur()==="off"); document.body.classList.toggle("tv-on", !!prefs.tv); document.body.classList.toggle("gv-on", !!prefs.gamevid); if(window.TVFX) TVFX.toggle(); document.documentElement.setAttribute("data-cb", prefs.cb||"off"); if(window.BGV) BGV.toggle(); document.body.classList.toggle("noholo", !prefs.holo); document.documentElement.classList.toggle("bw", !!prefs.bw); document.body.classList.toggle("noanim", !prefs.anim); document.body.classList.toggle("nodim", !prefs.dim); }
 
 // ---- stats ----
 var STATS={};
@@ -2044,7 +2047,7 @@ function startGameNow(artistKey){
   lastStart=function(){ startGame(artistKey); }; resetRun();
   usedCycle={}; recent=[]; lastAnswerId=null; lastArtist=null; NEXT=null; score=0; streak=0; played=0; solved=0;
   $("modeLabel").textContent = artistKey || "All artists";
-  document.body.classList.add("playing"); BGV.pause();
+  document.body.classList.add("playing"); if(!prefs.gamevid) BGV.pause();
   $("startScreen").classList.remove("active"); $("gameScreen").classList.add("active");
   resizeViz();
   newRound();
@@ -2054,7 +2057,7 @@ function startMultiNow(setObj){
   lastStart=function(){ startMulti(setObj); }; resetRun();
   usedCycle={}; recent=[]; lastAnswerId=null; lastArtist=null; NEXT=null; score=0; streak=0; played=0; solved=0;
   $("modeLabel").textContent = ARTISTS.filter(function(a){return multiSet[a];}).length+" artists";
-  document.body.classList.add("playing"); BGV.pause();
+  document.body.classList.add("playing"); if(!prefs.gamevid) BGV.pause();
   $("startScreen").classList.remove("active"); $("gameScreen").classList.add("active");
   resizeViz();
   newRound();
@@ -2730,7 +2733,7 @@ var BGV=(function(){
   function fresh(a){ var c=CACHE[a]; return ARTISTS.indexOf(a)!==-1 && c && Date.now()-c.at<7*864e5; }
   function saveCache(){ try{ localStorage.setItem("drop_bgclips11", JSON.stringify(CACHE)); }catch(e){} }
   function haveClips(){ for(var a in CACHE) if(fresh(a) && CACHE[a].list.length) return true; return false; }
-  function want(){ return prefs.bgvid && !document.body.classList.contains("playing") && !document.hidden; }
+  function want(){ return prefs.bgvid && (prefs.gamevid || !document.body.classList.contains("playing")) && !document.hidden; }
   // look artists up in batches: mastered first, then the bigger names (most likely to have videos), then everyone else.
   // keeps going right away until something is found, then a batch every 20s while the menu is open (max 8 per page load)
   // one artist = 2 requests (Apple ID lookup + name search). Search hits only count if they're credited by exact name (lead, "&" or feat.)
