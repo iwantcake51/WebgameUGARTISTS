@@ -789,6 +789,7 @@
   #filterBtn::before{content:"01"} #modBtn::before{content:"02"}
   :is(#startScreen,#modePanel) .sec:hover{border-color:var(--ink); background:color-mix(in srgb,var(--ink) 5%,transparent)}
   .mcount{border-radius:2px; background:var(--ink); color:var(--bg); margin-left:auto}
+  .mcount.gox{background:none; color:inherit; font-weight:900; font-size:15px; padding:0 4px; margin-left:8px}
   .lineup{max-width:none; text-align:center}
   .lineup .lhead{display:flex; align-items:center; gap:10px; font-family:var(--f-mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); opacity:1; margin:4px 0 8px}
   .lineup .lhead::before, .lineup .lhead::after{content:""; flex:1; height:1px; background:var(--line)}
@@ -1973,7 +1974,10 @@ function modTags(keys){ var ms=MODS.filter(function(m){ return keys.indexOf(m.k)
 function applyMods(){
   if(modActive("mc") && !$("mcFont")){ var l=document.createElement("link"); l.id="mcFont"; l.rel="stylesheet"; l.href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&display=swap"; document.head.appendChild(l); }
   MODS.map(function(m){ return m.k; }).forEach(function(k){ document.body.classList.toggle("m-"+k, modActive(k)); }); }
-function renderStartBtn(){ var x=+(multOf()*modMult()).toFixed(3); $("modeGo").innerHTML="<span class='pl'>Play</span><span class='mcount'>\u00d7"+x+"</span><span class='arr'>&rarr;</span>"; }
+function renderStartBtn(){ if(!$("modeGo")) return;
+  var names=(typeof modeArtist!=="undefined"&&modeArtist) ? [modeArtist] : (typeof setNames==="function"&&setNames()) || ARTISTS, n=names.length;
+  var x=multOf()*(n>1?artistBonusFor(n):1)*MODS.reduce(function(a,m){ return a*(prefs.mods[m.k]&&(m.k!=="blind"||n>=3)?m.mult:1); },1);
+  $("modeGo").innerHTML="<span class='pl'>Play</span><span class='mcount gox'>\u00d7"+(+x.toFixed(2))+"</span><span class='arr'>&rarr;</span>"; }
 function renderModBtn(){ renderStartBtn(); var on=MODS.filter(function(m){ return prefs.mods[m.k]; }), x=on.reduce(function(a,m){ return a*m.mult; },1);
   $("modBtn").innerHTML="Modifiers"+(on.length?"<span class='mcount'>"+on.length+" \u00b7 \u00d7"+(+x.toFixed(3))+"</span>":""); }
 function renderMods(){
@@ -2497,7 +2501,7 @@ var singlesAsked="";
 function singlesCount(names){ var n=0, done=true;
   names.forEach(function(a){ if(byArtist[a]) n+=byArtist[a].tracks.filter(isSingle).length; else if(!isUnavail(a)) done=false; });
   return {n:n, done:done}; }
-function renderModes(){ setTimeout(goalNote,0);
+function renderModes(){ setTimeout(goalNote,0); renderStartBtn();
   var names=modeArtist ? [modeArtist] : setNames(), canEndless=!names || names.length>=5, E=escapeHtml;
   // whole groups in the mix show as their group name ("1C34 + Summrs and 7 more")
   var items=names||[], grouped=false;
