@@ -1000,6 +1000,8 @@
   .modeartist .lu.mnm{font:inherit; letter-spacing:inherit; text-transform:inherit; cursor:default; opacity:1; color:var(--ink); padding:0; transform:none}
   .lu.picked{color:var(--accent) !important; opacity:1 !important; background:none !important; -webkit-background-clip:border-box !important; background-clip:border-box !important;
     filter:none !important; animation:none !important; text-shadow:none !important; transition:color .3s ease}
+  .brand{filter:none !important; --ca:0px !important}      /* no chromatic aberration on the logo */
+  html[data-th="gold"] .brand{filter:drop-shadow(0 0 10px rgba(247,210,122,.45)) !important}
 </style>
 </head>
 <body>
