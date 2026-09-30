@@ -2287,12 +2287,12 @@ $("vol2").oninput=function(){ setVolume(parseFloat(this.value)); };
 var BGV=(function(){
   var vids=[$("bgA"),$("bgB")], cur=0, timer=0, loading=false, started=0, CUT=5200, lastSrc="", recentA=[];
   // clips cached per artist for a week: {artist:{at, list:[previewUrl]}} (empty list = no videos on Apple)
-  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips4")||"{}")||{}; }catch(e){ CACHE={}; }
+  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips5")||"{}")||{}; }catch(e){ CACHE={}; }
   var batches=0;
   // only videos whose lead artist IS this roster artist (no features, no similarly named artists)
   function onRoster(name,a){ var n=norm(leadArtist(name)); return termsOf(a).concat([a]).some(function(t){ return norm(t)===n; }); }
   function fresh(a){ var c=CACHE[a]; return ARTISTS.indexOf(a)!==-1 && c && Date.now()-c.at<7*864e5; }
-  function saveCache(){ try{ localStorage.setItem("drop_bgclips4", JSON.stringify(CACHE)); }catch(e){} }
+  function saveCache(){ try{ localStorage.setItem("drop_bgclips5", JSON.stringify(CACHE)); }catch(e){} }
   function haveClips(){ for(var a in CACHE) if(fresh(a) && CACHE[a].list.length) return true; return false; }
   function want(){ return prefs.bgvid && !document.body.classList.contains("playing") && !document.hidden; }
   // look artists up in batches: mastered first, then the bigger names (most likely to have videos), then everyone else.
@@ -2308,15 +2308,14 @@ var BGV=(function(){
     var pool=pri.concat(mid,rest).slice(0,8);
     if(prefs.bgArtist && ARTISTS.indexOf(prefs.bgArtist)!==-1 && !fresh(prefs.bgArtist)) pool=[prefs.bgArtist].concat(pool.filter(function(x){ return x!==prefs.bgArtist; })).slice(0,8); loading=true; batches++;
     Promise.all(pool.map(function(a){
-      // exact artist lookup by Apple ID (all their videos), plus a name search as backup
+      // exact artist lookup by Apple ID only (no name search, so no same-named artists)
       var ids=termsOf(a).concat([a]).map(function(t){ return ARTIST_IDS[t]&&ARTIST_IDS[t].id; }).filter(Boolean);
       var reqs=ids.map(function(id){ return getJSON("https://itunes.apple.com/lookup?id="+id+"&entity=musicVideo&limit=100").catch(function(){ return {}; }); });
-      reqs.push(getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(termsOf(a)[0])+"&entity=musicVideo&attribute=artistTerm&limit=50").catch(function(){ return {}; }));
       return Promise.all(reqs).then(function(ds){
         var got=[], seen={}, byId={}; ids.forEach(function(id){ byId[id]=1; });
         ds.forEach(function(d){ (d.results||[]).forEach(function(r){
           if(!r.previewUrl || r.kind!=="music-video" || seen[r.previewUrl]) return;
-          if(!byId[r.artistId] && !onRoster(r.artistName||"",a)) return;
+          if(!byId[r.artistId]) return;                     // only videos credited to this exact Apple artist ID
           seen[r.previewUrl]=1; got.push({u:r.previewUrl, t:noFeat(r.trackName||""), a:r.artistName||a}); }); });
         if(got.length || ds.some(function(d){ return d.results; })) CACHE[a]={at:got.length?Date.now():Date.now()-6*864e5, list:got};
       });
@@ -2379,7 +2378,7 @@ var BGV=(function(){
     var v=vids[cur]; if(v.src && v.classList.contains("on")){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); clearTimeout(timer); timer=setTimeout(next, CUT); } else next();
   }
   document.addEventListener("visibilitychange", resume);
-  function setArtist(a){ played={}; if(a && !fresh(a)){ batches=Math.min(batches,19); fetchClips(); } if(want()) next(); }
+  function setArtist(a){ played={}; clearTimeout(timer); vids.forEach(function(v){ v.classList.remove("on"); }); nowPlaying(null);  /* fade the current clip out right away */ if(a && !fresh(a)){ batches=Math.min(batches,19); fetchClips(); } if(want()) next(); }
   return {setArtist:setArtist, nowPlaying:nowPlaying, pickClip:pickClip, cache:CACHE, resume:resume, toggle:resume, pause:function(){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); }};
 })();
 // ---- TV effects: animated grain (tiny canvas scaled up, ~12fps) and random glitch bursts every few seconds ----
