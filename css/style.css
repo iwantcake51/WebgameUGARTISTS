@@ -1055,3 +1055,6 @@ html[data-th="gold"] .brand{filter:drop-shadow(0 0 10px rgba(247,210,122,.45)) !
 .swatch:hover{transform:translateY(-2px)}
 .ver{position:fixed; right:10px; bottom:8px; z-index:3; font-family:var(--f-mono); font-size:10px; letter-spacing:.08em; color:var(--muted); opacity:.55; pointer-events:none}
 body.playing .ver{display:none}
+/* keep corner labels clear of the CRT curvature */
+body.tv-on .ver{right:calc(10px + 3.5vmin); bottom:calc(8px + 2.5vmin)}
+body.tv-on #nowVid{left:calc(14px + 3.5vmin); bottom:calc(10px + 2.5vmin); max-width:calc(100% - 28px - 7vmin)}
