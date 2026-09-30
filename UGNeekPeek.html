@@ -1199,13 +1199,13 @@ function syncBgPick(){ var el=$("bgPick"); if(!el) return; var off=!prefs.bgvid;
   $("bgPickIn").value=prefs.bgArtist||""; $("bgPickX").style.visibility=prefs.bgArtist?"visible":"hidden"; if(off) $("bgPickList").classList.remove("open"); $("bgPickList").parentNode.classList.remove("open"); }
 function setBgArtist(a){ prefs.bgArtist=a; savePrefs(); syncBgPick(); $("bgPickList").classList.remove("open"); $("bgPickList").parentNode.classList.remove("open"); if(window.BGV) BGV.setArtist(a); }
 function initBgPick(){
-  var inp=$("bgPickIn"), list=$("bgPickList"), wrap=inp.parentNode, hi=0, vis=[];
+  var inp=$("bgPickIn"), list=$("bgPickList"), wrap=inp.parentNode, hi=0, vis=[], picked=false;
   // artists Apple has confirmed have no music videos are left out
   function hasVids(a){ var c=window.BGV&&BGV.cache[a]; return !(c && c.list && !c.list.length); }
   function build(){        // all rungs rendered once per open; typing only shows/hides them (no rebuild, no flicker)
     var items=[""].concat(ARTISTS.filter(hasVids).sort(function(x,y){ return x.toLowerCase()<y.toLowerCase()?-1:1; }));
     list.innerHTML=items.map(function(a,i){ return "<button type='button' style='--i:"+i+"' class='bgpo"+(a===prefs.bgArtist?" sel":"")+"' data-a='"+escapeHtml(a)+"' data-n='"+norm(a)+"'>"+(a?escapeHtml(a):"All artists")+"</button>"; }).join("")+"<div class='bgpnone'>No artist found</div>";
-    [].forEach.call(list.querySelectorAll(".bgpo"),function(o){ o.onmousedown=function(e){ e.preventDefault(); setBgArtist(o.getAttribute("data-a")); inp.blur(); }; });
+    [].forEach.call(list.querySelectorAll(".bgpo"),function(o){ o.onpointerdown=function(e){ e.preventDefault(); picked=true; setBgArtist(o.getAttribute("data-a")); inp.blur(); }; });
   }
   function filter(){
     var q=norm(inp.value===(prefs.bgArtist||"")?"":inp.value); vis=[];
@@ -1215,13 +1215,18 @@ function initBgPick(){
   function mark(){ vis.forEach(function(o,i){ o.classList.toggle("hi",i===hi); }); }
   function open(){ build(); hi=0; filter(); void list.offsetWidth; list.classList.add("open"); wrap.classList.add("open"); }
   function close(){ list.classList.remove("open"); wrap.classList.remove("open"); }
-  inp.onfocus=function(){ inp.select(); open(); };
+  inp.onfocus=function(){ picked=false; inp.select(); open(); };
   inp.oninput=function(){ hi=0; filter(); list.scrollTop=0; };
-  inp.onblur=function(){ setTimeout(function(){ close(); inp.value=prefs.bgArtist||""; },120); };
+  // leaving the box with a typed name picks it: exact name match, else the highlighted / only match
+  inp.onblur=function(){
+    if(!picked && inp.value!==(prefs.bgArtist||"")){ var q=norm(inp.value);
+      if(!q) setBgArtist("");
+      else { var ex=vis.filter(function(o){ return o.getAttribute("data-n")===q; })[0] || (vis.length===1||vis[hi] ? vis[hi]||vis[0] : null); if(ex) setBgArtist(ex.getAttribute("data-a")); } }
+    setTimeout(function(){ close(); inp.value=prefs.bgArtist||""; },120); };
   inp.onkeydown=function(e){
     if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); if(!vis.length) return; hi=(hi+(e.key==="ArrowDown"?1:-1)+vis.length)%vis.length; mark(); vis[hi].scrollIntoView({block:"nearest"}); }
-    else if(e.key==="Enter"){ e.preventDefault(); if(vis[hi]){ setBgArtist(vis[hi].getAttribute("data-a")); inp.blur(); } }
-    else if(e.key==="Escape"){ inp.blur(); } };
+    else if(e.key==="Enter"){ e.preventDefault(); if(vis[hi]){ picked=true; setBgArtist(vis[hi].getAttribute("data-a")); inp.blur(); } }
+    else if(e.key==="Escape"){ picked=true; inp.blur(); } };
   $("bgPickX").onclick=function(){ setBgArtist(""); };
   syncBgPick();
 }
@@ -2432,7 +2437,8 @@ var BGV=(function(){
     var v=vids[cur]; if(v.src && v.classList.contains("on")){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); clearTimeout(timer); timer=setTimeout(next, CUT); } else next();
   }
   document.addEventListener("visibilitychange", resume);
-  function setArtist(a){ played={}; clearTimeout(timer); vids.forEach(function(v){ v.classList.remove("on"); }); nowPlaying(null);  /* fade the current clip out right away */
+  function setArtist(a){ played={}; clearTimeout(timer);
+    var pend=vids[1-cur]; pend.oncanplay=pend.onloadedmetadata=pend.onerror=null; try{ pend.pause(); }catch(e){}     /* drop a clip that was still loading for the old pick */ vids.forEach(function(v){ v.classList.remove("on"); }); nowPlaying(null);  /* fade the current clip out right away */
     if(a && !fresh(a)) fetchArtist(a).then(function(){ if(prefs.bgArtist===a && want()) next(); });      /* look them up now, skipping the queue */
     else if(want()) next(); }
   return {setArtist:setArtist, nowPlaying:nowPlaying, pickClip:pickClip, cache:CACHE, resume:resume, toggle:resume, pause:function(){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); }};
