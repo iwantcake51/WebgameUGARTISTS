@@ -1013,7 +1013,9 @@
   .fgroup{font-family:var(--f-display); font-weight:800; font-size:14px; letter-spacing:.04em; text-transform:uppercase; padding:6px 11px; cursor:pointer;
     color:var(--ink); background:var(--surface2); border:1px solid var(--line); border-radius:2px; transition:border-color .2s, color .2s, transform .35s cubic-bezier(.34,1.56,.64,1)}
   .fgroup:hover{border-color:var(--accent); color:var(--accent)} .fgroup:active{transform:scale(.95); transition-duration:.1s}
-  .modeartist .mgrp{color:var(--accent)}
+  .modeartist .mgrp{color:transparent; background:linear-gradient(100deg,var(--accent) 0%,var(--accent) 38%,#fff 50%,var(--accent) 62%,var(--accent) 100%);
+    background-size:250% 100%; -webkit-background-clip:text; background-clip:text; animation:grpShine 4.5s ease-in-out infinite}
+  @keyframes grpShine{0%,55%{background-position:100% 0} 85%,100%{background-position:-20% 0}}
   .abonus{display:block; margin-top:4px; color:var(--accent); opacity:.85}
   .seg.blocked{opacity:.28; filter:grayscale(1); cursor:not-allowed; text-decoration:line-through; text-decoration-thickness:1px}
   .opt.ghostslot{opacity:.22; filter:grayscale(1); pointer-events:none; border-style:dashed}
@@ -1047,7 +1049,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.58</div>
+  <div class="ver" title="version">v1.12.59</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -2351,7 +2353,7 @@ function applyFilter(){ if(!filInit) return; var sel={}, cnt=0; ARTISTS.forEach(
 // preset crews: tap one to play just that group
 var GROUPS=[
   {n:"Opium", a:["Playboi Carti","Ken Carson","Destroy Lonely","Homixide Gang"]},
-  {n:"Slayworld", a:["Summrs","Autumn!","Kankan","Jace! / Iayze"]},
+  {n:"Slayworld", a:["Summrs","Autumn!","Kankan","Jace! / Iayze","Yeat"]},
   {n:"1C34", a:["Xaviersobased","Ksuuvi","Nettspend","OsamaSon"]},
   {n:"NXO", a:["OsamaSon","Nettspend"]},
   {n:"2016LYFE", a:["OsamaSon","1oneam","Ohsxnta","Boolymon","TDF"]}
