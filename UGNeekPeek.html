@@ -995,6 +995,7 @@
   .modeopt{--dc:var(--accent)}         /* mode cards keep the theme colour whatever the difficulty */
   @media (min-width:900px){ .modes{background:linear-gradient(180deg, var(--surface) 0%, var(--surface) 35%, color-mix(in srgb, var(--accent) 14%, #050308) 100%)} }
   .toggle.off{opacity:.4; filter:grayscale(1); pointer-events:none; transition:opacity .2s}
+  .modego.dead{opacity:.35 !important; filter:grayscale(1) !important; pointer-events:none; transition:opacity .3s, filter .3s}
 </style>
 </head>
 <body>
@@ -2280,14 +2281,13 @@ function openFilter(){
   for(var i=0;i<chips.length;i++){ (function(b){ b.onclick=function(){ var a=b.getAttribute("data-a"); filState[a]=!filState[a]; b.classList.toggle("on",filState[a]); }; })(chips[i]); }
   openModal($("filter"));
 }
-function closeFilter(){ closeModal($("filter")); }
+// closing Choose artists (X, outside, Esc or the button) keeps whatever is picked
+function applyFilter(){ if(!filInit) return; var sel={}, cnt=0; ARTISTS.forEach(function(a){ if(filState[a]){ sel[a]=true; cnt++; } });
+  modeSet = cnt===ARTISTS.length ? null : sel; if(typeof renderModes==="function" && $("modeList")) renderModes(); }
+function closeFilter(){ applyFilter(); closeModal($("filter")); }
 var filBuilt=false;        // true once you start from "none" and add artists yourself
 function filterSetAll(v){ filBuilt=!v; ARTISTS.forEach(function(a){ filState[a]=v; }); openFilter(); }
-function filStart(){
-  var sel={}, cnt=0; ARTISTS.forEach(function(a){ if(filState[a]){ sel[a]=true; cnt++; } });
-  if(!cnt){ $("filNote").textContent="Pick at least one artist."; return; }
-  closeFilter(); modeSet = cnt===ARTISTS.length ? null : sel; renderModes();       // back to the mode panel with this mix
-}
+function filStart(){ closeFilter(); }
 function openPicker(){
   var html="<button class='pickrow' data-a='__all'>All artists <span>mix of everyone</span></button>";
   ARTISTS.forEach(function(a){ html+="<button class='pickrow' data-a='"+escapeHtml(a)+"'>"+escapeHtml(a)+"</button>"; });
@@ -2322,12 +2322,13 @@ function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ?
 function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
 function renderModes(){
   var names=modeArtist ? [modeArtist] : setNames(), canEndless=!names || names.length>=5, E=escapeHtml;
-  var head = modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
+  var head = names && !names.length ? "No artists picked" : modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
   if(!canEndless && gmode()==="endless"){ prefs.gmode="classic"; }
   // header: "A + B + C", or "A + B + C and 32 more"
   $("modeArtist").innerHTML = head ? E(head) : names.slice(0,3).map(E).join("<i>+</i>") + (names.length>3 ? " <small>and "+(names.length-3)+" more</small>" : "");
   $("modeArtist").style.display="";
   $("filterBtn").style.display=modeArtist?"none":"";
+  var none=!!(names && !names.length); $("modeGo").disabled=none; $("modeGo").classList.toggle("dead",none);
   $("filterBtn").lastChild.textContent = modeSet ? "Change artists" : "Choose artists";
   $("modeList").innerHTML=GMODES.map(function(m,i){ var off=m.k==="endless"&&!canEndless;
     return "<button class='modeopt"+(m.k===gmode()?" on":"")+(off?" off":"")+"' data-k='"+m.k+"' style='--i:"+i+"'"+(off?" disabled":"")+"><b>"+m.name+"</b><span>"+m.desc+"</span></button>"; }).join("");
@@ -2704,7 +2705,7 @@ var CLICK=(function(){
 })();
 // ---- button tilt + ripple ----
 (function(){
-  var SEL=".btn,.opt,.modcard,.sw,.dbtn,.iconbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.chip,.swatch,.vlink,.linkbtn,.lu,.seg,.flink", cur=null;
+  var SEL=".btn,.opt,.modcard,.sw,.dbtn,.iconbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.chip,.swatch,.vlink,.linkbtn,.lu,.seg,.flink,.modeopt,.bgpo", cur=null;
   function tilt(el,e){
     var r=el.getBoundingClientRect(), px=(e.clientX-r.left)/r.width-0.5, py=(e.clientY-r.top)/r.height-0.5;
     var max = el.classList.contains("lu") ? 9 : (r.width>220 ? 5 : 11);   // artist names tilt gently
