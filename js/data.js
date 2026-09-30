@@ -284,9 +284,11 @@ var LU_RANK=[      // Kworb total Spotify streams, biggest first; everyone else 
       el.appendChild(sp); setTimeout(function(n){ return function(){ n.remove(); }; }(sp), 3400); } }, 420);
 })();
 var LU_REST=ARTISTS.filter(function(a){ return LU_RANK.indexOf(a)===-1; }).sort(function(){ return Math.random()-0.5; });      // shuffled once per visit
+// stamped look: each name gets a small tilt, fixed per artist so it doesn't jump around between renders
+function stampRot(a){ var h=0; for(var i=0;i<a.length;i++) h=(h*31+a.charCodeAt(i))|0; return (((h>>>0)%1000)/1000*5-2.5).toFixed(2); }
 function renderArtistList(){            // festival-flyer lineup: biggest artists on top, shrinking tier by tier
   var tiers=mastery();
-  function btn(a,cls){ if(tiers[a]) cls+=" "+tiers[a]; return "<button class='lu "+cls+"' data-a='"+escapeHtml(a)+"'>"+escapeHtml(a)+"</button>"; }
+  function btn(a,cls){ if(tiers[a]) cls+=" "+tiers[a]; return "<button class='lu "+cls+"' data-a='"+escapeHtml(a)+"' style='--rot:"+stampRot(a)+"deg'>"+escapeHtml(a)+"</button>"; }
   var order=LU_RANK.filter(function(a){ return ARTISTS.indexOf(a)!==-1; }).concat(LU_REST);
   var sep="<span class='lsep' aria-hidden='true'>\u00b7</span>";
   function row(list,cls){ return "<div class='lurow "+cls+"'>"+list.map(function(a,i){ return "<span class='luw'>"+btn(a,cls)+(i<list.length-1?sep:"")+"</span>"; }).join(" ")+"</div>"; }

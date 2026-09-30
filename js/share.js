@@ -20,7 +20,7 @@ var GAMES=[]; try{ GAMES=JSON.parse(localStorage.getItem("drop_games")||"[]"); i
 var savedLog=null;
 function saveGame(){
   if(!runLog.length || savedLog===runLog) return; savedLog=runLog;      // once per run (commitRun can be called twice)
-  GAMES.unshift({r:shareData(), at:Date.now()}); GAMES=GAMES.slice(0,20);
+  GAMES.unshift({r:shareData(), at:Date.now(), set:mode==="multi"?includedArtists():undefined}); GAMES=GAMES.slice(0,20);
   try{ localStorage.setItem("drop_games", JSON.stringify(GAMES)); }catch(e){}
 }
 function gameInfo(g){ try{ var d=JSON.parse(unb64u(g.r)); return Array.isArray(d.r)?d:null; }catch(e){ return null; } }
@@ -34,7 +34,7 @@ function renderGames(){
       "<div class='pgw'>"+E(whenTxt(+d.at||g.at))+"</div></div>"+
       "<div class='pgb'><button class='ghost' data-v='"+i+"'>View</button><button class='ghost' data-s='"+i+"'>Share</button></div></div>";
   }).join("") : "<div class='empty'>No games yet. Finished runs show up here (the last 20 are kept).</div>";
-  [].forEach.call($("gamesBody").querySelectorAll("[data-v]"),function(b){ b.onclick=function(){ showShared(GAMES[+b.getAttribute("data-v")].r, true); }; });
+  [].forEach.call($("gamesBody").querySelectorAll("[data-v]"),function(b){ b.onclick=function(){ showShared(GAMES[+b.getAttribute("data-v")].r, GAMES[+b.getAttribute("data-v")]); }; });
   [].forEach.call($("gamesBody").querySelectorAll("[data-s]"),function(b){ b.onclick=function(){ shareGame(GAMES[+b.getAttribute("data-s")], b); }; });
 }
 function shareGame(g,b){
@@ -106,7 +106,16 @@ function showShared(q0,own){
     return "<div class='svbar'><em style='width:auto;flex:0 0 38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+E(a)+"</em><i><u style='width:"+(arts[a][0]/arts[a][1]*100)+"%'></u></i><s style='width:36px'>"+arts[a][0]+"/"+arts[a][1]+"</s></div>"; }).join(""); }
   $("svBody").innerHTML=h;
   $("svPlay").textContent=own?"Play again":"Beat it";
-  $("svPlay").onclick=function(){ closeShared(); prefs.diff=dk; savePrefs(); renderDiff(); if(ARTISTS.indexOf(d.m)!==-1) startGame(d.m); else if(d.m==="All artists") startGame(); };
+  $("svPlay").onclick=function(){
+    closeShared(); if($("catalog").classList.contains("open")) closeCatalog();
+    // same setup as the run: difficulty, game mode and modifiers
+    prefs.diff=dk; prefs.gmode=GMODES.some(function(m){ return m.k===d.gm; }) ? d.gm : "classic";
+    prefs.mods={}; if(Array.isArray(d.mo)) d.mo.forEach(function(k){ if(MODS.some(function(m){ return m.k===k; })) prefs.mods[k]=true; });
+    savePrefs(); renderDiff(); renderModBtn(); applyMods();
+    var set=own&&Array.isArray(own.set) ? own.set.filter(function(a){ return ARTISTS.indexOf(a)!==-1; }) : null;
+    if(ARTISTS.indexOf(d.m)!==-1) startGame(d.m);
+    else if(set&&set.length){ var o={}; set.forEach(function(a){ o[a]=true; }); startMulti(o); }
+    else startGame(); };
   openModal($("shareView"));
 }
 function whenTxt(ms){
