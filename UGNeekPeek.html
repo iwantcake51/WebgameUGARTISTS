@@ -1004,6 +1004,7 @@
   html[data-th="gold"] .brand{filter:drop-shadow(0 0 10px rgba(247,210,122,.45)) !important}
   .stageInner, .holo{border-radius:inherit} .holo{overflow:hidden; clip-path:inset(0 round 4px)}
   .stage.revealed .stageInner{clip-path:inset(0 round 4px)}
+  .dgoal{font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:-6px}
 </style>
 </head>
 <body>
@@ -1054,6 +1055,7 @@
         <button class="seg" data-d="random" role="radio"><span class="sn">Random</span><span class="sx">&times;1.25</span></button>
       </div>
       <div class="dnote" id="diffNote" style="--i:2"></div>
+      <div class="dgoal" id="diffGoal"></div>
       <button class="btn sec modeartists" id="filterBtn">Choose artists</button>
       <button class="btn playall modego" id="modeGo"><span class="pl">Play</span><span class="arr">&rarr;</span></button>
     </div>
@@ -1925,7 +1927,7 @@ function renderDiff(){
   var d=curDiff(), bs=document.querySelectorAll("#diffRow .seg"), idx=0;
   for(var i=0;i<bs.length;i++){ var on=bs[i].getAttribute("data-d")===d; bs[i].classList.toggle("on",on); bs[i].setAttribute("aria-checked",on?"true":"false"); if(on) idx=i; }
   $("diffRow").style.setProperty("--idx",idx); $("menu").setAttribute("data-d",d); $("modePanel").setAttribute("data-d",d);
-  var m=multOf(d); $("diffNote").textContent=DIFFS[d].note;
+  var m=multOf(d); $("diffNote").textContent=DIFFS[d].note; goalNote();
   $("diffLabel").className="dlabel "+d; $("diffLabel").textContent=DIFFS[d].label+" "+multTxt(d);
 }
 var lastArtist=null, NEXT=null, roundSeq=0;
@@ -2346,7 +2348,9 @@ function setNames(){ return modeSet ? ARTISTS.filter(function(a){ return modeSet
 function goalOf(){ return isEndless() ? 0 : (DIFFS[curDiff()].goal||0); }
 function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ? prefs.gmode : "classic"; }
 function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
-function renderModes(){
+function goalNote(){ var el=$("diffGoal"); if(!el) return;
+  el.textContent = gmode()==="endless" && !modeArtist ? "Endless \u2014 no song limit" : DIFFS[curDiff()].goal+" songs this round"; }
+function renderModes(){ setTimeout(goalNote,0);
   var names=modeArtist ? [modeArtist] : setNames(), canEndless=!names || names.length>=5, E=escapeHtml;
   var head = names && !names.length ? "No one?..." : modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
   if(!canEndless && gmode()==="endless"){ prefs.gmode="classic"; }
@@ -2360,7 +2364,7 @@ function renderModes(){
   $("modeList").innerHTML=GMODES.map(function(m,i){ var off=m.k==="endless"&&!canEndless;
     return "<button class='modeopt"+(m.k===gmode()?" on":"")+(off?" off":"")+"' data-k='"+m.k+"' style='--i:"+i+"'"+(off?" disabled":"")+"><b>"+m.name+"</b><span>"+m.desc+"</span></button>"; }).join("");
   var bs=$("modeList").querySelectorAll(".modeopt");      // switch the highlight in place so it eases instead of re-rendering
-  [].forEach.call(bs,function(b){ b.onclick=function(){ prefs.gmode=b.getAttribute("data-k"); savePrefs(); [].forEach.call(bs,function(x){ x.classList.toggle("on",x===b); }); }; });
+  [].forEach.call(bs,function(b){ b.onclick=function(){ prefs.gmode=b.getAttribute("data-k"); savePrefs(); goalNote(); [].forEach.call(bs,function(x){ x.classList.toggle("on",x===b); }); }; });
 }
 // desktop: the panel lives on <body> so the menu's launch zoom can't drag it into the middle; phones keep it in the menu to slide with it
 function placeModes(){ var pn=$("modePanel"), desk=matchMedia("(min-width:900px)").matches;
