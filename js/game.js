@@ -245,7 +245,7 @@ function setupRound(a){
   var fresh=p.filter(function(t){ return !runSeen[t.id]; });
   if(!fresh.length){ runDone[a]=1; return false; }            // every allowed song by this artist already played this run
   answer=weightedPick(fresh);
-  if(mode==="artist") $("modeLabel").textContent=a+"  "+solved+" of "+p.length;
+  if(mode==="artist") $("modeLabel").textContent=a+"  "+solved+" of "+(goalOf()||p.length);      // the run ends at the difficulty goal, not the whole pool
   lastAnswerId=answer.id; lastArtist=a;
   var strict = curDiff()==="hard" || curDiff()==="extreme";
   function near(list,n){
@@ -352,7 +352,7 @@ function guess(o){
     // down to the final two and you got it: the last standing song counts as won too, no need to pick it
     if(left.length===1){ lastOne=left[0]; runSeen[lastOne.id]=1; runLog.push({t:lastOne, win:true, secs:0, clip:0, pts:0, auto:true}); }
     wonAll=pa.every(function(t){ return runSeen[t.id]; });
-    $("modeLabel").textContent=pickArtist+"  "+pa.filter(function(t){ return runSeen[t.id]; }).length+" of "+pa.length; }
+    $("modeLabel").textContent=pickArtist+"  "+pa.filter(function(t){ return runSeen[t.id]; }).length+" of "+(goalOf()||pa.length); }
   if(win){ score+=pts; streak++; solved++; if(lastOne){ solved++; streak++; } if(goalOf() && solved>=goalOf()) wonAll=true; }
   if(win) setProgress();
   else { streak=0; if(mode==="artist"){ usedCycle={}; } }
