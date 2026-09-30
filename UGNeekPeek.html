@@ -1214,8 +1214,6 @@
       <div class="setlabel" style="display:flex;justify-content:space-between">Volume <span class="volpct" id="volPct2"></span></div>
       <input id="vol2" class="vol" type="range" min="0" max="1" step="0.01" style="width:100%;margin-bottom:10px">
       <div class="tg" data-cat="sound"></div>
-      <div class="setcat">Gameplay</div>
-      <div class="tg" data-cat="game"></div>
       <div class="setcat">Video &amp; effects</div>
       <div class="setlabel">Colorblind mode</div>
       <div class="cbrow" id="cbRow"></div>
@@ -1371,7 +1369,7 @@ function renderSwatches(){
 }
 function setVolume(v){ prefs.volume=v; savePrefs(); try{audio.volume=v;}catch(e){} $("vol").value=v; $("vol2").value=v; $("volPct").textContent=$("volPct2").textContent=Math.round(v*100)+"%"; $("vol").style.setProperty("--v",v*100+"%"); $("vol2").style.setProperty("--v",v*100+"%"); }
 var TOGGLES=[
-  {cat:"game", k:"autoplay",  label:"Autoplay snippet",   desc:"Play the clip automatically each round"},
+  {cat:"sound", k:"autoplay",  label:"Autoplay snippet",   desc:"Play the clip automatically each round"},
   {cat:"sound", k:"menumusic", label:"Music in menu",      desc:"Plays music while you hover over artists and while the game mode panel is open"},
   {cat:"sound", k:"endmusic",  label:"Music on round end", desc:"Play the song when you win or lose a round"},
   {cat:"fx", k:"chroma",    label:"Chromatic reveal",   desc:"RGB-split flourish on the cover"},
