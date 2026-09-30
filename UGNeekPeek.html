@@ -6,7 +6,8 @@
 <title>UGNeekPeek — guess the underground song</title>
 <meta property="og:site_name" content="UGNeekPeek">
 <meta property="og:title" content="UGNeekPeek — guess the underground song">
-<meta property="og:description" content="Hear a snippet, name the song. How fast can you guess underground rap?">
+<meta property="og:description" content="Guess the underground song from a small snippet of it, with 60 artists to choose from. You&rsquo;d better know your stuff.">
+<meta name="description" content="Guess the underground song from a small snippet of it, with 60 artists to choose from. You&rsquo;d better know your stuff.">
 <meta name="theme-color" content="#8c5cff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='%238c5cff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -338,7 +339,7 @@
   @keyframes hitFlash{0%,35%{background:color-mix(in srgb,var(--accent) 28%,transparent)} 100%{background:transparent}}
   .catsec.hit{animation-name:hitRing} @keyframes hitRing{0%,35%{box-shadow:0 0 0 2px var(--accent)} 100%{box-shadow:0 0 0 0 transparent}}
   .mk.shake{animation:logoShake .55s cubic-bezier(.36,.07,.19,.97) both !important; cursor:pointer}
-  .mk{cursor:pointer}
+  .mk{cursor:default}
   @keyframes logoShake{10%,90%{transform:translateX(-2px) rotate(-1deg)} 20%,80%{transform:translateX(4px) rotate(1.5deg)} 30%,50%,70%{transform:translateX(-7px) rotate(-2deg)} 40%,60%{transform:translateX(7px) rotate(2deg)}}
   .rimg{position:relative;width:66px;height:66px;border-radius:6px;overflow:hidden;background:var(--surface2);border:2px solid var(--good)}
   .rcard.lost .rimg{border-color:var(--bad)}
@@ -582,8 +583,9 @@
   body.arriving #startScreen .menu{transform:scale(1.04); opacity:0}
   #startScreen .menu{transition:transform .6s cubic-bezier(.2,.8,.2,1), opacity .5s ease}
   body.prelaunch .wrap{will-change:transform,opacity}
-  body.launching .wrap, body.launching #bgv{transform:scale(1.18); opacity:.15;
-    transition:transform .75s cubic-bezier(.33,0,.2,1), opacity .6s cubic-bezier(.4,0,.6,1)}
+  /* the zoom keeps going at a steady pace until the screen is fully black (the swap happens under the black) */
+  body.launching .wrap, body.launching #bgv{transform:scale(1.28); opacity:.2;
+    transition:transform 1.2s cubic-bezier(.3,0,.75,.9), opacity .7s cubic-bezier(.4,0,.6,1)}
   #bgv{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; opacity:0; transition:opacity 1.2s ease; contain:strict}
   body.bgv-on:not(.playing) #bgv{opacity:1}
   #bgv video{position:absolute; left:50%; top:50%; width:40vw; height:40vh; object-fit:cover; opacity:0; transition:opacity 1.4s ease;
@@ -689,11 +691,8 @@
   html{font-synthesis:none}
   body{font-family:var(--f-body); letter-spacing:0}
   .wrap, .modal .sheet{zoom:var(--ui-zoom,1)}
-  /* brand: solid type, accent block on NEEK (no gradient, dot pattern or RGB split) */
-  .brand, .brand b{background:none !important; -webkit-background-clip:border-box !important; background-clip:border-box !important;
-    color:var(--ink) !important; animation:none !important; -webkit-text-stroke:0 !important; filter:none}
-  .brand{font-family:var(--f-display); font-weight:400; text-transform:uppercase; letter-spacing:.005em; padding:0}
-  .brand b{color:var(--accent-ink) !important; background:var(--accent) !important; padding:0 .08em; margin:0 .04em; display:inline-block; line-height:1.02}
+  /* brand: original halftone gradient lettering, in the chosen display font */
+  .brand{font-family:var(--f-display); font-weight:400; text-transform:uppercase; letter-spacing:.005em}
   html:not(.bsd) .brand{font-weight:800; letter-spacing:-.02em}
   html[data-font="editorial"] .brand{text-transform:none; font-style:italic}
   /* the logo and difficulty tabs are sized to the screen, so the text-size setting doesn't push them off it */
@@ -773,25 +772,16 @@
   .setrow2{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px}
   .setfield{display:flex; flex-direction:column; gap:0}
   .setfield .setlabel{margin-bottom:8px}
-  .sel{appearance:none; -webkit-appearance:none; width:100%; background:var(--surface2); color:var(--ink); border:1px solid var(--line); border-radius:3px;
+  .dsel{appearance:none; -webkit-appearance:none; width:100%; background:var(--surface2); color:var(--ink); border:1px solid var(--line); border-radius:3px;
     padding:10px 30px 10px 10px; font-family:var(--f-body); font-size:13.5px; cursor:pointer;
     background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
     background-position:calc(100% - 15px) 50%, calc(100% - 10px) 50%; background-size:5px 5px; background-repeat:no-repeat}
-  .sel:focus{outline:none; border-color:var(--accent)}
-  .sel option{background:var(--surface); color:var(--ink)}
+  .dsel:focus{outline:none; border-color:var(--accent)}
+  .dsel option{background:var(--surface); color:var(--ink)}
   @media (max-width:420px){ .setrow2{grid-template-columns:1fr} }
 
   /* ===== v2.1: halftone logo, halftone play button that inverts on hover, restyled menus ===== */
   @property --htc{syntax:"<color>"; inherits:true; initial-value:rgba(0,0,0,.35)}
-  /* logo: ink letters printed with a halftone screen; NEEK sits on an accent block with dots fading in from its edges */
-  .brand{color:transparent !important;
-    background:radial-gradient(circle, rgba(0,0,0,.42) 0 .75px, transparent 1.15px) 0 0/4px 4px, var(--ink) !important;
-    -webkit-background-clip:text !important; background-clip:text !important}
-  .brand b{position:relative; color:var(--accent-ink) !important; background:var(--accent) !important; -webkit-background-clip:border-box !important; background-clip:border-box !important; isolation:isolate}
-  .brand b::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
-    background:radial-gradient(circle, color-mix(in srgb,var(--accent) 45%,#000) 0 .9px, transparent 1.35px) 0 0/4px 4px;
-    -webkit-mask:radial-gradient(ellipse at center, transparent 35%, #000 100%); mask:radial-gradient(ellipse at center, transparent 35%, #000 100%)}
-
   /* play button: halftone vignette in the theme colour; hover inverts (dark button, coloured text and dots), all eased */
   #startScreen .playall{position:relative; overflow:hidden; isolation:isolate; --htc:color-mix(in srgb,var(--dc) 55%,#000);
     background:var(--dc) !important; color:#0a0711; filter:none !important;
@@ -799,11 +789,13 @@
   #startScreen .playall::after{content:none !important}
   #startScreen .playall::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
     background:radial-gradient(circle, var(--htc) 0 1.1px, transparent 1.6px) 0 0/5px 5px;
-    -webkit-mask:radial-gradient(ellipse 75% 110% at center, transparent 30%, #000 100%); mask:radial-gradient(ellipse 75% 110% at center, transparent 30%, #000 100%)}
+    -webkit-mask:radial-gradient(ellipse 80% 120% at center, transparent 45%, #000 100%); mask:radial-gradient(ellipse 80% 120% at center, transparent 45%, #000 100%);
+    opacity:.55; animation:htPulse 3.2s ease-in-out infinite}
+  @keyframes htPulse{0%,100%{opacity:.45} 50%{opacity:.7}}
   #startScreen .playall .arr{font-family:var(--f-body); font-weight:600; font-size:.8em; transition:transform .35s ease}
-  #startScreen .playall:hover, #startScreen .playall:focus-visible{background:#0a0711 !important; color:var(--dc); --htc:var(--dc);
+  #startScreen .playall:hover, #startScreen .playall:focus-visible, #startScreen .playall.held{background:#0a0711 !important; color:var(--dc); --htc:var(--dc);
     box-shadow:inset 0 0 0 1px var(--dc) !important}
-  #startScreen .playall:hover .arr{transform:translateX(4px)}
+  #startScreen .playall:hover .arr, #startScreen .playall.held .arr{transform:translateX(4px)}
 
   /* now playing (menu video) */
   #nowVid{position:fixed; left:14px; bottom:10px; z-index:2; max-width:calc(100% - 28px); pointer-events:none;
@@ -819,7 +811,7 @@
   html:not(.bsd) .sheethead{font-weight:700; font-size:17px; letter-spacing:.01em}
   .linkbtn{text-transform:uppercase; letter-spacing:.1em; font-size:11px; color:var(--muted)} .linkbtn:hover{color:var(--ink)}
   .setlabel{letter-spacing:.14em; font-size:10px}
-  .catsearch, .sel{border-radius:3px}
+  .catsearch, .dsel{border-radius:3px}
   .cchip, .filchip{border-radius:2px !important; text-transform:uppercase; letter-spacing:.06em; font-family:var(--f-mono); font-size:10.5px}
   .cchip.on, .filchip.on{background:var(--ink) !important; color:var(--bg) !important; border-color:var(--ink) !important}
   .toggle{border-bottom:1px solid var(--line)}
@@ -856,12 +848,13 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <filter id="chR"><feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter>
   <filter id="pixelate" x="0" y="0" width="100%" height="100%">
-    <feFlood x="2" y="2" height="1" width="1"/><feComposite width="5" height="5"/><feTile result="a"/>
-    <feComposite in="SourceGraphic" in2="a" operator="in"/><feMorphology operator="dilate" radius="2.5"/>
+    <feFlood x="1" y="1" height="1" width="1"/><feComposite width="3" height="3"/><feTile result="a"/>
+    <feComposite in="SourceGraphic" in2="a" operator="in"/><feMorphology operator="dilate" radius="1"/>
   </filter>
   <filter id="pixelSm" x="0" y="0" width="100%" height="100%">
     <feFlood x="0" y="0" height="1" width="1"/><feComposite width="2" height="2"/><feTile result="a"/>
-    <feComposite in="SourceGraphic" in2="a" operator="in"/><feMorphology operator="dilate" radius="1"/>
+    <feComposite in="SourceGraphic" in2="a" operator="in"/><feMorphology operator="dilate" radius="1" result="px"/>
+    <feComposite in="px" in2="SourceGraphic" operator="arithmetic" k1="0" k2="0.5" k3="0.5" k4="0"/>
   </filter>
   <filter id="cb-protan" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1.0000 0.0000 0.0000 0 0  0.4789 0.4769 0.0442 0 0  0.5973 -0.6887 1.0914 0 0  0 0 0 1 0"/></filter>
   <filter id="cb-deutan" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1.4366 -0.6314 0.1948 0 0  0.0000 1.0000 0.0000 0 0  -0.1842 0.1863 0.9979 0 0  0 0 0 1 0"/></filter>
@@ -985,8 +978,8 @@
       <div class="setlabel">Username</div>
       <input id="nameInput" class="catsearch" type="text" maxlength="20" placeholder="Shown when you share a score" autocomplete="off" style="margin-bottom:22px">
       <div class="setrow2">
-        <label class="setfield"><span class="setlabel">Font</span><select id="fontSel" class="sel"></select></label>
-        <label class="setfield"><span class="setlabel">Text size</span><select id="sizeSel" class="sel">
+        <label class="setfield"><span class="setlabel">Font</span><select id="fontSel" class="dsel"></select></label>
+        <label class="setfield"><span class="setlabel">Text size</span><select id="sizeSel" class="dsel">
           <option value="s">Small</option><option value="m">Default</option><option value="l">Large</option><option value="xl">Extra large</option></select></label>
       </div>
       <div class="setlabel">Colorblind mode</div>
@@ -1610,10 +1603,10 @@ function includedArtists(){
   return ARTISTS;
 }
 var DIFFS={
-  easy:   {lo:0,   hi:1, min:6, mult:0.9,  w:function(p){ return 0.04+Math.pow(1-p,4); },  label:"Easy",    note:"Mostly big hits, a deep cut now and then"},
-  normal: {lo:0,   hi:1, min:8, mult:1,    w:function(p){ return 0.35+Math.pow(1-p,1.4); }, label:"Normal",  note:"Any song, leaning toward the popular ones"},
-  hard:   {lo:.2,  hi:1, min:8, mult:1.15, w:function(p){ return 0.3+p; },                   label:"Hard",    note:"Skips the biggest hits, leans deep"},
-  extreme:{lo:.55, hi:1, min:8, mult:1.5,  w:function(p){ return 0.15+p*p; },               label:"Extreme", note:"Only the least popular songs"}
+  easy:   {lo:0,   hi:1, min:6, mult:0.9,  w:function(p){ return 0.04+Math.pow(1-p,4); },  label:"Easy",    note:"The easiest of the easy: every artist\u2019s most popular hits."},
+  normal: {lo:0,   hi:1, min:8, mult:1,    w:function(p){ return 0.35+Math.pow(1-p,1.4); }, label:"Normal",  note:"The middlest of middle grounds: mostly their big hits."},
+  hard:   {lo:.2,  hi:1, min:8, mult:1.15, w:function(p){ return 0.3+p; },                   label:"Hard",    note:"Big hits are few and far between. You\u2019d better know your stuff."},
+  extreme:{lo:.55, hi:1, min:8, mult:1.5,  w:function(p){ return 0.15+p*p; },               label:"Extreme", note:"No big hits here. You must really think you know your stuff, huh?"}
 };
 // songs out in the last ~3 months play like hits: they sit higher in the pool and show up more on easy
 function freshF(t){ var d=(Date.now()-Date.parse(t.date||""))/864e5; if(!(d>=0) || d>120) return 1; return d<=90 ? 0.3+0.3*(d/90) : 0.6+0.4*((d-90)/30); }
@@ -1676,7 +1669,7 @@ function renderDiff(){
   var d=curDiff(), bs=document.querySelectorAll("#diffRow .seg"), idx=0;
   for(var i=0;i<bs.length;i++){ var on=bs[i].getAttribute("data-d")===d; bs[i].classList.toggle("on",on); bs[i].setAttribute("aria-checked",on?"true":"false"); if(on) idx=i; }
   $("diffRow").style.setProperty("--idx",idx); $("menu").setAttribute("data-d",d);
-  var m=multOf(d); $("diffNote").textContent=DIFFS[d].note+(m===1?"":m>1?", score boosted "+multTxt(d):", score "+multTxt(d));
+  var m=multOf(d); $("diffNote").textContent=DIFFS[d].note;
   $("diffLabel").className="dlabel "+d; $("diffLabel").textContent=DIFFS[d].label+" "+multTxt(d);
 }
 var lastArtist=null, NEXT=null, roundSeq=0;
@@ -2080,8 +2073,7 @@ function openSettings(){ renderNet(); openModal($("settings")); }
 function closeSettings(){ closeModal($("settings")); }
 
 // ---- wiring ----
-$("startBtn").onclick=function(){ startGame(null); };
-document.querySelector(".mk").onclick=function(){ var m=this; m.classList.remove("shake"); void m.offsetWidth; m.classList.add("shake"); CLICK.play(false); setTimeout(function(){ m.classList.remove("shake"); },600); };
+$("startBtn").onclick=function(){ var b=this; b.classList.add("held"); setTimeout(function(){ b.classList.remove("held"); }, 1400); startGame(null); };
 $("modBtn").onclick=function(){ renderMods(); openModal($("mods")); };
 $("modsClose").onclick=function(){ closeModal($("mods")); };
 $("mods").onclick=function(e){ if(e.target===$("mods")) closeModal($("mods")); };
