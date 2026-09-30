@@ -113,7 +113,7 @@ function prefetchNext(){ NEXT=chooseArtist(); if(NEXT) ensureArtist(NEXT); }
 var waitReveal=false, revealT=0;
 // ---- menu music: muffled previews of in-game songs while hovering artists / with the game mode panel open ----
 var MM=(function(){
-  var ctx=null, filt=null, cur=null, key="", hoverA=null, nextT=null, noCors=false, seq=0;
+  var ctx=null, filt=null, cur=null, key="", hoverA=null, nextT=null, noCors=false, seq=0, held=false;      // held: a game is starting, stay quiet until back at the menu
   function vol(){ return prefs.volume*prefs.mmvol*0.55; }
   function graph(){ if(ctx||noCors) return;
     try{ var C=window.AudioContext||window.webkitAudioContext; ctx=new C(); filt=ctx.createBiquadFilter(); filt.type="lowpass"; filt.frequency.value=650; filt.Q.value=0.8; filt.connect(ctx.destination); }catch(e){ noCors=true; } }
@@ -123,7 +123,7 @@ var MM=(function(){
     el._f=setInterval(function(){ var k=Math.min(1,(performance.now()-t0)/ms); try{ sv(el,from+(to-from)*k); }catch(e){} if(k>=1){ clearInterval(el._f); if(done) done(); } },30); }
   function kill(el,ms){ if(!el) return; fade(el,0,ms,function(){ try{ el.pause(); el.removeAttribute("src"); el.load(); }catch(e){} }); }
   function targets(){
-    if(!prefs.menumusic || document.hidden || document.body.classList.contains("playing") || !$("startScreen").classList.contains("active")) return null;
+    if(held || !prefs.menumusic || document.hidden || document.body.classList.contains("playing") || !$("startScreen").classList.contains("active")) return null;
     if(hoverA) return [hoverA];
     if(document.body.classList.contains("modes-open")) return modeArtist ? [modeArtist] : (setNames()||ARTISTS);
     return null; }
@@ -151,7 +151,7 @@ var MM=(function(){
     if(l) playFrom(l,seq); }
   document.addEventListener("mouseover",function(e){ var b=e.target.closest&&e.target.closest("#artistList .lu[data-a]"); var a=b?b.getAttribute("data-a"):null; if(a!==hoverA){ hoverA=a; setTimeout(sync,a?60:350); } });
   setInterval(sync,600);
-  return {sync:sync, setVol:function(){ if(cur) fade(cur,vol(),150); }, stop:function(ms){ seq++; key="~stopped"; clearTimeout(nextT); kill(cur,ms||250); cur=null; setTimeout(function(){ if(key==="~stopped") key=""; },1500); }};
+  return {sync:sync, setVol:function(){ if(cur) fade(cur,vol(),150); }, stop:function(ms){ held=true; seq++; key=""; clearTimeout(nextT); kill(cur,ms||250); cur=null; }, release:function(){ held=false; }};
 })();
 function menuTransition(go){
   MM.stop(250);
@@ -206,7 +206,7 @@ function goHomeFade(){
   }, 480);
 }
 function goHome(){ muffle(false); PENDING=[]; fading=false; pendingSrc=null; pendingPlay=false; clearInterval(fadeI); clearTimeout(stopT); cancelAnimationFrame(rafId); try{audio.pause();}catch(e){}
-  document.body.classList.remove("playing","lastlife"); renderArtistList(); BGV.resume(); setTimeout(fitLogo,0); MODS.forEach(function(m){ document.body.classList.remove("m-"+m.k); });
+  document.body.classList.remove("playing","lastlife"); MM.release(); renderArtistList(); BGV.resume(); setTimeout(fitLogo,0); MODS.forEach(function(m){ document.body.classList.remove("m-"+m.k); });
   $("gameScreen").classList.remove("active"); $("startScreen").classList.add("active"); }
 
 function newRound(){
