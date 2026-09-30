@@ -301,7 +301,7 @@ var BULGE=(function(){
       w.style.transform=""; var r=w.getBoundingClientRect();
       var nx=((r.left+r.right)/2-br.left)/br.width*2-1, ny=((r.top+r.bottom)/2-br.top)/br.height*2-1;
       nx=Math.max(-1,Math.min(1,nx)); ny=Math.max(-1,Math.min(1,ny));
-      var dy=-ny*nx*nx*7, dx=-nx*ny*ny*9, s=1-0.05*(nx*nx*ny*ny)-0.02*ny*ny, rot=nx*ny*1.6;
+      var dy=-ny*nx*nx*16, dx=-nx*ny*ny*18, s=1-0.08*(nx*nx*ny*ny)-0.05*ny*ny, rot=nx*ny*3.4;
       w.style.transform="translate("+dx.toFixed(2)+"px,"+dy.toFixed(2)+"px) rotate("+rot.toFixed(2)+"deg) scale("+s.toFixed(3)+")"; } }
   function q(){ if(!raf) raf=requestAnimationFrame(apply); }
   window.addEventListener("resize",q); document.addEventListener("scroll",q,true);

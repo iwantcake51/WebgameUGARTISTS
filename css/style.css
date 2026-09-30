@@ -1071,7 +1071,7 @@ body.tv-on #nowVid{bottom:10px}
 .lu, html.bsd .lu{letter-spacing:-.005em; text-shadow:none}
 .lu.hl1, html.bsd .lu.hl1{font-size:clamp(38px,9vw,58px); color:var(--accent); letter-spacing:-.015em; line-height:.95}
 .lu.hl, html.bsd .lu.hl{font-weight:900}
-.lurow.hl:not(.hl1) .lu, html.bsd .lurow.hl:not(.hl1) .lu{font-size:clamp(26px,6vw,38px)}
+.lurow.hl:not(.hl1):not(.hl2) .lu, html.bsd .lurow.hl:not(.hl1):not(.hl2) .lu{font-size:clamp(26px,6vw,38px)}
 .lurow.hl2 .lu, html.bsd .lurow.hl2 .lu{font-size:clamp(21px,4.8vw,30px); opacity:.92}
 .lu.t1, html.bsd .lu.t1{font-size:clamp(17px,3.6vw,22px); opacity:.9}
 .lu.t2, html.bsd .lu.t2{font-size:clamp(14px,2.9vw,17px); opacity:.72}
@@ -1102,3 +1102,21 @@ body.tv-on #nowVid{bottom:10px}
   .menu .tag{font-size:15px}
 }
 .luw{display:inline-block; transform-origin:50% 50%}
+
+/* ===== menu polish: poster card for the lineup, quieter chrome, clearer hover states ===== */
+.menu .tag{color:color-mix(in srgb,var(--ink) 72%,transparent)}
+.menu .meta #greet::before{content:""; display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:8px; vertical-align:1px;
+  background:var(--accent); box-shadow:0 0 8px var(--accent); animation:livePulse 2.4s ease-in-out infinite}
+@keyframes livePulse{50%{opacity:.35}}
+.lineup{position:relative; padding:14px 14px 18px; border:1px solid var(--line); border-radius:4px;
+  background:linear-gradient(180deg, color-mix(in srgb,var(--accent) 7%,transparent), transparent 40%), color-mix(in srgb,var(--surface) 55%,transparent);
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 22px),transparent); mask-image:linear-gradient(to bottom,#000 calc(100% - 22px),transparent)}
+.lineup .lhead{color:var(--accent); opacity:.9}
+#startScreen .sec{transition:border-color .2s, background .2s, color .2s}
+#startScreen .sec:hover{border-color:var(--accent); color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.flink{position:relative; transition:color .2s}
+.flink::after{content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform .25s ease}
+.flink:hover{color:var(--ink)} .flink:hover::after{transform:scaleX(1)}
+.cap{margin-top:10px}
+.lurow.hl2 .lu, html.bsd .lurow.hl2 .lu{font-size:clamp(20px,4.4vw,26px)}
+.lineup{padding-left:6px; padding-right:6px}
