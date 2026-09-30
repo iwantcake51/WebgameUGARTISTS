@@ -975,8 +975,9 @@
   .modes{overflow-y:auto; scrollbar-width:none; justify-content:flex-start}
   .row2.one{grid-template-columns:1fr}
   /* press feedback on the mode screen */
-  .modeopt, .modes .seg, .modeartists, #modeBack, .modego{transition:transform .14s ease, border-color .25s, background-color .25s, color .25s}
-  .modeopt:active, .modes .seg:active, .modeartists:active, #modeBack:active{transform:scale(.97)}
+  .modeopt, .modes .seg, .modeartists, #modeBack{transition:transform .45s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, background-color .3s ease, color .3s ease}
+  .modeopt b{transition:color .3s ease}
+  .modeopt:active, .modes .seg:active, .modeartists:active, #modeBack:active{transform:scale(.97); transition-duration:.12s, .3s, .3s, .3s; transition-timing-function:ease-out}
   .modego:active{transform:scale(.985)}
 </style>
 </head>
@@ -1027,7 +1028,7 @@
         <button class="seg" data-d="random" role="radio"><span class="sn">Random</span><span class="sx">&times;1.25</span></button>
       </div>
       <div class="dnote" id="diffNote" style="--i:2"></div>
-      <button class="btn sec modeartists" id="filterBtn"><svg class="si" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>Choose artists</button>
+      <button class="btn sec modeartists" id="filterBtn">Choose artists</button>
       <button class="btn playall modego" id="modeGo"><span class="pl">Play</span><span class="arr">&rarr;</span></button>
     </div>
   </div>
@@ -2290,7 +2291,8 @@ function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ?
 function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
 function renderModes(){
   $("modeList").innerHTML=GMODES.map(function(m,i){ return "<button class='modeopt"+(m.k===gmode()?" on":"")+"' data-k='"+m.k+"' style='--i:"+i+"'><b>"+m.name+"</b><span>"+m.desc+"</span></button>"; }).join("");
-  [].forEach.call($("modeList").querySelectorAll(".modeopt"),function(b){ b.onclick=function(){ prefs.gmode=b.getAttribute("data-k"); savePrefs(); renderModes(); }; });
+  var bs=$("modeList").querySelectorAll(".modeopt");      // switch the highlight in place so it eases instead of re-rendering
+  [].forEach.call(bs,function(b){ b.onclick=function(){ prefs.gmode=b.getAttribute("data-k"); savePrefs(); [].forEach.call(bs,function(x){ x.classList.toggle("on",x===b); }); }; });
 }
 // desktop: the panel lives on <body> so the menu's launch zoom can't drag it into the middle; phones keep it in the menu to slide with it
 function placeModes(){ var pn=$("modePanel"), desk=matchMedia("(min-width:900px)").matches;
