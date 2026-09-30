@@ -1338,8 +1338,8 @@ function setFavicon(c){
 }
 
 // ---- prefs ----
-var prefs={theme:"plum", volume:0.9, autoplay:false, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, vblur:"", bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
-try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.vblur==="string") prefs.vblur=pp.vblur; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
+var prefs={theme:"plum", volume:0.9, autoplay:false, endmusic:true, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, vblur:"", bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
+try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.vblur==="string") prefs.vblur=pp.vblur; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","endmusic","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
 function savePrefs(){ try{ localStorage.setItem("drop_prefs", JSON.stringify(prefs)); }catch(e){} }
 function applyTheme(id){
   var th=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){th=THEMES[i];break;} } if(!th) th=THEMES[0];
@@ -1360,6 +1360,7 @@ function renderSwatches(){
 function setVolume(v){ prefs.volume=v; savePrefs(); try{audio.volume=v;}catch(e){} $("vol").value=v; $("vol2").value=v; $("volPct").textContent=$("volPct2").textContent=Math.round(v*100)+"%"; $("vol").style.setProperty("--v",v*100+"%"); $("vol2").style.setProperty("--v",v*100+"%"); }
 var TOGGLES=[
   {k:"autoplay",  label:"Autoplay snippet",   desc:"Play the clip automatically each round"},
+  {k:"endmusic",  label:"Music on round end", desc:"Play the song when you win or lose a round"},
   {k:"chroma",    label:"Chromatic reveal",   desc:"RGB-split flourish on the cover"},
   {k:"holo",      label:"3D cover",           desc:"Makes the album cover 3D!!"},
   {k:"bw",        label:"Black & white",      desc:"Removes all color, album covers included"},
@@ -2251,7 +2252,7 @@ function end(win){
   if(!win){ var fs=roundSeq; setTimeout(function(){ if(fs===roundSeq && R && R.over && $("gameScreen").classList.contains("active")) showFail(); }, 600); }
   if(wonAll){ var ws=roundSeq; setTimeout(function(){ if(ws===roundSeq && $("gameScreen").classList.contains("active")) showWin(); }, 900); }
   paintBar(); render();
-  seek0(function(){ audio.volume=prefs.volume; if(AC){try{AC.resume();}catch(e){}} var p=audio.play(); if(p&&p.catch)p.catch(function(){}); });
+  if(prefs.endmusic) seek0(function(){ audio.volume=prefs.volume; if(AC){try{AC.resume();}catch(e){}} var p=audio.play(); if(p&&p.catch)p.catch(function(){}); });
 }
 var fading=false, pendingSrc=null, pendingPlay=false;
 function finishFade(){
