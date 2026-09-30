@@ -2259,23 +2259,23 @@ var BGV=(function(){
   // look artists up in batches: mastered first, then the bigger names (most likely to have videos), then everyone else.
   // keeps going right away until something is found, then a batch every 20s while the menu is open (max 8 per page load)
   function fetchClips(){
-    if(loading || batches>=8) return;
+    if(loading || batches>=20) return;
     var tiers=mastery(), todo=ARTISTS.filter(function(a){ return !fresh(a); });
     if(!todo.length) return;
     var big=ARTISTS.slice(0,30);
     var pri=shuffle(todo.filter(function(a){ return tiers[a]; })),
         mid=shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)!==-1; })),
         rest=shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)===-1; }));
-    var pool=pri.concat(mid,rest).slice(0,6); loading=true; batches++;
+    var pool=pri.concat(mid,rest).slice(0,8); loading=true; batches++;
     Promise.all(pool.map(function(a){
-      return getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(termsOf(a)[0])+"&entity=musicVideo&limit=10").then(function(d){
+      return getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(termsOf(a)[0])+"&entity=musicVideo&limit=25").then(function(d){
         var got=[], seen={}; (d.results||[]).forEach(function(r){ if(r.previewUrl && artistMatch(r.artistName||"",termsOf(a)[0]) && !seen[r.previewUrl]){ seen[r.previewUrl]=1; got.push({u:r.previewUrl, t:noFeat(r.trackName||""), a:r.artistName||a}); } });
         CACHE[a]={at:Date.now(), list:got};
       },function(){});
     })).then(function(){
       loading=false; saveCache();
       if(want() && !vids[cur].classList.contains("on")) next();
-      if(want()) setTimeout(fetchClips, haveClips() ? 20000 : 300);
+      if(want()) setTimeout(fetchClips, haveClips() ? 8000 : 300);
     });
   }
   // pick an artist (diamond x6, gold x4, others x1, avoiding the last few), then a random clip of theirs
@@ -2285,18 +2285,19 @@ var BGV=(function(){
     el.classList.remove("on"); clearTimeout(nvT);
     nvT=setTimeout(function(){ el.textContent=txt; if(txt) el.classList.add("on"); }, 350);
   }
+  // shuffled deck of every cached clip: nothing repeats until all have played, same artist never twice in a row
+  var deck=[], played={};
   function pickClip(){
-    var tiers=mastery(), cands=[], tot=0;
-    for(var a in CACHE){ if(!fresh(a) || !CACHE[a].list.length) continue;
-      var w=(tiers[a]==="diamond"?6:tiers[a]==="gold"?4:1)*(recentA.indexOf(a)!==-1?0.3:1); cands.push([a,w]); tot+=w; }
-    if(!cands.length) return null;
-    var r=Math.random()*tot, pick=cands[cands.length-1][0];
-    for(var i=0;i<cands.length;i++){ r-=cands[i][1]; if(r<=0){ pick=cands[i][0]; break; } }
-    recentA.unshift(pick); recentA=recentA.slice(0,1);
-    var list=CACHE[pick].list, clip=list[Math.random()*list.length|0];
-    if(list.length>1 && (clip.u||clip)===lastSrc) clip=list[(list.indexOf(clip)+1)%list.length];
+    var all=[];
+    for(var a in CACHE){ if(!fresh(a)) continue; CACHE[a].list.forEach(function(c){ var u=c.u||c; if(!played[u]) all.push([a,c]); }); }
+    if(!all.length){ played={}; for(var a2 in CACHE){ if(fresh(a2)) CACHE[a2].list.forEach(function(c){ if((c.u||c)!==lastSrc) all.push([a2,c]); }); } }
+    if(!all.length) return null;
+    deck=shuffle(all);
+    var i=0; while(i<deck.length-1 && deck[i][0]===recentA[0]) i++;
+    var pick=deck[i][0], clip=deck[i][1];
+    recentA=[pick];
     if(typeof clip==="string") clip={u:clip, t:"", a:pick==="__mix"?"":pick};      // clips cached by older versions are plain URLs
-    lastSrc=clip.u; return clip;
+    played[clip.u]=1; lastSrc=clip.u; return clip;
   }
   function next(){
     clearTimeout(timer); if(!want()) return;
