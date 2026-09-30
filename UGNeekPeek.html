@@ -1050,7 +1050,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.66</div>
+  <div class="ver" title="version">v1.12.67</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -2228,13 +2228,19 @@ function nextSong(){
 }
 
 // ---- win screen (one-artist run with every song correct) ----
+// what this run counts: total songs, the word for them, and how to name the mode/difficulty
+function runTotal(){ return goalOf(); }                 // 0 = endless (no total)
+function runUnit(g,n){ var one=n===1; return g==="singles" ? (one?"single":"singles") : g==="albums" ? (one?"album song":"album songs") : (one?"song":"songs"); }
+function diffLocked(){ return mode==="artist" && soloSingles(); }
+function modeLine(){ var g=GMODES.filter(function(m){ return m.k===gmode(); })[0], nm=g?g.name:"Classic";
+  return diffLocked() ? "<b>"+nm+"</b>" : "<b>"+DIFFS[curDiff()].label+"</b>"+(gmode()!=="classic"?" \u00b7 <b>"+nm+"</b>":""); }
 function showWin(){
   if($("failModal").classList.contains("open")) return;
   showFail(); muffle(false);
-  var n=runLog.length, wins=runLog.filter(function(x){return x.win;});
+  var n=solved, wins=runLog.filter(function(x){return x.win && !x.auto;}), u=runUnit(gmode(),n);
   var avg=wins.length?wins.reduce(function(s,x){return s+x.secs;},0)/wins.length:0;
-  $("failTitle").textContent=(goalOf() && n>=goalOf())?goalOf()+" songs, no misses":"Every song, no misses"; $("failModal").classList.add("won"); $("failRetry").innerHTML="&#8635; Play again";
-  $("failSub").innerHTML="You got all <b>"+n+"</b> "+escapeHtml(pickArtist||"")+" songs on "+DIFFS[curDiff()].label+(wins.length?"<br>average "+avg.toFixed(2)+"s per song":"")+bonusTag()+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"");
+  $("failTitle").textContent=n+" "+u+", no misses"; $("failModal").classList.add("won"); $("failRetry").innerHTML="&#8635; Play again";
+  $("failSub").innerHTML="You got all <b>"+n+"</b> "+(pickArtist?escapeHtml(pickArtist)+" ":"")+u+" on "+modeLine()+(wins.length?"<br>average "+avg.toFixed(2)+"s per song":"")+bonusTag()+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"");
 }
 // ---- fail screen ----
 function showFail(){
@@ -2245,9 +2251,9 @@ function showFail(){
   var dk=curDiff(), isNew=score>runBest0 && score>0, last=runLog[runLog.length-1], wins=runLog.filter(function(x){return x.win;});
   var fast=wins.length?Math.min.apply(null,wins.map(function(x){return x.secs;})):0;
   var avg=wins.length?wins.reduce(function(s,x){return s+x.secs;},0)/wins.length:0;
-  $("fScore").textContent=score; $("fBest").textContent=BEST[dk]||0; $("fSolved").textContent = mode==="artist" && byArtist[pickArtist] ? solved+"/"+windowed(byArtist[pickArtist].tracks).length : solved;
-  $("fBestLbl").textContent="best ("+DIFFS[dk].label+")"; $("fBestBox").classList.toggle("new",isNew);
-  $("failSub").innerHTML = last ? "It was <b>"+escapeHtml(last.t.title)+"</b> by "+escapeHtml(last.t.credit||last.t.artist)+(wins.length?"<br>fastest "+fast.toFixed(2)+"s, average "+avg.toFixed(2)+"s":"")+bonusTag()+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"") : "";
+  $("fScore").textContent=score; $("fBest").textContent=BEST[dk]||0; var tot=runTotal(); $("fSolved").textContent = tot ? Math.min(solved,tot)+"/"+tot : solved;
+  $("fBestLbl").textContent="best ("+(diffLocked()?"Single Mingle":DIFFS[dk].label)+")"; $("fBestBox").classList.toggle("new",isNew);
+  $("failSub").innerHTML = last ? "It was <b>"+escapeHtml(last.t.title)+"</b> by "+escapeHtml(last.t.credit||last.t.artist)+"<br>"+modeLine()+(wins.length?"<br>fastest "+fast.toFixed(2)+"s, average "+avg.toFixed(2)+"s":"")+bonusTag()+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"") : "";
   $("failList").innerHTML="<div class='sslabel'>This run: "+runLog.length+" song"+(runLog.length===1?"":"s")+"</div>"+runLog.slice().reverse().map(function(x){
     var st=STATS[x.t.id]||{}, miss=(st.s||0)-(st.c||0);
     return "<div class='sres"+(x.win?"":" lost")+"'><img src='"+escapeHtml(x.t.art)+"' alt=''><div class='st'><div class='stt'>"+(x.win?"\u2713 ":"\u2717 ")+escapeHtml(x.t.title)+"</div><div class='sta'>"+escapeHtml(x.t.credit||x.t.artist)+"</div></div>"+
@@ -2516,8 +2522,8 @@ function unpackArt(a){ a=String(a||"");
   return /^\d[^"'<>\s]+$/.test(a) ? "https://is"+a[0]+"-ssl.mzstatic.com/image/thumb/"+a.slice(1)+"/400x400bb.jpg" : ""; }
 function shareLink(){
   var m = mode==="artist" ? pickArtist : mode==="multi" ? $("modeLabel").textContent : "All artists";
-  var tt = mode==="artist" && byArtist[pickArtist] ? windowed(byArtist[pickArtist].tracks).length : 0;
-  var d={v:1, s:score, tt:tt||undefined, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(), tz:new Date().getTimezoneOffset(), mo:activeMods().map(function(m){return m.k;}), n:(prefs.name||"").trim(), sk:modActive("skip")?(skipUsed||0):undefined,
+  var tt = runTotal(), gm=gmode(), ab=artistBonus();
+  var d={v:1, s:score, tt:tt||undefined, gm:gm!=="classic"?gm:undefined, lk:diffLocked()?1:undefined, ab:ab>1?+ab.toFixed(2):undefined, na:includedArtists().length, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(), tz:new Date().getTimezoneOffset(), mo:activeMods().map(function(m){return m.k;}), n:(prefs.name||"").trim(), sk:modActive("skip")?(skipUsed||0):undefined,
     r:runLog.map(function(x,i){ return [x.t.id, x.t.title, x.t.credit||x.t.artist, x.win?1:0, Math.round(x.secs*100), x.clip, x.pts, packArt(x.t.art)]; })};
   return location.origin+location.pathname+"?r="+b64u(JSON.stringify(d));
 }
@@ -2549,17 +2555,19 @@ function showShared(){
   var instant=wins.filter(function(x){return x.clip<=1;}).length;
   var arts={}; runs.forEach(function(x){ var a=x.a||"?"; arts[a]=arts[a]||[0,0]; arts[a][1]++; if(x.win) arts[a][0]++; });
   $("shareView").classList.toggle("won",!!d.w);
+  var GM={albums:"Big Releases only", singles:"Single Mingle", endless:"Endless"}, gmn=GM[d.gm]||"", unit=runUnit(d.gm,2);
   $("svTitle").textContent = d.w ? "Perfect run" : "Can you beat this?";
-  $("svSub").innerHTML = "<b>"+E(String(d.m||"All artists"))+"</b> on <b>"+DIFFS[dk].label+"</b>"+(d.at?"<br>shared "+E(whenTxt(+d.at)):"")+
+  $("svSub").innerHTML = "<b>"+E(String(d.m||"All artists"))+"</b> on "+(d.lk ? "<b>"+E(gmn)+"</b>" : "<b>"+DIFFS[dk].label+"</b>"+(gmn?" \u00b7 <b>"+E(gmn)+"</b>":""))+
+    (+d.ab>1?"<div class='modtags'><span class='modtag'>\uD83D\uDC65 "+(+d.na||"")+" artists \u00d7"+(+d.ab)+"</span></div>":"")+(d.at?"<br>shared "+E(whenTxt(+d.at)):"")+
     (miss?"<br>went out on <b>"+E(miss.t)+"</b>":"")+(Array.isArray(d.mo)?modTags(d.mo.map(String)):"")+(d.sk?skipTxt(d.sk):d.sk===0?"<div class='skipnote'>\u23ED\uFE0F skip not used</div>":"");
   $("svKick").textContent = d.n ? String(d.n).slice(0,20)+" sent you a score" : "a friend sent you a score";
   $("svScore").innerHTML=(+d.s||0)+"<small>points</small>";
-  $("svSolved").textContent=wins.length+"/"+(+d.tt>0?+d.tt:n); $("svStreak").textContent=best; $("svAvg").textContent=times.length?avg.toFixed(1)+"s":"-";
+  $("svSolved").textContent = d.gm==="endless" ? String(wins.length) : wins.length+"/"+(+d.tt>0?+d.tt:n); $("svStreak").textContent=best; $("svAvg").textContent=times.length?avg.toFixed(1)+"s":"-";
   $("svAccBar").style.width=(n?wins.length/n*100:0)+"%";
   function row(x,i){ return "<div class='sres"+(x.win?"":" lost")+"'><span class='snum'>"+(i+1)+"</span>"+(x.art?"<img src='"+E(x.art)+"' alt=''>":"")+
       "<div class='st'><div class='stt'>"+(x.win?"✓ ":"✗ ")+E(x.t)+"</div><div class='sta'>"+E(x.a)+"</div></div>"+
       "<div class='fstat'><b>"+x.secs.toFixed(2)+"s</b><span>"+x.clip+"s snippet</span>"+(x.win?"<span>+"+x.pts+"</span>":"")+"</div></div>"; }
-  var h="<div class='sslabel'>Songs: "+wins.length+" right"+(n-wins.length?", "+(n-wins.length)+" missed":"")+"</div>"+runs.map(row).join("");
+  var h="<div class='sslabel'>"+unit.charAt(0).toUpperCase()+unit.slice(1)+": "+wins.length+" right"+(n-wins.length?", "+(n-wins.length)+" missed":"")+"</div>"+runs.map(row).join("");
   h+="<div class='sslabel'>Advanced</div><div class='svgrid'>"+
     [[times.length?Math.min.apply(null,times).toFixed(2)+"s":"-","fastest"],[times.length?Math.max.apply(null,times).toFixed(2)+"s":"-","slowest"],[n?Math.round(wins.length/n*100)+"%":"0%","accuracy"],
      [clipAvg.toFixed(1)+"s","avg snippet"],[instant,"got in ≤1s"],[wins.length?Math.round((+d.s||0)/wins.length):0,"pts / song"]]

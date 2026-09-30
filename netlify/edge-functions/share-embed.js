@@ -2,7 +2,8 @@ import { getStore } from "@netlify/blobs";
 
 // Adds Discord/iMessage/Twitter link-preview tags to shared score links (/s/<id> short links and long ?r=... links).
 // The run data is packed in the link by shareLink() in UGNeekPeek.html.
-const DIFFS = { easy: "Easy", normal: "Normal", hard: "Hard", extreme: "Extreme" };
+const DIFFS = { easy: "Easy", normal: "Normal", hard: "Hard", extreme: "Extreme", random: "Random" };
+const GMODES = { albums: "Big Releases only", singles: "Single Mingle", endless: "Endless" };
 const MODS = { blind: "My ears are trained +30%", peek: "Just a peek −15%", lives: "Extra life −30%", half: "1 second is too much anyways +30%", rand: "Anywhere but the beginning +15%", mc: "I want Minecraft +5%", skip: "Get out of jail free −20%" };
 const COLORS = { easy: "#39e08b", normal: "#8c5cff", hard: "#ff9a4a", extreme: "#ff466b" };
 
@@ -60,14 +61,17 @@ export default async (request, context) => {
   const dk = DIFFS[d.d] ? d.d : "normal";
   const score = +d.s || 0;
   const mode = String(d.m || "All artists");
+  const gm = GMODES[d.gm] || "";
+  const level = d.lk ? gm : DIFFS[dk] + (gm ? ` · ${gm}` : "");
+  const unit = d.gm === "singles" ? "singles" : d.gm === "albums" ? "album songs" : "songs";
 
   const who = typeof d.n === "string" && d.n.trim() ? d.n.trim().slice(0, 20) : "";
-  const title0 = d.w ? `Perfect run: ${score} points on ${DIFFS[dk]}` : `${score} points on ${DIFFS[dk]}, can you beat it?`;
+  const title0 = d.w ? `Perfect run: ${score} points on ${level}` : `${score} points on ${level}, can you beat it?`;
   const title = who ? `${who}: ${title0}` : title0;
   const lines = [
-    `✅ ${+d.tt > 0 ? `${wins.length}/${+d.tt} ${mode} songs` : `${wins.length}/${n} songs right`}  ·  🔥 best streak ${best}`,
+    `✅ ${d.gm === "endless" ? `${wins.length} ${unit} in a row` : +d.tt > 0 ? `${wins.length}/${+d.tt} ${unit}` : `${wins.length}/${n} ${unit} right`}  ·  🔥 best streak ${best}`,
     times.length ? `⚡ avg guess ${avg.toFixed(1)}s  ·  fastest ${Math.min(...times).toFixed(2)}s  ·  ${quick} in ≤1s` : "",
-    `🎧 ${mode}`,
+    `🎧 ${mode}${+d.ab > 1 ? `  ·  👥 ${+d.na || ""} artists ×${+d.ab}` : ""}`,
     Array.isArray(d.mo) && d.mo.length ? `🎛️ ${d.mo.map((k) => MODS[k]).filter(Boolean).join(", ")}` : "",
     d.sk ? `⏭️ skipped "${String(d.sk)}"` : d.sk === 0 ? "⏭️ skip not used" : "",
     d.at ? `🕒 ${sharedAt(+d.at, d.tz)}` : "",
