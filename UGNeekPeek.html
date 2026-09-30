@@ -2309,7 +2309,10 @@ function openModes(){ placeModes(); renderModes(); void $("modePanel").offsetWid
 function closeModes(){ $("startScreen").classList.remove("modes-open"); document.body.classList.remove("modes-open"); $("modePanel").setAttribute("aria-hidden","true"); }
 // click anywhere outside the panel (the greyed menu, the background) to close it; clicks inside open menus don't count
 document.addEventListener("click",function(e){ if(!document.body.classList.contains("modes-open") || document.body.classList.contains("playing")) return;
-  if($("modePanel").contains(e.target) || e.target.closest(".modal") || e.target.closest("#startBtn")) return; closeModes(); });
+  // use the path from when the click happened: buttons that re-render themselves are detached by now and would look "outside"
+  var path=e.composedPath?e.composedPath():[e.target], pn=$("modePanel");
+  if(!document.contains(e.target) || path.some(function(n){ return n===pn || n.id==="startBtn" || (n.classList && n.classList.contains("modal")); })) return;
+  closeModes(); });
 $("startBtn").onclick=function(){ var b=this; b.classList.add("held"); setTimeout(function(){ b.classList.remove("held"); }, 900); openModes(); };
 $("modeBack").onclick=closeModes;
 $("modeGo").onclick=function(){ startGame(null); setTimeout(closeModes, 760); };
