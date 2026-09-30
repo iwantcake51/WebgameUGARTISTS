@@ -1002,6 +1002,7 @@
     filter:none !important; animation:none !important; text-shadow:none !important; transition:color .3s ease}
   .brand{filter:none !important; --ca:0px !important}      /* no chromatic aberration on the logo */
   html[data-th="gold"] .brand{filter:drop-shadow(0 0 10px rgba(247,210,122,.45)) !important}
+  .ring{border-radius:4px}      /* match the cover box so its corners stay inside the green/red frame */
   .stageInner, .holo{border-radius:inherit} .holo{overflow:hidden; clip-path:inset(0 round 4px)}
   .stage.revealed .stageInner{clip-path:inset(0 round 4px)}
   .dgoal{font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:-6px}
