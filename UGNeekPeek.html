@@ -2381,18 +2381,21 @@ $("vol2").oninput=function(){ setVolume(parseFloat(this.value)); };
 var BGV=(function(){
   var vids=[$("bgA"),$("bgB")], cur=0, timer=0, loading=false, started=0, CUT=5200, lastSrc="", recentA=[];
   // clips cached per artist for a week: {artist:{at, list:[previewUrl]}} (empty list = no videos on Apple)
-  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips8")||"{}")||{}; }catch(e){ CACHE={}; }
+  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips9")||"{}")||{}; }catch(e){ CACHE={}; }
   var batches=0;
   // only videos whose lead artist IS this roster artist (no features, no similarly named artists)
   function credited(r,a){
-    var names=termsOf(a).concat([a]).map(norm), parts=[];
+    // exact name only: case-insensitive, but punctuation and spacing must match ("diamond*" != "Diamond", "Jace!" != "Ja Ce")
+    function ex(x){ return (x||"").toLowerCase().replace(/\s+/g," ").trim(); }
+    var names=[], parts=[];
+    termsOf(a).concat([a]).forEach(function(t){ names.push(ex(t)); });
     (r.artistName||"").split(/\s*(?:,|&|\bx\b|\band\b|\bwith\b|feat\.?|ft\.?)\s*/i).forEach(function(p){ parts.push(p); });
     var m=(r.trackName||"").match(/\((?:feat\.?|ft\.?|with)\s+([^)]*)\)/i); if(m) m[1].split(/\s*(?:,|&)\s*/).forEach(function(p){ parts.push(p); });
-    return parts.some(function(p){ return names.indexOf(norm(p))!==-1; });
+    return parts.some(function(p){ return names.indexOf(ex(p))!==-1; });
   }
   function onRoster(name,a){ var n=norm(leadArtist(name)); return termsOf(a).concat([a]).some(function(t){ return norm(t)===n; }); }
   function fresh(a){ var c=CACHE[a]; return ARTISTS.indexOf(a)!==-1 && c && Date.now()-c.at<7*864e5; }
-  function saveCache(){ try{ localStorage.setItem("drop_bgclips8", JSON.stringify(CACHE)); }catch(e){} }
+  function saveCache(){ try{ localStorage.setItem("drop_bgclips9", JSON.stringify(CACHE)); }catch(e){} }
   function haveClips(){ for(var a in CACHE) if(fresh(a) && CACHE[a].list.length) return true; return false; }
   function want(){ return prefs.bgvid && !document.body.classList.contains("playing") && !document.hidden; }
   // look artists up in batches: mastered first, then the bigger names (most likely to have videos), then everyone else.
