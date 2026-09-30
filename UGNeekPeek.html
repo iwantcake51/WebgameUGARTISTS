@@ -1010,10 +1010,10 @@
   .opt.ghostslot{opacity:.22; filter:grayscale(1); pointer-events:none; border-style:dashed}
   .segs.locked{opacity:.35; filter:grayscale(1); pointer-events:none} .segs.locked .segind{opacity:0}
   .segs.locked .seg.on, .segs.locked .seg.on .sx{color:color-mix(in srgb,var(--sc) 60%,var(--muted))} .segs.locked .seg.on .sn{-webkit-text-fill-color:currentColor; background:none}
-  .swatch{overflow:visible}
-  .swatch .swp{position:absolute; left:0; right:0; bottom:0; height:30%; border-radius:0 0 2px 2px}
-  .swatch .swa{position:absolute; left:6px; top:6px; width:14px; height:14px; border-radius:50%; box-shadow:0 0 0 1.5px rgba(0,0,0,.35)}
-  .swatch .sws{position:absolute; left:15px; top:14px; width:10px; height:10px; border-radius:50%; box-shadow:0 0 0 1.5px rgba(0,0,0,.35)}
+  .swatch{box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); transition:transform .25s cubic-bezier(.34,1.56,.64,1), border-color .2s}
+  .swatch:hover{transform:translateY(-2px)}
+  .ver{position:fixed; right:10px; bottom:8px; z-index:3; font-family:var(--f-mono); font-size:10px; letter-spacing:.08em; color:var(--muted); opacity:.55; pointer-events:none}
+  body.playing .ver{display:none}
 </style>
 </head>
 <body>
@@ -1038,6 +1038,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
+  <div class="ver" title="version">v1.12.0</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -1306,10 +1307,8 @@ function applyTheme(id){
 }
 function renderSwatches(){
   var h=""; THEMES.forEach(function(t){
-    var v=t.vars;          // palette preview: background gradient, surface band, accent + spot chips
-    h+="<button class='swatch' data-t='"+t.id+"' style='background:radial-gradient(120% 120% at 50% 0%, "+v["--grad"]+", "+v["--bg"]+")'>"+
-      "<i class='swp' style='background:linear-gradient(90deg,"+v["--surface"]+" 0 33%,"+v["--surface2"]+" 33% 66%,"+v["--line"]+" 66%)'></i>"+
-      "<i class='swa' style='background:"+v["--accent"]+"'></i><i class='sws' style='background:"+(v["--spot"]||v["--accent"])+"'></i><span>"+t.name+"</span></button>";
+    var v=t.vars;          // one smooth sweep through the palette: background -> glow -> accent
+    h+="<button class='swatch' data-t='"+t.id+"' style='background:linear-gradient(135deg,"+v["--bg"]+" 0%,"+v["--grad"]+" 45%,"+v["--accent"]+" 100%)'><span>"+t.name+"</span></button>";
   });
   $("swatches").innerHTML=h;
   var sw=$("swatches").querySelectorAll(".swatch");
