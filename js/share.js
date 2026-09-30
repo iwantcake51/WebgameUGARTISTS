@@ -7,13 +7,54 @@ function packArt(u){ u=String(u||""); var m=ART_RE.exec(u); if(m) return m[1]+m[
 function unpackArt(a){ a=String(a||"");
   if(/^@https:\/\/[\w.-]+\.mzstatic\.com\/[^"'<>\s]+$/.test(a)) return a.slice(1);
   return /^\d[^"'<>\s]+$/.test(a) ? "https://is"+a[0]+"-ssl.mzstatic.com/image/thumb/"+a.slice(1)+"/400x400bb.jpg" : ""; }
-function shareLink(){
+function shareData(){
   var m = mode==="artist" ? pickArtist : mode==="multi" ? includedArtists().length+" artists" : "All artists";
   var tt = runTotal(), gm=gmode(), ab=artistBonus();
   var d={v:1, s:score, tt:tt||undefined, gm:gm!=="classic"?gm:undefined, lk:diffLocked()?1:undefined, ab:ab>1?+ab.toFixed(2):undefined, na:includedArtists().length, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(), tz:new Date().getTimezoneOffset(), mo:activeMods().map(function(m){return m.k;}), n:(prefs.name||"").trim(), sk:modActive("skip")?(skipUsed||0):undefined,
     r:runLog.map(function(x,i){ return [x.t.id, x.t.title, x.t.credit||x.t.artist, x.win?1:0, Math.round(x.secs*100), x.clip, x.pts, packArt(x.t.art)]; })};
-  return location.origin+location.pathname+"?r="+b64u(JSON.stringify(d));
+  return b64u(JSON.stringify(d));
 }
+function shareLink(){ return location.origin+"/?r="+shareData(); }
+// ---- past games: the last 20 finished runs, kept as packed share data so they can be reopened and shared ----
+var GAMES=[]; try{ GAMES=JSON.parse(localStorage.getItem("drop_games")||"[]"); if(!Array.isArray(GAMES)) GAMES=[]; }catch(e){ GAMES=[]; }
+var savedLog=null;
+function saveGame(){
+  if(!runLog.length || savedLog===runLog) return; savedLog=runLog;      // once per run (commitRun can be called twice)
+  GAMES.unshift({r:shareData(), at:Date.now()}); GAMES=GAMES.slice(0,20);
+  try{ localStorage.setItem("drop_games", JSON.stringify(GAMES)); }catch(e){}
+}
+function gameInfo(g){ try{ var d=JSON.parse(unb64u(g.r)); return Array.isArray(d.r)?d:null; }catch(e){ return null; } }
+function renderGames(){
+  var E=escapeHtml, GM={albums:"Big Releases only", singles:"Single Mingle", endless:"Endless"};
+  $("gamesBody").innerHTML = GAMES.length ? "<div class='sslabel'>Last "+GAMES.length+" game"+(GAMES.length===1?"":"s")+"</div>"+GAMES.map(function(g,i){
+    var d=gameInfo(g); if(!d) return "";
+    var wins=d.r.filter(function(x){ return x[3]; }).length, dk=DIFFS[d.d]?d.d:"normal";
+    return "<div class='pgame"+(d.w?" won":"")+"'><div class='pgi'><div class='pgt'><b>"+(+d.s||0)+"</b> pts \u00b7 "+E(String(d.m||"All artists"))+"</div>"+
+      "<div class='pgs'>"+(d.lk?"":DIFFS[dk].label)+(GM[d.gm]?(d.lk?"":" \u00b7 ")+GM[d.gm]:"")+" \u00b7 "+wins+"/"+d.r.length+" right"+(d.w?" \u00b7 perfect":"")+"</div>"+
+      "<div class='pgw'>"+E(whenTxt(+d.at||g.at))+"</div></div>"+
+      "<div class='pgb'><button class='ghost' data-v='"+i+"'>View</button><button class='ghost' data-s='"+i+"'>Share</button></div></div>";
+  }).join("") : "<div class='empty'>No games yet. Finished runs show up here (the last 20 are kept).</div>";
+  [].forEach.call($("gamesBody").querySelectorAll("[data-v]"),function(b){ b.onclick=function(){ showShared(GAMES[+b.getAttribute("data-v")].r, true); }; });
+  [].forEach.call($("gamesBody").querySelectorAll("[data-s]"),function(b){ b.onclick=function(){ shareGame(GAMES[+b.getAttribute("data-s")], b); }; });
+}
+function shareGame(g,b){
+  var long=location.origin+"/?r="+g.r;
+  function copy(url){ function done(){ b.textContent="Copied"; setTimeout(function(){ b.textContent="Share"; },1600); }
+    if(navigator.share && matchMedia("(pointer:coarse)").matches){ navigator.share({title:document.title, url:url}).catch(function(){}); return; }
+    if(navigator.clipboard) navigator.clipboard.writeText(url).then(done,function(){ prompt("Copy this link:",url); }); else prompt("Copy this link:",url); }
+  if(g.short){ copy(g.short); return; }
+  b.textContent="\u2026";
+  fetch("/api/share",{method:"POST", body:g.r}).then(function(res){ return res.ok?res.json():null; })
+    .then(function(j){ if(j&&j.id){ g.short=location.origin+"/s/"+j.id; try{ localStorage.setItem("drop_games", JSON.stringify(GAMES)); }catch(e){} } b.textContent="Share"; copy(g.short||long); })
+    .catch(function(){ b.textContent="Share"; copy(long); });
+}
+function histTab(t){
+  [].forEach.call(document.querySelectorAll(".htab"),function(x){ x.classList.toggle("on", x.getAttribute("data-t")===t); });
+  var games=t==="games"; $("gamesBody").style.display=games?"":"none";
+  ["catalogBody","catFilterRow"].forEach(function(id){ $(id).style.display=games?"none":""; });
+  document.querySelector("#catalog .catsearchwrap").style.display=games?"none":""; document.querySelector("#catalog .catsliderwrap").style.display=games?"none":"";
+  if(games) renderGames(); }
+[].forEach.call(document.querySelectorAll(".htab"),function(x){ x.onclick=function(){ histTab(x.getAttribute("data-t")); }; });
 var shortLink=null;
 function makeShortLink(){
   var long=shareLink(), r=long.split("?r=")[1]; shortLink={long:long, url:null};
@@ -29,8 +70,8 @@ $("failShare").onclick=function(){
   else prompt("Copy this link:",url);
 };
 function trackArt(id){ for(var k in byArtist){ var tr=byArtist[k]&&byArtist[k].tracks; if(!tr) continue; for(var i=0;i<tr.length;i++) if(String(tr[i].id)===String(id)) return tr[i].art; } return ""; }
-function showShared(){
-  var sm=document.querySelector('meta[name="ugnp-share"]'), q=new URLSearchParams(location.search).get("r")||(sm&&sm.content); if(!q) return;
+function showShared(q0,own){
+  var sm=document.querySelector('meta[name="ugnp-share"]'), q=q0||new URLSearchParams(location.search).get("r")||(sm&&sm.content); if(!q) return;
   var d; try{ d=JSON.parse(unb64u(q)); }catch(e){ return; }
   if(!d || !Array.isArray(d.r)) return;
   var dk=DIFFS[d.d]?d.d:"normal", E=escapeHtml;
@@ -43,11 +84,11 @@ function showShared(){
   var arts={}; runs.forEach(function(x){ var a=x.a||"?"; arts[a]=arts[a]||[0,0]; arts[a][1]++; if(x.win) arts[a][0]++; });
   $("shareView").classList.toggle("won",!!d.w);
   var GM={albums:"Big Releases only", singles:"Single Mingle", endless:"Endless"}, gmn=GM[d.gm]||"", unit=runUnit(d.gm,2);
-  $("svTitle").textContent = d.w ? "Perfect run" : "Can you beat this?";
+  $("svTitle").textContent = d.w ? "Perfect run" : own ? "Game recap" : "Can you beat this?";
   $("svSub").innerHTML = "<b>"+E(String(d.m||"All artists"))+"</b> on "+(d.lk ? "<b>"+E(gmn)+"</b>" : "<b>"+DIFFS[dk].label+"</b>"+(gmn?" \u00b7 <b>"+E(gmn)+"</b>":""))+
-    (+d.ab>1?"<div class='modtags'><span class='modtag'>\uD83D\uDC65 "+(+d.na||"")+" artists \u00d7"+(+d.ab)+"</span></div>":"")+(d.at?"<br>shared "+E(whenTxt(+d.at)):"")+
+    (+d.ab>1?"<div class='modtags'><span class='modtag'>\uD83D\uDC65 "+(+d.na||"")+" artists \u00d7"+(+d.ab)+"</span></div>":"")+(d.at?"<br>"+(own?"played ":"shared ")+E(whenTxt(+d.at)):"")+
     (miss?"<br>went out on <b>"+E(miss.t)+"</b>":"")+(Array.isArray(d.mo)?modTags(d.mo.map(String)):"")+(d.sk?skipTxt(d.sk):d.sk===0?"<div class='skipnote'>\u23ED\uFE0F skip not used</div>":"");
-  $("svKick").textContent = d.n ? String(d.n).slice(0,20)+" sent you a score" : "a friend sent you a score";
+  $("svKick").textContent = own ? "your game" : d.n ? String(d.n).slice(0,20)+" sent you a score" : "a friend sent you a score";
   $("svScore").innerHTML=(+d.s||0)+"<small>points</small>";
   $("svSolved").textContent = d.gm==="endless" ? String(wins.length) : wins.length+"/"+(+d.tt>0?+d.tt:n); $("svStreak").textContent=best; $("svAvg").textContent=times.length?avg.toFixed(1)+"s":"-";
   $("svAccBar").style.width=(n?wins.length/n*100:0)+"%";
@@ -64,6 +105,7 @@ function showShared(){
   var ak=Object.keys(arts); if(ak.length>1){ h+="<div class='sslabel'>By artist</div>"+ak.sort(function(x,y){ return arts[y][1]-arts[x][1]; }).map(function(a){
     return "<div class='svbar'><em style='width:auto;flex:0 0 38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+E(a)+"</em><i><u style='width:"+(arts[a][0]/arts[a][1]*100)+"%'></u></i><s style='width:36px'>"+arts[a][0]+"/"+arts[a][1]+"</s></div>"; }).join(""); }
   $("svBody").innerHTML=h;
+  $("svPlay").textContent=own?"Play again":"Beat it";
   $("svPlay").onclick=function(){ closeShared(); prefs.diff=dk; savePrefs(); renderDiff(); if(ARTISTS.indexOf(d.m)!==-1) startGame(d.m); else if(d.m==="All artists") startGame(); };
   openModal($("shareView"));
 }
@@ -72,7 +114,7 @@ function whenTxt(ms){
   if(ago<60) rel="just now"; else if(ago<3600) rel=Math.floor(ago/60)+"m ago"; else if(ago<86400) rel=Math.floor(ago/3600)+"h ago"; else rel=Math.floor(ago/86400)+"d ago";
   return t.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})+", "+t.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})+" ("+rel+")";
 }
-function closeShared(){ closeModal($("shareView")); try{ history.replaceState(null,"",/^\/s\//.test(location.pathname)?"/":location.pathname); }catch(e){} }
+function closeShared(){ closeModal($("shareView")); if(!/[?&]r=|^\/s\//.test(location.search+location.pathname)) return; try{ history.replaceState(null,"",/^\/s\//.test(location.pathname)?"/":location.pathname); }catch(e){} }
 $("svClose").onclick=closeShared;
 $("homeBtn").onclick=goHomeFade; $("logoBtn").onclick=goHomeFade;
 

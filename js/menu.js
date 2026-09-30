@@ -77,7 +77,7 @@ function catJump(a,id){
   el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
 }
 function syncCatSlider(){ var row=$("catFilterRow"), max=row.scrollWidth-row.clientWidth; $("catSlider").style.visibility=max>2?"visible":"hidden"; $("catSlider").value = max>0 ? Math.round(row.scrollLeft/max*1000) : 0; }
-function openCatalogFresh(){ $("catFilterRow").scrollLeft=0; catFilter="__all"; if($("catSearch")) $("catSearch").value=""; openCatalog(); }
+function openCatalogFresh(){ if(typeof histTab==="function") histTab("songs"); $("catFilterRow").scrollLeft=0; catFilter="__all"; if($("catSearch")) $("catSearch").value=""; openCatalog(); }
 function closeCatalog(){ closeModal($("catalog")); }
 
 // ---- filter ----

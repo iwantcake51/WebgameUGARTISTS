@@ -10,6 +10,7 @@ function logRecent(track,correct){ RECENT.unshift({id:track.id,t:track.title,a:t
 var PENDING=[];
 function bump(track,correct){ PENDING.push([track,correct]); }
 function commitRun(){
+  if(typeof saveGame==="function") saveGame();
   PENDING.forEach(function(p){ saveGuess(p[0],p[1]); }); PENDING=[];
   var dk=curDiff(); if(score>(BEST[dk]||0)){ BEST[dk]=score; saveBest(); }
 }

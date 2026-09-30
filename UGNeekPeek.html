@@ -37,7 +37,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.13.19</div>
+  <div class="ver" title="version">v1.13.20</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -118,6 +118,8 @@
 <div id="catalog" class="modal">
   <div class="sheet">
     <div class="sheethead"><div id="catalogHead">Your history</div><button id="catalogClose" class="linkbtn">close</button></div>
+    <div class="histtabs" role="tablist"><button class="htab on" data-t="songs" role="tab">Songs</button><button class="htab" data-t="games" role="tab">Past games</button></div>
+    <div id="gamesBody" class="sheetbody" style="display:none"></div>
     <div class="catsearchwrap"><input id="catSearch" class="catsearch" type="text" placeholder="Search songs you've heard…" autocomplete="off"></div>
     <div id="catFilterRow" class="catfilter"></div>
     <div class="catsliderwrap"><input id="catSlider" class="vol catslider" type="range" min="0" max="1000" step="1" value="0" aria-label="Scroll artists"></div>

@@ -1120,3 +1120,16 @@ body.tv-on #nowVid{bottom:10px}
 .cap{margin-top:10px}
 .lurow.hl2 .lu, html.bsd .lurow.hl2 .lu{font-size:clamp(20px,4.4vw,26px)}
 .lineup{padding-left:6px; padding-right:6px}
+/* history tabs + past games */
+.histtabs{display:flex; gap:6px; padding:10px 16px 2px}
+.htab{flex:1; padding:8px 10px; border:1px solid var(--line); border-radius:3px; background:transparent; color:var(--muted); cursor:pointer;
+  font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; transition:color .2s, border-color .2s, background .2s}
+.htab.on{color:var(--ink); border-color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.pgame{display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line)}
+.pgame.won .pgt b{color:#39e08b}
+.pgi{flex:1; min-width:0}
+.pgt{font-size:14px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis} .pgt b{color:var(--accent); font-size:16px}
+.pgs{font-size:12px; color:var(--muted); margin-top:2px}
+.pgw{font-family:var(--f-mono); font-size:10.5px; color:var(--muted); opacity:.8; margin-top:3px}
+.pgb{display:flex; flex-direction:column; gap:5px} .pgb .ghost{padding:5px 12px; font-size:12px}
+#gamesBody .empty{color:var(--muted); font-size:13px; padding:18px 0; text-align:center}
