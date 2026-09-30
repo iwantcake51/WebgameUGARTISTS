@@ -549,16 +549,16 @@
   .seg.on{color:#0a0711} .seg.on .sx{opacity:.85}
   .seg:focus-visible,.playall:focus-visible,.sec:focus-visible,.lu:focus-visible,.flink:focus-visible{outline:2px solid var(--ink); outline-offset:3px}
   .menu .dnote{font-size:13px; color:var(--muted); min-height:18px; margin:11px 0 18px}
-  #startScreen .playall{width:100%; max-width:390px; padding:15px 16px 14px; border:0; border-radius:10px; cursor:pointer; color:#0a0711;
+  :is(#startScreen,#modePanel) .playall{width:100%; max-width:390px; padding:15px 16px 14px; border:0; border-radius:10px; cursor:pointer; color:#0a0711;
     font-family:var(--f-body); font-weight:700; font-size:20px; line-height:1.1; letter-spacing:-.01em;
     background:linear-gradient(120deg,var(--dc),var(--dc2)); box-shadow:0 12px 30px -12px var(--dc2), inset 0 1px 0 rgba(255,255,255,.35);
     transition:box-shadow .35s, filter .2s}
-  #startScreen .playall:hover{filter:brightness(1.07)}
-  html.bsd #startScreen .playall{font-family:var(--f-display); font-weight:900; font-size:28px; line-height:1; letter-spacing:.01em}
+  :is(#startScreen,#modePanel) .playall:hover{filter:brightness(1.07)}
+  html.bsd :is(#startScreen,#modePanel) .playall{font-family:var(--f-display); font-weight:900; font-size:28px; line-height:1; letter-spacing:.01em}
   .row2{display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; max-width:390px; margin-top:8px}
-  #startScreen .sec{padding:13px 8px; border-radius:8px; background:var(--surface); border:1px solid var(--line); color:var(--ink);
+  :is(#startScreen,#modePanel) .sec{padding:13px 8px; border-radius:8px; background:var(--surface); border:1px solid var(--line); color:var(--ink);
     font-family:inherit; font-weight:600; font-size:14.5px; cursor:pointer; transition:border-color .25s, background .25s}
-  #startScreen .sec:hover{border-color:var(--dc)}
+  :is(#startScreen,#modePanel) .sec:hover{border-color:var(--dc)}
   .lineup{flex:0 1 auto; min-height:58px; max-height:250px; width:100%; max-width:400px; margin-top:26px; padding:6px 0 10px; overflow:auto; line-height:1.18;
     -webkit-mask-image:linear-gradient(to bottom,transparent,#000 10px,#000 calc(100% - 16px),transparent);
             mask-image:linear-gradient(to bottom,transparent,#000 10px,#000 calc(100% - 16px),transparent); scrollbar-width:none}
@@ -663,7 +663,7 @@
   .ludiv{height:1px; width:62%; margin:7px auto 8px; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 70%,transparent),transparent); opacity:.7}
   .lineup .lhead{display:block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:3px; color:var(--accent); opacity:.85; margin:2px 0 4px}
   .menu .mk{filter:drop-shadow(0 8px 34px color-mix(in srgb,var(--dc) 45%,transparent))}
-  #startScreen .sec .si{margin-right:6px; opacity:.85}
+  :is(#startScreen,#modePanel) .sec .si{margin-right:6px; opacity:.85}
   .mcount{display:inline-block; margin-left:6px; font-family:var(--f-mono); font-size:10.5px; padding:2px 7px; border-radius:6px; background:var(--dc); color:#0a0711; vertical-align:1px}
   /* modifiers */
   .modcard{display:flex; gap:12px; align-items:flex-start; width:100%; padding:14px; margin-bottom:10px; text-align:left; cursor:pointer; font-family:inherit;
@@ -690,8 +690,8 @@
   .shiny{position:relative; overflow:hidden}
   .shiny::after{content:""; position:absolute; top:0; bottom:0; left:0; width:45%; pointer-events:none; border-radius:inherit;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent); animation:shineSweep 3.2s ease-in-out infinite}
-  html[data-th="gold"] #startScreen .playall, html[data-th="gold"] .play-btn{position:relative; overflow:hidden}
-  html[data-th="gold"] #startScreen .playall::after, html[data-th="gold"] .play-btn::after{content:""; position:absolute; top:0; bottom:0; left:0; width:45%; pointer-events:none;
+  html[data-th="gold"] :is(#startScreen,#modePanel) .playall, html[data-th="gold"] .play-btn{position:relative; overflow:hidden}
+  html[data-th="gold"] :is(#startScreen,#modePanel) .playall::after, html[data-th="gold"] .play-btn::after{content:""; position:absolute; top:0; bottom:0; left:0; width:45%; pointer-events:none;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent); animation:shineSweep 3.2s ease-in-out infinite}
   html[data-th="gold"] .brand{filter:drop-shadow(var(--ca) calc(var(--ca) * .15) rgba(255,45,110,.6)) drop-shadow(calc(var(--ca) * -1) calc(var(--ca) * -.15) rgba(40,220,255,.55)) drop-shadow(0 0 10px rgba(247,210,122,.45))}
   body.m-blind #modeLabel{background:linear-gradient(100deg,var(--muted) 40%,#fff 50%,var(--muted) 60%); background-size:300% 100%;
@@ -722,8 +722,8 @@
     .menu .tag{font-size:12.5px; line-height:1.45; margin:8px auto 14px}
     .seg{padding:7px 0 6px} html.bsd .seg .sn{font-size:19px}
     .menu .dnote{margin:8px 0 12px}
-    #startScreen .playall{padding:12px 16px 11px} html.bsd #startScreen .playall{font-size:25px}
-    #startScreen .sec{padding:11px 8px}
+    :is(#startScreen,#modePanel) .playall{padding:12px 16px 11px} html.bsd :is(#startScreen,#modePanel) .playall{font-size:25px}
+    :is(#startScreen,#modePanel) .sec{padding:11px 8px}
     .lineup{margin-top:14px}
     .foot{margin-top:12px}
   }
@@ -772,16 +772,16 @@
   .seg[data-d="extreme"].on .sn{background:linear-gradient(90deg,#a855f7,#ec4899); -webkit-background-clip:text; background-clip:text; color:transparent}
   #diffNote{color:color-mix(in srgb,var(--dc) 75%,var(--ink)); transition:color .3s}
   .menu .dnote{font-family:var(--f-mono); font-size:11px; letter-spacing:.02em; margin:10px 0 16px; text-align:left}
-  #startScreen .playall{max-width:none; border-radius:3px; background:var(--dc) !important; box-shadow:none !important; color:#0a0711;
+  :is(#startScreen,#modePanel) .playall{max-width:none; border-radius:3px; background:var(--dc) !important; box-shadow:none !important; color:#0a0711;
     display:flex; justify-content:space-between; align-items:center; text-align:left; text-transform:uppercase; padding:14px 16px 13px}
-  #startScreen .playall::after{content:"\2192"; font-family:var(--f-body); font-weight:600; font-size:.8em}
-  #startScreen .playall:hover{filter:brightness(1.08)}
+  :is(#startScreen,#modePanel) .playall::after{content:"\2192"; font-family:var(--f-body); font-weight:600; font-size:.8em}
+  :is(#startScreen,#modePanel) .playall:hover{filter:brightness(1.08)}
   .row2{max-width:none; gap:6px; margin-top:6px}
-  #startScreen .sec{border-radius:3px; background:transparent; text-align:left; padding:12px 12px; font-size:13.5px; font-weight:600;
+  :is(#startScreen,#modePanel) .sec{border-radius:3px; background:transparent; text-align:left; padding:12px 12px; font-size:13.5px; font-weight:600;
     display:flex; align-items:center; gap:10px; text-transform:uppercase; letter-spacing:.04em}
-  #startScreen .sec::before{font-family:var(--f-mono); font-size:10px; color:var(--muted); font-weight:500}
-  #filterBtn::before{content:"02"} #modBtn::before{content:"03"}
-  #startScreen .sec:hover{border-color:var(--ink); background:color-mix(in srgb,var(--ink) 5%,transparent)}
+  :is(#startScreen,#modePanel) .sec::before{font-family:var(--f-mono); font-size:10px; color:var(--muted); font-weight:500}
+  #filterBtn::before{content:"01"} #modBtn::before{content:"02"}
+  :is(#startScreen,#modePanel) .sec:hover{border-color:var(--ink); background:color-mix(in srgb,var(--ink) 5%,transparent)}
   .mcount{border-radius:2px; background:var(--ink); color:var(--bg); margin-left:auto}
   .lineup{max-width:none; text-align:center}
   .lineup .lhead{display:flex; align-items:center; gap:10px; font-family:var(--f-mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); opacity:1; margin:4px 0 8px}
@@ -839,23 +839,23 @@
   /* ===== v2.1: halftone logo, halftone play button that inverts on hover, restyled menus ===== */
   @property --htc{syntax:"<color>"; inherits:true; initial-value:rgba(0,0,0,.35)}
   /* play button: halftone vignette in the theme colour; hover inverts (dark button, coloured text and dots), all eased */
-  #startScreen .playall{position:relative; overflow:hidden; isolation:isolate; --htc:#000;
+  :is(#startScreen,#modePanel) .playall{position:relative; overflow:hidden; isolation:isolate; --htc:#000;
     background:var(--dc) !important; color:#0a0711; filter:none !important;
     transition:background-color .35s ease, color .35s ease, box-shadow .35s ease, --htc .35s ease}
-  #startScreen .playall::after{content:none !important}
-  #startScreen .playall::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  :is(#startScreen,#modePanel) .playall::after{content:none !important}
+  :is(#startScreen,#modePanel) .playall::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
     background:radial-gradient(circle, var(--htc) 0 1.1px, transparent 1.6px) 0 0/5px 5px;
     -webkit-mask:radial-gradient(ellipse 80% 120% at center, transparent 45%, #000 100%); mask:radial-gradient(ellipse 80% 120% at center, transparent 45%, #000 100%);
     opacity:.6; animation:htPulse 2.6s ease-in-out infinite}
   @keyframes htPulse{0%,100%{opacity:.2} 50%{opacity:.9}}
-  #startScreen .playall .arr{font-family:var(--f-body); font-weight:600; font-size:.8em; transition:transform .35s ease}
-  #startScreen .playall:hover, #startScreen .playall:focus-visible, #startScreen .playall.held{background:#0a0711 !important; color:var(--dc); --htc:var(--dc);
+  :is(#startScreen,#modePanel) .playall .arr{font-family:var(--f-body); font-weight:600; font-size:.8em; transition:transform .35s ease}
+  :is(#startScreen,#modePanel) .playall:hover, :is(#startScreen,#modePanel) .playall:focus-visible, :is(#startScreen,#modePanel) .playall.held{background:#0a0711 !important; color:var(--dc); --htc:var(--dc);
     box-shadow:inset 0 0 0 1px var(--dc) !important}
-  #startScreen .playall:hover .arr, #startScreen .playall.held .arr{transform:translateX(4px)}
+  :is(#startScreen,#modePanel) .playall:hover .arr, :is(#startScreen,#modePanel) .playall.held .arr{transform:translateX(4px)}
   /* hover/press: the dark side swipes in from the left on a slanted, soft edge instead of fading */
-  #startScreen .playall{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 100% 0/280% 100% no-repeat !important;
+  :is(#startScreen,#modePanel) .playall{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 100% 0/280% 100% no-repeat !important;
     transition:background-position .85s cubic-bezier(.65,0,.35,1), color .4s ease .2s, box-shadow .35s ease, --htc .35s ease .12s}
-  #startScreen .playall:hover, #startScreen .playall:focus-visible, #startScreen .playall.held{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 0 0/280% 100% no-repeat !important}
+  :is(#startScreen,#modePanel) .playall:hover, :is(#startScreen,#modePanel) .playall:focus-visible, :is(#startScreen,#modePanel) .playall.held{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 0 0/280% 100% no-repeat !important}
 
   /* now playing (menu video) */
   #nowVid{position:fixed; left:14px; bottom:10px; z-index:2; max-width:calc(100% - 28px); pointer-events:none;
@@ -917,7 +917,7 @@
     .lineup{max-height:38vh; max-height:38dvh; margin-top:22px}
     .lu.t1{opacity:1} .lu.t2{opacity:.88; font-size:14px} .lu.t3{opacity:.75; font-size:13px}
     html.bsd .lu.t2{font-size:18px} html.bsd .lu.t3{font-size:16px}
-    #diffRow{margin-top:10px} #startScreen .playall{margin-top:4px}
+    #diffRow{margin-top:10px} :is(#startScreen,#modePanel) .playall{margin-top:4px}
   }
   /* plainer menus: no springy pop, flat edges, quieter headers, no glows */
   .modal.open .sheet{animation:mUpFlat .32s cubic-bezier(.2,.7,.2,1) both}
@@ -1821,7 +1821,7 @@ var DIFFS={
   normal: {lo:0,   hi:1, min:8, mult:1,    w:function(p){ return 0.35+Math.pow(1-p,1.4); }, label:"Normal",  note:"The middlest of middle grounds: mostly their big hits."},
   hard:   {lo:.2,  hi:1, min:8, mult:1.15, w:function(p){ return 0.3+p; },                   label:"Hard",    note:"Big hits are few and far between. You\u2019d better know your stuff."},
   extreme:{lo:.55, hi:1, min:8, mult:1.5,  w:function(p){ return 0.15+p*p; },               label:"Extreme", note:"No big hits here. You must really think you know your stuff, huh?"},
-  random: {lo:0,   hi:1, min:1, mult:1.25, w:function(){ return 1; },                         label:"Random",  note:"Every song from every difficulty in one pile. Anything goes."}
+  random: {lo:0,   hi:1, min:1, mult:1.25, w:function(){ return 1; },                         label:"Random",  note:"A Mashup of difficulties, to give you the most varied experience"}
 };
 // songs out in the last ~3 months play like hits: they sit higher in the pool and show up more on easy
 function freshF(t){ var d=(Date.now()-Date.parse(t.date||""))/864e5; if(!(d>=0) || d>120) return 1; return d<=90 ? 0.3+0.3*(d/90) : 0.6+0.4*((d-90)/30); }
