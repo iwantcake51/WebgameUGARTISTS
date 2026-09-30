@@ -999,7 +999,8 @@
   .modego.dead{opacity:.35 !important; filter:grayscale(1) !important; pointer-events:none; transition:opacity .3s, filter .3s}
   .modeartist em{display:block; font-style:normal; font-family:var(--f-body); font-weight:800; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:4px}
   .modeartist .lu.mnm{font:inherit; letter-spacing:inherit; text-transform:inherit; cursor:default; opacity:1; color:var(--ink); padding:0; transform:none}
-  .lu.picked{color:var(--accent) !important; opacity:1 !important; background:none !important; -webkit-background-clip:border-box !important; background-clip:border-box !important;
+  .lu.picked:is(.diamond,.gold,.silver,.bronze){}
+  .lu.picked:not(.diamond):not(.gold):not(.silver):not(.bronze){color:var(--accent) !important; opacity:1 !important; background:none !important; -webkit-background-clip:border-box !important; background-clip:border-box !important;
     filter:none !important; animation:none !important; text-shadow:none !important; transition:color .3s ease}
   .brand{filter:none !important; --ca:0px !important}      /* no chromatic aberration on the logo */
   html[data-th="gold"] .brand{filter:drop-shadow(0 0 10px rgba(247,210,122,.45)) !important}
@@ -1019,6 +1020,25 @@
   @keyframes grpShine{0%,55%{background-position:100% 0} 85%,100%{background-position:-20% 0}}
   .abonus{display:block; margin-top:4px; color:var(--accent); opacity:.85}
   .seg.blocked{opacity:.28; filter:grayscale(1); cursor:not-allowed; text-decoration:line-through; text-decoration-thickness:1px}
+  /* picked mastery names keep their effect; an accent underline marks them instead */
+  .lu.picked:is(.diamond,.gold,.silver,.bronze)::after{content:""; position:absolute; left:8%; right:8%; bottom:-2px; height:2px; border-radius:2px; background:var(--accent);
+    box-shadow:0 0 8px var(--accent); animation:pickLine .35s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes pickLine{from{transform:scaleX(0); opacity:0} to{transform:none; opacity:1}}
+  /* diamond: iridescent ice with a breathing glow */
+  .lu.diamond{background-image:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.95) 47%,transparent 59%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='24' viewBox='0 0 28 24'%3E%3Cpath d='M0 0L14 0L7 12Z' fill='%23ffffff' fill-opacity='.55'/%3E%3Cpath d='M14 0L28 0L21 12Z' fill='%23bfe9ff' fill-opacity='.35'/%3E%3Cpath d='M7 12L14 0L21 12Z' fill='%238fd3ff' fill-opacity='.25'/%3E%3Cpath d='M0 24L7 12L14 24Z' fill='%23e6f7ff' fill-opacity='.45'/%3E%3Cpath d='M14 24L21 12L28 24Z' fill='%23ffffff' fill-opacity='.3'/%3E%3Cpath d='M7 12L21 12L14 24Z' fill='%23a7c7ff' fill-opacity='.4'/%3E%3C/svg%3E"),
+      linear-gradient(120deg,#e9fbff 0%,#8fd8ff 18%,#ffffff 34%,#c9b6ff 52%,#8ff0ff 68%,#ffd9f5 84%,#e9fbff 100%) !important;
+    background-size:300% 100%, 14px 12px, 300% 100% !important;
+    animation:diamondShine 5s ease-in-out infinite, diaIri 9s linear infinite, diaGlow 3.4s ease-in-out infinite !important}
+  @keyframes diaIri{from{background-position:120% 0, 0 0, 150% 0} to{background-position:120% 0, 0 0, 0% 0}}
+  @keyframes diaGlow{0%,100%{filter:drop-shadow(0 0 6px rgba(150,220,255,.5)) drop-shadow(0 0 1px rgba(255,255,255,.8))}
+    50%{filter:drop-shadow(0 0 13px rgba(190,170,255,.7)) drop-shadow(0 0 2px #fff) brightness(1.12)}}
+  /* sparkles drifting off diamond names */
+  .dspark{position:absolute; pointer-events:none; z-index:3; width:var(--sz,6px); height:var(--sz,6px); left:var(--x); top:var(--y); opacity:0;
+    background:radial-gradient(circle,#fff 0 18%,transparent 60%), conic-gradient(from 45deg,transparent 0 10%,#fff 12%,transparent 14% 35%,#fff 37%,transparent 39% 60%,#fff 62%,transparent 64% 85%,#fff 87%,transparent 89%);
+    filter:drop-shadow(0 0 3px rgba(170,220,255,.95)); animation:dspark var(--d,2.2s) cubic-bezier(.25,.6,.35,1) forwards}
+  @keyframes dspark{0%{opacity:0; transform:translate(0,0) scale(.2) rotate(0)} 18%{opacity:1; transform:translate(calc(var(--dx)*.2),-4px) scale(1) rotate(40deg)}
+    100%{opacity:0; transform:translate(var(--dx),-22px) scale(.35) rotate(160deg)}}
   .opt.ghostslot{opacity:.22; filter:grayscale(1); pointer-events:none; border-style:dashed}
   .segs.locked{opacity:.35; filter:grayscale(1); pointer-events:none} .segs.locked .segind{opacity:0}
   .segs.locked .seg.on, .segs.locked .seg.on .sx{color:color-mix(in srgb,var(--sc) 60%,var(--muted))} .segs.locked .seg.on .sn{-webkit-text-fill-color:currentColor; background:none}
@@ -1050,7 +1070,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.67</div>
+  <div class="ver" title="version">v1.12.68</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -1729,6 +1749,18 @@ function mastery(){
 var LU_RANK=["Playboi Carti","Lil Uzi Vert","Ken Carson","Yeat","Destroy Lonely","Nettspend","OsamaSon","2hollis","EsDeeKid","Lucki","fakemink","Che","Nine Vicious","BKTHERULA",
   "skaiwater","Rich Amiri","SoFaygo","Homixide Gang","Cochise","Molly Santana","YT","Lucy Bedroque","Hardrock","Glokk40Spaz","xaviersobased","Summrs",
   "Autumn!","Kankan","tana","prettifun","Jace! / iayze","LAZER DIM 700","Edward Skeletrix","kuru","ksuuvi","1oneam","Dom Corleo","BabyChiefDoit","Duwap Kaine"];
+// diamond names shed a slow sparkle every so often (only while visible; skipped with reduced motion)
+(function(){ if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  setInterval(function(){ if(document.hidden || document.body.classList.contains("playing")) return;
+    var ds=document.querySelectorAll(".lu.diamond"); if(!ds.length) return;
+    for(var k=0;k<Math.min(3,ds.length);k++){ var el=ds[Math.random()*ds.length|0], r=el.getBoundingClientRect();
+      if(!r.width || r.bottom<0 || r.top>innerHeight || Math.random()<0.35) continue;
+      var sp=document.createElement("i"); sp.className="dspark";
+      sp.style.setProperty("--x",(Math.random()*92)+"%"); sp.style.setProperty("--y",(10+Math.random()*60)+"%");
+      sp.style.setProperty("--dx",((Math.random()-.5)*16).toFixed(1)+"px"); sp.style.setProperty("--sz",(4+Math.random()*5).toFixed(1)+"px");
+      sp.style.setProperty("--d",(1.8+Math.random()*1.4).toFixed(2)+"s");
+      el.appendChild(sp); setTimeout(function(n){ return function(){ n.remove(); }; }(sp), 3400); } }, 420);
+})();
 function renderArtistList(){            // festival-flyer lineup: biggest artists on top, shrinking tier by tier
   var tiers=mastery();
   function btn(a,cls){ if(tiers[a]) cls+=" "+tiers[a]; return "<button class='lu "+cls+"' data-a='"+escapeHtml(a)+"'>"+escapeHtml(a)+"</button>"; }
