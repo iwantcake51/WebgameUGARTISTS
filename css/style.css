@@ -1134,3 +1134,13 @@ body.tv-on #nowVid{bottom:10px}
 .pgb{display:flex; flex-direction:column; gap:5px} .pgb .ghost{padding:5px 12px; font-size:12px}
 #gamesBody .empty{color:var(--muted); font-size:13px; padding:18px 0; text-align:center}
 .lineup .lu{rotate:var(--rot,0deg)}
+/* version + now-playing label stay visible in rounds (label only when videos play in rounds) */
+body.playing .ver{display:block}
+body.playing.gv-on.bgv-on #nowVid{opacity:1}
+/* side panel: stronger theme gradient and a soft halftone fading up from the bottom */
+@media (min-width:900px){
+  .modes{background:linear-gradient(180deg, var(--surface) 0%, color-mix(in srgb,var(--accent) 10%,var(--surface)) 40%, color-mix(in srgb,var(--accent) 34%,#050308) 100%)}
+  .modes::after{content:""; position:fixed; right:0; bottom:0; width:400px; height:42%; pointer-events:none; z-index:-1;
+    background:radial-gradient(circle, color-mix(in srgb,var(--accent) 70%,#fff) 0 1.1px, transparent 1.6px) 0 0/7px 7px; opacity:.22;
+    -webkit-mask-image:linear-gradient(to top,#000,transparent); mask-image:linear-gradient(to top,#000,transparent)}
+}
