@@ -1953,7 +1953,7 @@ function artistBonusFor(n){ return 1+Math.max(0,n-3)*0.05; }
 function artistBonus(){ return mode==="artist" ? 1 : artistBonusFor(includedArtists().length); }
 function bonusTag(){ var b=artistBonus(); return b>1 ? "<div class='modtags'><span class='modtag'>\uD83D\uDC65 "+includedArtists().length+" artists "+bonusTxt(b)+"</span></div>" : ""; }
 function bonusTxt(b){ return "\u00d7"+b.toFixed(2).replace(/0+$/,"").replace(/\.$/,""); }
-function ptsAt(i){ return Math.round(PTS[Math.min(i,PTS.length-1)]*multOf()*modMult()*artistBonus()); }
+function ptsAt(i){ return Math.round(PTS[Math.min(i,PTS.length-1)]*Math.max(0.1,multOf()+modMult()+artistBonus()-2)); }
 // ---- modifiers ----
 var MODS=[
   {k:"blind", icon:"\uD83D\uDE48", label:"My ears are trained", mult:1.3, desc:"Artist names and features (feat./ft./with) are hidden on every choice. Only counts with 3+ artists (all artists, or 3+ picked in Choose artists)."},
@@ -1967,7 +1967,7 @@ var MODS=[
 function modPct(m){ return (m.mult>1?"+":"\u2212")+Math.round(Math.abs(m.mult-1)*100)+"%"; }
 function modActive(k){ if(!prefs.mods[k]) return false; if(k==="blind") return mode!=="artist" && includedArtists().length>=3; return true; }
 function activeMods(){ return MODS.filter(function(m){ return modActive(m.k); }); }
-function modMult(){ return activeMods().reduce(function(a,m){ return a*m.mult; },1); }
+function modMult(){ return activeMods().reduce(function(a,m){ return a+m.mult-1; },1); }
 function skipTxt(used){ return used ? "<div class='skipnote'>\u23ED\uFE0F skip used on <b>"+escapeHtml(String(used))+"</b></div>" : ""; }
 function modTags(keys){ var ms=MODS.filter(function(m){ return keys.indexOf(m.k)!==-1; }); if(!ms.length) return "";
   return "<div class='modtags'>"+ms.map(function(m){ return "<span class='modtag"+(m.k==="blind"?" shiny":"")+"'>"+m.icon+" "+m.label+" "+modPct(m)+"</span>"; }).join("")+"</div>"; }
@@ -1976,14 +1976,14 @@ function applyMods(){
   MODS.map(function(m){ return m.k; }).forEach(function(k){ document.body.classList.toggle("m-"+k, modActive(k)); }); }
 function renderStartBtn(){ if(!$("modeGo")) return;
   var names=(typeof modeArtist!=="undefined"&&modeArtist) ? [modeArtist] : (typeof setNames==="function"&&setNames()) || ARTISTS, n=names.length;
-  var x=multOf()*(n>1?artistBonusFor(n):1)*MODS.reduce(function(a,m){ return a*(prefs.mods[m.k]&&(m.k!=="blind"||n>=3)?m.mult:1); },1);
+  var x=Math.max(0.1,multOf()+(n>1?artistBonusFor(n)-1:0)+MODS.reduce(function(a,m){ return a+(prefs.mods[m.k]&&(m.k!=="blind"||n>=3)?m.mult-1:0); },0));
   $("modeGo").innerHTML="<span class='pl'>Play<span class='gox'>\u00d7"+(+x.toFixed(2))+"</span></span><span class='arr'>&rarr;</span>"; }
-function renderModBtn(){ renderStartBtn(); var on=MODS.filter(function(m){ return prefs.mods[m.k]; }), x=on.reduce(function(a,m){ return a*m.mult; },1);
+function renderModBtn(){ renderStartBtn(); var on=MODS.filter(function(m){ return prefs.mods[m.k]; }), x=on.reduce(function(a,m){ return a+m.mult-1; },1);
   $("modBtn").innerHTML="Modifiers"+(on.length?"<span class='mcount'>"+on.length+" \u00b7 \u00d7"+(+x.toFixed(3))+"</span>":""); }
 function renderMods(){
   $("modList").innerHTML=MODS.map(function(m){ var on=!!prefs.mods[m.k];
     return "<button class='modcard"+(on?" on":"")+(on&&m.k==="blind"?" shiny":"")+"' data-k='"+m.k+"' role='switch' aria-checked='"+on+"'><span class='mi'>"+m.icon+"</span><span><div class='mt'>"+m.label+"</div><div class='md'>"+m.desc+"</div></span><span class='mx "+(m.mult>1?"up":"down")+"'>"+modPct(m)+"</span></button>"; }).join("");
-  var on=MODS.filter(function(m){ return prefs.mods[m.k]; }), x=on.reduce(function(a,m){ return a*m.mult; },1);
+  var on=MODS.filter(function(m){ return prefs.mods[m.k]; }), x=on.reduce(function(a,m){ return a+m.mult-1; },1);
   $("modSum").innerHTML = on.length ? "score <b>\u00d7"+(+x.toFixed(3))+"</b> with these on" : "no modifiers, normal scoring";
   var cs=$("modList").querySelectorAll(".modcard");
   for(var i=0;i<cs.length;i++){ (function(c){ c.onclick=function(){ var k=c.getAttribute("data-k"); prefs.mods[k]=!prefs.mods[k];
