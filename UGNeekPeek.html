@@ -374,6 +374,8 @@
     font-family:inherit;font-size:15px;cursor:pointer;text-align:left}
   .pickrow:hover:not(:disabled){border-color:var(--accent)}
   .pickrow span{color:var(--muted);font-family:var(--f-mono);font-size:12px}
+  .setcat{font-family:var(--f-display,inherit); font-weight:800; font-size:17px; color:var(--ink); margin:28px 0 4px; padding-bottom:6px; border-bottom:1px solid var(--line)}
+  .setcat:first-child{margin-top:4px}
   .setlabel{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin:16px 0 8px;text-transform:uppercase;letter-spacing:1px}
   .swatches{display:flex;gap:12px;flex-wrap:wrap}
   .swatch{width:44px;height:44px;border-radius:7px;border:2px solid transparent;cursor:pointer;position:relative;margin-bottom:18px}
@@ -1204,23 +1206,31 @@
   <div class="sheet">
     <div class="sheethead"><div>Settings</div><button id="settingsClose" class="linkbtn">close</button></div>
     <div class="sheetbody">
+      <div class="setcat">Account</div>
       <div class="setlabel">Username</div>
       <input id="nameInput" class="catsearch" type="text" maxlength="20" placeholder="Shown when you share a score" autocomplete="off" style="margin-bottom:8px">
       <div class="uidline">User ID <span id="uidVal">&hellip;</span></div>
+      <div class="setcat">Sound</div>
       <div class="setlabel" style="display:flex;justify-content:space-between">Volume <span class="volpct" id="volPct2"></span></div>
-      <input id="vol2" class="vol" type="range" min="0" max="1" step="0.01" style="width:100%;margin-bottom:22px">
+      <input id="vol2" class="vol" type="range" min="0" max="1" step="0.01" style="width:100%;margin-bottom:10px">
+      <div class="tg" data-cat="sound"></div>
+      <div class="setcat">Gameplay</div>
+      <div class="tg" data-cat="game"></div>
+      <div class="setcat">Video &amp; effects</div>
+      <div class="setlabel">Colorblind mode</div>
+      <div class="cbrow" id="cbRow"></div>
+      <div class="tg" data-cat="fx"></div>
+      <div class="setcat">Interface</div>
       <div class="setrow2">
         <label class="setfield"><span class="setlabel">Font</span><select id="fontSel" class="dsel"></select></label>
         <label class="setfield"><span class="setlabel">Text size</span><select id="sizeSel" class="dsel">
           <option value="s">Small</option><option value="m">Default</option><option value="l">Large</option><option value="xl">Extra large</option></select></label>
       </div>
-      <div class="setlabel">Colorblind mode</div>
-      <div class="cbrow" id="cbRow"></div>
-      <div class="setlabel">Gameplay &amp; effects</div>
-      <div id="toggles"></div>
-      <div class="setlabel" style="margin-top:20px">Background theme</div>
-      <div id="swatches" class="swatches" style="margin-bottom:26px"></div>
-      <div class="setlabel" style="margin-top:22px">Network log</div>
+      <div class="setlabel">Background theme</div>
+      <div id="swatches" class="swatches" style="margin-bottom:14px"></div>
+      <div class="tg" data-cat="ui"></div>
+      <div class="setcat">Advanced</div>
+      <div class="setlabel">Network log</div>
       <pre id="netlog" class="netlog"></pre>
     </div>
   </div>
@@ -1361,28 +1371,29 @@ function renderSwatches(){
 }
 function setVolume(v){ prefs.volume=v; savePrefs(); try{audio.volume=v;}catch(e){} $("vol").value=v; $("vol2").value=v; $("volPct").textContent=$("volPct2").textContent=Math.round(v*100)+"%"; $("vol").style.setProperty("--v",v*100+"%"); $("vol2").style.setProperty("--v",v*100+"%"); }
 var TOGGLES=[
-  {k:"autoplay",  label:"Autoplay snippet",   desc:"Play the clip automatically each round"},
-  {k:"menumusic", label:"Music in menu",      desc:"Plays music while you hover over artists and while the game mode panel is open"},
-  {k:"endmusic",  label:"Music on round end", desc:"Play the song when you win or lose a round"},
-  {k:"chroma",    label:"Chromatic reveal",   desc:"RGB-split flourish on the cover"},
-  {k:"holo",      label:"3D cover",           desc:"Makes the album cover 3D!!"},
-  {k:"bw",        label:"Black & white",      desc:"Removes all color, album covers included"},
-  {k:"confetti",  label:"Confetti",           desc:"Confetti falls when you get a song right"},
-  {k:"clicks",    label:"UI interaction sounds", desc:"Clicks, blips and whooshes when you press buttons, flip switches and open menus"},
-  {k:"ring",      label:"Click ripple",       desc:"The circle that expands where you tap or click"},
-  {k:"tv",        label:"TV effects",         desc:"Film grain, scanlines and the odd signal glitch over everything"},
-  {k:"bgvid",     label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
-  {k:"gamevid",   label:"Videos in round", tag:"Resource Intensive", desc:"Keep the music video clips playing behind the game during rounds"},
-  {k:"anim",      label:"Menu animations",    desc:"Menus slide up with a little bounce"},
-  {k:"dim",       label:"Dim & blur behind menus", desc:"Darkens and blurs the page behind menus and the results screen"}
+  {cat:"game", k:"autoplay",  label:"Autoplay snippet",   desc:"Play the clip automatically each round"},
+  {cat:"sound", k:"menumusic", label:"Music in menu",      desc:"Plays music while you hover over artists and while the game mode panel is open"},
+  {cat:"sound", k:"endmusic",  label:"Music on round end", desc:"Play the song when you win or lose a round"},
+  {cat:"fx", k:"chroma",    label:"Chromatic reveal",   desc:"RGB-split flourish on the cover"},
+  {cat:"fx", k:"holo",      label:"3D cover",           desc:"Makes the album cover 3D!!"},
+  {cat:"fx", k:"bw",        label:"Black & white",      desc:"Removes all color, album covers included"},
+  {cat:"fx", k:"confetti",  label:"Confetti",           desc:"Confetti falls when you get a song right"},
+  {cat:"sound", k:"clicks",    label:"UI interaction sounds", desc:"Clicks, blips and whooshes when you press buttons, flip switches and open menus"},
+  {cat:"ui", k:"ring",      label:"Click ripple",       desc:"The circle that expands where you tap or click"},
+  {cat:"fx", k:"tv",        label:"TV effects",         desc:"Film grain, scanlines and the odd signal glitch over everything"},
+  {cat:"fx", k:"bgvid",     label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
+  {cat:"fx", k:"gamevid",   label:"Videos in round", tag:"Resource Intensive", desc:"Keep the music video clips playing behind the game during rounds"},
+  {cat:"ui", k:"anim",      label:"Menu animations",    desc:"Menus slide up with a little bounce"},
+  {cat:"ui", k:"dim",       label:"Dim & blur behind menus", desc:"Darkens and blurs the page behind menus and the results screen"}
 ];
 function renderToggles(){
-  var h=""; TOGGLES.forEach(function(t){
-    var val = prefs[t.k];
+  var tgs=document.querySelectorAll("#settings .tg"); for(var ti=0;ti<tgs.length;ti++) tgs[ti].innerHTML="";
+  TOGGLES.forEach(function(t){
+    var val = prefs[t.k], h="";
     h+="<div class='toggle'><div><div class='tlabel'>"+t.label+(t.tag?"<span class='ttag'>"+t.tag+"</span>":"")+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(val?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
+    document.querySelector("#settings .tg[data-cat='"+t.cat+"']").insertAdjacentHTML("beforeend",h);
   });
-  $("toggles").innerHTML=h;
-  var bt=$("toggles").querySelector(".sw[data-k='bgvid']").parentNode, pk=document.createElement("div");
+  var bt=$("settings").querySelector(".sw[data-k='bgvid']").parentNode, pk=document.createElement("div");
   pk.id="bgPick"; pk.className="bgpick"; pk.innerHTML="<div class='tlabel'>Background artist</div><div class='tdesc'>Only play this artist's music videos behind the menu</div>"+
     "<div class='bgpwrap'><input id='bgPickIn' class='dsel' placeholder='All artists' autocomplete='off' spellcheck='false'><button id='bgPickX' class='bgpx' aria-label='Clear'>\u2715</button><div id='bgPickList' class='bgplist'></div></div>";
   bt.parentNode.insertBefore(pk, bt.nextSibling); initBgPick();
@@ -1392,7 +1403,7 @@ function renderToggles(){
   pk.parentNode.insertBefore(vb, pk.nextSibling); $("vbSel").value=vblur();
   $("vbSel").onchange=function(){ prefs.vblur=this.value; savePrefs(); applyPrefs(); };
   ladderSelect($("vbSel")); syncFrost();
-  var sw=$("toggles").querySelectorAll(".sw");
+  var sw=$("settings").querySelectorAll(".tg .sw");
   for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid"){ syncBgPick(); syncFrost(); } if(k==="gamevid") try{ document.dispatchEvent(new Event("visibilitychange")); }catch(e){} }; })(sw[i]); }
 }
 // background artist picker: type to filter, pick one (or "All artists"); greyed out while the video background is off
