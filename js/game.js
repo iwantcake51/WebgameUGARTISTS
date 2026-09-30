@@ -66,7 +66,7 @@ function applyMods(){
 function renderStartBtn(){ if(!$("modeGo")) return;
   var names=(typeof modeArtist!=="undefined"&&modeArtist) ? [modeArtist] : (typeof setNames==="function"&&setNames()) || ARTISTS, n=names.length;
   var x=Math.max(0.1,multOf()+(n>1?artistBonusFor(n)-1:0)+MODS.reduce(function(a,m){ return a+(prefs.mods[m.k]&&(m.k!=="blind"||n>=3)?m.mult-1:0); },0));
-  $("modeGo").innerHTML="<span class='pl'>Play<span class='gox'>\u00d7"+(+x.toFixed(2))+"</span></span><span class='arr'>&rarr;</span>"; }
+  $("modeGo").innerHTML="<span class='pl'>Start Game<span class='gox'>\u00d7"+(+x.toFixed(2))+"</span></span><span class='arr'>&rarr;</span>"; }
 function renderModBtn(){ renderStartBtn(); var on=MODS.filter(function(m){ return prefs.mods[m.k]; }), x=on.reduce(function(a,m){ return a+m.mult-1; },1);
   $("modBtn").innerHTML="Modifiers"+(on.length?"<span class='mcount'>"+on.length+" \u00b7 \u00d7"+(+x.toFixed(3))+"</span>":""); }
 function renderMods(){
