@@ -1007,6 +1007,7 @@
   .stage.revealed .stageInner{clip-path:inset(0 round 4px)}
   .dgoal{font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:-6px}
   .dgoal b{font-weight:700; color:var(--dc); background:linear-gradient(90deg,var(--dc),var(--dc2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; transition:color .3s}
+  .modeartist .lu{pointer-events:none; transform:none !important; --ps:1 !important}      /* panel names are labels, not buttons: no tap-zoom */
   .seg.blocked{opacity:.28; filter:grayscale(1); cursor:not-allowed; text-decoration:line-through; text-decoration-thickness:1px}
   .opt.ghostslot{opacity:.22; filter:grayscale(1); pointer-events:none; border-style:dashed}
   .segs.locked{opacity:.35; filter:grayscale(1); pointer-events:none} .segs.locked .segind{opacity:0}
@@ -1039,7 +1040,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.54</div>
+  <div class="ver" title="version">v1.12.55</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
