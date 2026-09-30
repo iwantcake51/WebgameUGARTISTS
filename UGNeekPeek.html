@@ -1050,7 +1050,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.65</div>
+  <div class="ver" title="version">v1.12.66</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -2421,6 +2421,11 @@ function lockDiffs(){ var names=panelNames(), bad=false;
     b.classList.toggle("blocked",off); b.disabled=off; b.title=off?"Not enough songs for "+DIFFS[dk].label+" ("+c.n+" of "+Math.ceil(DIFFS[dk].goal*0.75)+" needed)":"";
     if(off && curDiff()===dk) bad=true; });
   if(bad){ prefs.diff="normal"; savePrefs(); renderDiff(); } }
+// singles count colour: 20 green -> 50 orange -> 75 red -> 90 extreme purple, blended in between
+function countColor(n){ var S=[[20,[57,224,139]],[50,[255,154,60]],[75,[255,70,107]],[90,[197,99,243]]];
+  if(n<=S[0][0]) return "rgb("+S[0][1]+")"; if(n>=S[3][0]) return "rgb("+S[3][1]+")";
+  for(var i=0;i<3;i++) if(n<=S[i+1][0]){ var k=(n-S[i][0])/(S[i+1][0]-S[i][0]), a=S[i][1], b=S[i+1][1];
+    return "rgb("+a.map(function(x,j){ return Math.round(x+(b[j]-x)*k); }).join(",")+")"; } }
 function goalNote(){ var el=$("diffGoal"); if(!el) return; lockDiffs();
   var lock=!!modeArtist && soloSingles(); $("diffRow").classList.toggle("locked",lock); $("diffNote").style.visibility=lock?"hidden":"";
   if(gmode()==="endless" && !modeArtist){ el.innerHTML="<b>\u221E</b> Endless \u2014 no song limit"+bonusLine(); return; }
@@ -2429,7 +2434,7 @@ function goalNote(){ var el=$("diffGoal"); if(!el) return; lockDiffs();
     if(!byArtist[a]){ el.innerHTML="counting songs\u2026"; ensureArtist(a).then(function(ok){ if(modeArtist!==a) return; if(ok && byArtist[a]) goalNote(); else el.innerHTML="couldn\u2019t count songs right now"; }); return; }
     var n=poolFor(a,true).length, g=lock?n:Math.min(DIFFS[curDiff()].goal,n);
     $("modeGo").disabled=!g; $("modeGo").classList.toggle("dead",!g);
-    el.innerHTML="<b>"+g+"</b> "+(soloSingles()?(g===1?"single":"singles"):(g===1?"song":"songs"))+" this round"; return; }
+    el.innerHTML="<b"+(lock?" style='background:none;-webkit-text-fill-color:"+countColor(g)+";color:"+countColor(g)+"'":"")+">"+g+"</b> "+(soloSingles()?(g===1?"single":"singles"):(g===1?"song":"songs"))+" this round"; return; }
   el.innerHTML="<b>"+DIFFS[curDiff()].goal+"</b> songs this round"+bonusLine(); }
 function bonusLine(){ var n=(setNames()||ARTISTS).length, b=artistBonusFor(n);
   return b>1 ? "<span class='abonus'>"+n+" artists "+bonusTxt(b)+"</span>" : ""; }
