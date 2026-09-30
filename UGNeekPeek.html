@@ -2052,7 +2052,7 @@ var MM=(function(){
       var t=tr[Math.floor(Math.random()*tr.length)], el=new Audio();
       graph(); if(!noCors) el.crossOrigin="anonymous";
       el.preload="auto"; el.volume=0; el.src=t.preview;
-      if(ctx&&!noCors){ try{ var g=ctx.createGain(); g.gain.value=0; ctx.createMediaElementSource(el).connect(g); g.connect(filt); el._g=g; ctx.resume(); }catch(e){} }
+      if(ctx&&!noCors){ try{ var g=ctx.createGain(); g.gain.value=0; ctx.createMediaElementSource(el).connect(g); g.connect(filt); el._g=g; el.volume=1; ctx.resume(); }catch(e){} }
       el.addEventListener("loadedmetadata",function(){ try{ el.currentTime=Math.random()*Math.max(0,Math.min(15,(el.duration||30)-12)); }catch(e){} },{once:true});
       el.addEventListener("error",function(){ if(el.crossOrigin&&my===seq){ noCors=true; ctx=null; playFrom(list,my); } },{once:true});
       var pr=el.play(); if(pr&&pr.catch) pr.catch(function(){});
