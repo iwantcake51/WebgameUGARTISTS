@@ -1002,6 +1002,8 @@
     filter:none !important; animation:none !important; text-shadow:none !important; transition:color .3s ease}
   .brand{filter:none !important; --ca:0px !important}      /* no chromatic aberration on the logo */
   html[data-th="gold"] .brand{filter:drop-shadow(0 0 10px rgba(247,210,122,.45)) !important}
+  .stageInner, .holo{border-radius:inherit} .holo{overflow:hidden; clip-path:inset(0 round 4px)}
+  .stage.revealed .stageInner{clip-path:inset(0 round 4px)}
 </style>
 </head>
 <body>
@@ -1035,7 +1037,7 @@
       <div class="row2 one" style="--i:3"><button class="btn sec" id="modBtn">Modifiers</button></div>
       <div id="artistList" class="lineup" style="--i:4"></div>
       <div class="cap" id="poolInfo" style="--i:4"></div>
-      <div class="foot" style="--i:5"><button class="flink" id="ssBtn">Song catalog</button><button class="flink" id="catBtn">Your history</button><button class="flink" id="setBtn">Themes &amp; volume</button></div>
+      <div class="foot" style="--i:5"><button class="flink" id="ssBtn">Song catalog</button><button class="flink" id="catBtn">Your history</button><button class="flink" id="setBtn">Settings</button></div>
       <div class="err" id="startErr"></div>
     </div>
     <div class="modes" id="modePanel" aria-hidden="true">
@@ -1298,10 +1300,10 @@ function setVolume(v){ prefs.volume=v; savePrefs(); try{audio.volume=v;}catch(e)
 var TOGGLES=[
   {k:"autoplay",  label:"Autoplay snippet",   desc:"Play the clip automatically each round"},
   {k:"chroma",    label:"Chromatic reveal",   desc:"RGB-split flourish on the cover"},
-  {k:"holo",      label:"3D cover",           desc:"Cover tilts with a spotlight glare after you guess"},
+  {k:"holo",      label:"3D cover",           desc:"Makes the album cover 3D!!"},
   {k:"bw",        label:"Black & white",      desc:"Removes all color, album covers included"},
   {k:"confetti",  label:"Confetti",           desc:"Confetti falls when you get a song right"},
-  {k:"clicks",    label:"Click sounds",       desc:"Soft keyboard-style clicks on buttons"},
+  {k:"clicks",    label:"UI interaction sounds", desc:"Clicks, blips and whooshes when you press buttons, flip switches and open menus"},
   {k:"ring",      label:"Click ripple",       desc:"The circle that expands where you tap or click"},
   {k:"tv",        label:"TV effects",         desc:"Film grain, scanlines and the odd signal glitch over everything"},
   {k:"bgvid",     label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
@@ -1727,6 +1729,17 @@ function renderArtistList(){            // festival-flyer lineup: biggest artist
   function step(){ var d=target-el.scrollTop; if(Math.abs(d)<0.5){ el.scrollTop=target; target=null; raf=0; return; } el.scrollTop+=(d>0?1:-1)*Math.max(1,Math.abs(d)*0.14); raf=requestAnimationFrame(step); }
 })();
 var audio=$("audio"), stopT=null, rafId=null, fadeI=null;
+var lowpass=null;
+// muffle the song (low-pass) while the fail screen is up, open it back up after
+function muffle(on){ if(!AC||!lowpass) return; var t=AC.currentTime; try{ lowpass.frequency.cancelScheduledValues(t); lowpass.frequency.setValueAtTime(lowpass.frequency.value,t);
+  lowpass.frequency.exponentialRampToValueAtTime(on?650:20000, t+(on?0.6:0.35)); }catch(e){} }
+// fade the preview out over its last ~1.5s instead of cutting off
+(function(){ var a=$("audio"), fi=null;
+  a.addEventListener("timeupdate",function(){ var d=a.duration; if(!d||!isFinite(d)||fi||a.paused) return;
+    if(d-a.currentTime<1.6){ var v0=a.volume; fi=setInterval(function(){ var r=Math.max(0,(a.duration-a.currentTime)/1.6); a.volume=Math.max(0,Math.min(v0,v0*r)); if(r<=0||a.paused){ clearInterval(fi); } },40); } });
+  a.addEventListener("loadstart",function(){ if(fi){ clearInterval(fi); fi=null; } });
+  a.addEventListener("seeking",function(){ if(fi && a.duration-a.currentTime>1.6){ clearInterval(fi); fi=null; a.volume=prefs.volume; } });
+})();
 var AC=null, analyser=null, srcNode=null, freqData=null, graphReady=false, corsFail=false;
 function buildGraph(){
   try{
@@ -1735,7 +1748,8 @@ function buildGraph(){
     srcNode=AC.createMediaElementSource(audio);
     analyser=AC.createAnalyser();
     analyser.fftSize=128; analyser.smoothingTimeConstant=0.82;
-    srcNode.connect(analyser); analyser.connect(AC.destination);
+    lowpass=AC.createBiquadFilter(); lowpass.type="lowpass"; lowpass.frequency.value=20000; lowpass.Q.value=0.7;
+    srcNode.connect(lowpass); lowpass.connect(analyser); analyser.connect(AC.destination);
     freqData=new Uint8Array(analyser.frequencyBinCount);
     graphReady=true; try{AC.resume();}catch(e){}
   }catch(e){ graphReady=false; }
@@ -1834,7 +1848,7 @@ function closeModal(el){
   el.classList.add("closing"); clearTimeout(el._ct);
   el._ct=setTimeout(function(){ el.classList.remove("open","closing"); }, 220);
 }
-function resetRun(){ setTimeout(setProgress,0); PENDING=[]; skipUsed=null; runLog=[]; runSeen={}; runDone={}; wonAll=false; runBest0=BEST[curDiff()]||0; $("failModal").classList.remove("open","won"); }
+function resetRun(){ setTimeout(setProgress,0); muffle(false); PENDING=[]; skipUsed=null; runLog=[]; runSeen={}; runDone={}; wonAll=false; runBest0=BEST[curDiff()]||0; $("failModal").classList.remove("open","won"); }
 
 function sample(arr,n){ var p=arr.slice(); for(var i=p.length-1;i>0;i--){var j=Math.random()*(i+1)|0;var t=p[i];p[i]=p[j];p[j]=t;} return p.slice(0,n); }
 function shuffle(a){ for(var i=a.length-1;i>0;i--){var j=Math.random()*(i+1)|0;var t=a[i];a[i]=a[j];a[j]=t;} return a; }
@@ -1975,7 +1989,7 @@ function goHomeFade(){
     setTimeout(function(){ $("blackout").classList.remove("quick"); homing=false; }, 600);
   }, 480);
 }
-function goHome(){ PENDING=[]; fading=false; pendingSrc=null; pendingPlay=false; clearInterval(fadeI); clearTimeout(stopT); cancelAnimationFrame(rafId); try{audio.pause();}catch(e){}
+function goHome(){ muffle(false); PENDING=[]; fading=false; pendingSrc=null; pendingPlay=false; clearInterval(fadeI); clearTimeout(stopT); cancelAnimationFrame(rafId); try{audio.pause();}catch(e){}
   document.body.classList.remove("playing","lastlife"); renderArtistList(); BGV.resume(); setTimeout(fitLogo,0); MODS.forEach(function(m){ document.body.classList.remove("m-"+m.k); });
   $("gameScreen").classList.remove("active"); $("startScreen").classList.add("active"); }
 
@@ -2174,7 +2188,7 @@ function nextSong(){
 // ---- win screen (one-artist run with every song correct) ----
 function showWin(){
   if($("failModal").classList.contains("open")) return;
-  showFail();
+  showFail(); muffle(false);
   var n=runLog.length, wins=runLog.filter(function(x){return x.win;});
   var avg=wins.length?wins.reduce(function(s,x){return s+x.secs;},0)/wins.length:0;
   $("failTitle").textContent=(goalOf() && n>=goalOf())?goalOf()+" songs, no misses":"Every song, no misses"; $("failModal").classList.add("won"); $("failRetry").innerHTML="&#8635; Play again";
@@ -2183,6 +2197,7 @@ function showWin(){
 // ---- fail screen ----
 function showFail(){
   if($("failModal").classList.contains("open")) return;
+  muffle(true);
   $("failTitle").textContent="Wrong song"; $("failModal").classList.remove("won"); $("failRetry").innerHTML="&#8635; Retry";
   commitRun();
   var dk=curDiff(), isNew=score>runBest0 && score>0, last=runLog[runLog.length-1], wins=runLog.filter(function(x){return x.win;});
