@@ -1010,6 +1010,10 @@
   .opt.ghostslot{opacity:.22; filter:grayscale(1); pointer-events:none; border-style:dashed}
   .segs.locked{opacity:.35; filter:grayscale(1); pointer-events:none} .segs.locked .segind{opacity:0}
   .segs.locked .seg.on, .segs.locked .seg.on .sx{color:color-mix(in srgb,var(--sc) 60%,var(--muted))} .segs.locked .seg.on .sn{-webkit-text-fill-color:currentColor; background:none}
+  .swatch{overflow:visible}
+  .swatch .swp{position:absolute; left:0; right:0; bottom:0; height:30%; border-radius:0 0 2px 2px}
+  .swatch .swa{position:absolute; left:6px; top:6px; width:14px; height:14px; border-radius:50%; box-shadow:0 0 0 1.5px rgba(0,0,0,.35)}
+  .swatch .sws{position:absolute; left:15px; top:14px; width:10px; height:10px; border-radius:50%; box-shadow:0 0 0 1.5px rgba(0,0,0,.35)}
 </style>
 </head>
 <body>
@@ -1302,7 +1306,10 @@ function applyTheme(id){
 }
 function renderSwatches(){
   var h=""; THEMES.forEach(function(t){
-    h+="<button class='swatch' data-t='"+t.id+"' style='background:radial-gradient(120% 120% at 50% 0%, "+t.vars["--grad"]+", "+t.vars["--bg"]+")'><span>"+t.name+"</span></button>";
+    var v=t.vars;          // palette preview: background gradient, surface band, accent + spot chips
+    h+="<button class='swatch' data-t='"+t.id+"' style='background:radial-gradient(120% 120% at 50% 0%, "+v["--grad"]+", "+v["--bg"]+")'>"+
+      "<i class='swp' style='background:linear-gradient(90deg,"+v["--surface"]+" 0 33%,"+v["--surface2"]+" 33% 66%,"+v["--line"]+" 66%)'></i>"+
+      "<i class='swa' style='background:"+v["--accent"]+"'></i><i class='sws' style='background:"+(v["--spot"]||v["--accent"])+"'></i><span>"+t.name+"</span></button>";
   });
   $("swatches").innerHTML=h;
   var sw=$("swatches").querySelectorAll(".swatch");
