@@ -2328,7 +2328,7 @@ function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ?
 function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
 function renderModes(){
   var names=modeArtist ? [modeArtist] : setNames(), canEndless=!names || names.length>=5, E=escapeHtml;
-  var head = names && !names.length ? "No artists picked" : modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
+  var head = names && !names.length ? "No one?..." : modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
   if(!canEndless && gmode()==="endless"){ prefs.gmode="classic"; }
   // header: "A + B + C", or "A + B + C and 32 more"
   $("modeArtist").innerHTML = "<em>Featuring:</em>" + (head ? E(head) : names.slice(0,3).map(E).join("<i>+</i>") + (names.length>3 ? " <small>and "+(names.length-3)+" more</small>" : ""));
