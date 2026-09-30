@@ -383,6 +383,19 @@
   .toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid rgba(120,110,150,.1)}
   .toggle .tlabel{font-size:14px}
   .toggle .tdesc{font-size:11px;color:var(--muted);margin-top:2px}
+  .bgpick{padding:12px 0;border-bottom:1px solid var(--line);transition:opacity .2s}
+  .bgpick .tlabel{font-size:14px} .bgpick .tdesc{font-size:11px;color:var(--muted);margin:2px 0 8px}
+  .bgpick.off{opacity:.4;pointer-events:none;filter:grayscale(1)}
+  .bgpwrap{position:relative}
+  .bgpwrap .dsel{padding-right:34px; cursor:text}
+  .bgpx{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px}
+  .bgpx:hover{color:var(--ink)}
+  .bgplist{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;max-height:220px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:3px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+  .bgplist.open{display:block}
+  .bgpo{display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink);font:inherit;font-size:13.5px;padding:8px 12px;cursor:pointer}
+  .bgpo.hi,.bgpo:hover{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+  .bgpo.sel{color:var(--accent);font-weight:600}
+  .bgpnone{padding:10px 12px;font-size:13px;color:var(--muted)}
   .sw{position:relative;width:44px;height:26px;border-radius:12px;background:var(--surface2);
     border:1px solid var(--line);cursor:pointer;flex:none;transition:background .2s,border-color .2s}
   .sw::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;
@@ -1119,8 +1132,8 @@ function setFavicon(c){
 }
 
 // ---- prefs ----
-var prefs={theme:"plum", volume:0.9, autoplay:false, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
-try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
+var prefs={theme:"plum", volume:0.9, autoplay:false, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, bgArtist:"", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
+try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
 function savePrefs(){ try{ localStorage.setItem("drop_prefs", JSON.stringify(prefs)); }catch(e){} }
 function applyTheme(id){
   var th=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){th=THEMES[i];break;} } if(!th) th=THEMES[0];
@@ -1156,8 +1169,34 @@ function renderToggles(){
     h+="<div class='toggle'><div><div class='tlabel'>"+t.label+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(prefs[t.k]?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
   });
   $("toggles").innerHTML=h;
+  var bt=$("toggles").querySelector(".sw[data-k='bgvid']").parentNode, pk=document.createElement("div");
+  pk.id="bgPick"; pk.className="bgpick"; pk.innerHTML="<div class='tlabel'>Background artist</div><div class='tdesc'>Only play this artist's music videos behind the menu</div>"+
+    "<div class='bgpwrap'><input id='bgPickIn' class='dsel' placeholder='All artists' autocomplete='off' spellcheck='false'><button id='bgPickX' class='bgpx' aria-label='Clear'>\u2715</button><div id='bgPickList' class='bgplist'></div></div>";
+  bt.parentNode.insertBefore(pk, bt.nextSibling); initBgPick();
   var sw=$("toggles").querySelectorAll(".sw");
-  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); }; })(sw[i]); }
+  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid") syncBgPick(); }; })(sw[i]); }
+}
+// background artist picker: type to filter, pick one (or "All artists"); greyed out while the video background is off
+function syncBgPick(){ var el=$("bgPick"); if(!el) return; var off=!prefs.bgvid; el.classList.toggle("off",off); $("bgPickIn").disabled=$("bgPickX").disabled=off;
+  $("bgPickIn").value=prefs.bgArtist||""; $("bgPickX").style.visibility=prefs.bgArtist?"visible":"hidden"; if(off) $("bgPickList").classList.remove("open"); }
+function setBgArtist(a){ prefs.bgArtist=a; savePrefs(); syncBgPick(); $("bgPickList").classList.remove("open"); if(window.BGV) BGV.setArtist(a); }
+function initBgPick(){
+  var inp=$("bgPickIn"), list=$("bgPickList"), hi=0;
+  function draw(){ var q=norm(inp.value===prefs.bgArtist?"":inp.value), items=[""].concat(ARTISTS.slice().sort(function(x,y){ return x.toLowerCase()<y.toLowerCase()?-1:1; }))
+      .filter(function(a){ return !q || (a && norm(a).indexOf(q)!==-1); });
+    hi=Math.min(hi,Math.max(0,items.length-1));
+    list.innerHTML=items.length ? items.map(function(a,i){ return "<button class='bgpo"+(i===hi?" hi":"")+(a===prefs.bgArtist?" sel":"")+"' data-a='"+escapeHtml(a)+"'>"+(a?escapeHtml(a):"All artists")+"</button>"; }).join("") : "<div class='bgpnone'>No artist found</div>";
+    var os=list.querySelectorAll(".bgpo"); for(var i=0;i<os.length;i++){ (function(o){ o.onmousedown=function(e){ e.preventDefault(); setBgArtist(o.getAttribute("data-a")); inp.blur(); }; })(os[i]); }
+    list.classList.add("open"); }
+  inp.onfocus=function(){ hi=0; inp.select(); draw(); };
+  inp.oninput=function(){ hi=0; draw(); };
+  inp.onblur=function(){ setTimeout(function(){ list.classList.remove("open"); inp.value=prefs.bgArtist||""; },120); };
+  inp.onkeydown=function(e){ var os=list.querySelectorAll(".bgpo");
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); hi=(hi+(e.key==="ArrowDown"?1:-1)+os.length)%Math.max(1,os.length); draw(); var h=list.querySelector(".hi"); if(h) h.scrollIntoView({block:"nearest"}); }
+    else if(e.key==="Enter"){ e.preventDefault(); if(os[hi]){ setBgArtist(os[hi].getAttribute("data-a")); inp.blur(); } }
+    else if(e.key==="Escape"){ inp.blur(); } };
+  $("bgPickX").onclick=function(){ setBgArtist(""); };
+  syncBgPick();
 }
 // ---- fonts: free Google Fonts pairings (display / body / mono); cond = condensed display face ----
 var FONTS=[
@@ -2266,7 +2305,8 @@ var BGV=(function(){
     var pri=shuffle(todo.filter(function(a){ return tiers[a]; })),
         mid=shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)!==-1; })),
         rest=shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)===-1; }));
-    var pool=pri.concat(mid,rest).slice(0,8); loading=true; batches++;
+    var pool=pri.concat(mid,rest).slice(0,8);
+    if(prefs.bgArtist && ARTISTS.indexOf(prefs.bgArtist)!==-1 && !fresh(prefs.bgArtist)) pool=[prefs.bgArtist].concat(pool.filter(function(x){ return x!==prefs.bgArtist; })).slice(0,8); loading=true; batches++;
     Promise.all(pool.map(function(a){
       // exact artist lookup by Apple ID (all their videos), plus a name search as backup
       var ids=termsOf(a).concat([a]).map(function(t){ return ARTIST_IDS[t]&&ARTIST_IDS[t].id; }).filter(Boolean);
@@ -2282,6 +2322,7 @@ var BGV=(function(){
       });
     })).then(function(){
       loading=false; saveCache();
+      if(want() && prefs.bgArtist && recentA[0]!==prefs.bgArtist && fresh(prefs.bgArtist)) next();
       if(want() && !vids[cur].classList.contains("on")) next();
       if(want()) setTimeout(fetchClips, haveClips() ? 8000 : 300);
     });
@@ -2297,8 +2338,11 @@ var BGV=(function(){
   var deck=[], played={};
   function pickClip(){
     var all=[];
-    for(var a in CACHE){ if(!fresh(a)) continue; CACHE[a].list.forEach(function(c){ var u=c.u||c; if(!played[u]) all.push([a,c]); }); }
-    if(!all.length){ played={}; for(var a2 in CACHE){ if(fresh(a2)) CACHE[a2].list.forEach(function(c){ if((c.u||c)!==lastSrc) all.push([a2,c]); }); } }
+    var only=prefs.bgArtist && ARTISTS.indexOf(prefs.bgArtist)!==-1 ? prefs.bgArtist : "";
+    if(only && fresh(only) && !CACHE[only].list.length) only="";      // Apple has no videos for them: fall back to everyone
+    for(var a in CACHE){ if(!fresh(a) || (only && a!==only)) continue; CACHE[a].list.forEach(function(c){ var u=c.u||c; if(!played[u]) all.push([a,c]); }); }
+    if(!all.length){ played={}; for(var a2 in CACHE){ if(fresh(a2) && (!only || a2===only)) CACHE[a2].list.forEach(function(c){ if((c.u||c)!==lastSrc) all.push([a2,c]); }); }
+      if(!all.length && only && fresh(only)) CACHE[only].list.forEach(function(c){ all.push([only,c]); }); }
     if(!all.length) return null;
     deck=shuffle(all);
     var i=0; while(i<deck.length-1 && deck[i][0]===recentA[0]) i++;
@@ -2335,7 +2379,8 @@ var BGV=(function(){
     var v=vids[cur]; if(v.src && v.classList.contains("on")){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); clearTimeout(timer); timer=setTimeout(next, CUT); } else next();
   }
   document.addEventListener("visibilitychange", resume);
-  return {nowPlaying:nowPlaying, pickClip:pickClip, cache:CACHE, resume:resume, toggle:resume, pause:function(){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); }};
+  function setArtist(a){ played={}; if(a && !fresh(a)){ batches=Math.min(batches,19); fetchClips(); } if(want()) next(); }
+  return {setArtist:setArtist, nowPlaying:nowPlaying, pickClip:pickClip, cache:CACHE, resume:resume, toggle:resume, pause:function(){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); }};
 })();
 // ---- TV effects: animated grain (tiny canvas scaled up, ~12fps) and random glitch bursts every few seconds ----
 var TVFX=(function(){
