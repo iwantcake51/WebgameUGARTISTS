@@ -947,7 +947,6 @@
   .modeopt:hover{border-color:color-mix(in srgb,var(--dc) 60%,var(--line))}
   .modeopt.on{border-color:var(--dc); background:color-mix(in srgb,var(--dc) 14%,var(--surface2))}
   .modeopt.on b{color:var(--dc)}
-  #startScreen .modes{--dc:var(--accent)}
   .modego{margin-top:auto}
   /* desktop: the menu stays put and greys out; modes slide in beside it */
   @media (min-width:900px){
@@ -956,6 +955,27 @@
       background:var(--surface); border-left:1px solid var(--line)}
     .modego{margin-top:12px}
   }
+  /* difficulty now lives on the mode screen; 5 options incl. Random (styled like Extreme, cyan to lime) */
+  .modes{--dc:var(--accent); --dc2:var(--accent)}
+  .modes[data-d="easy"]{--dc:#39e08b; --dc2:#39e08b} .modes[data-d="hard"]{--dc:#ff466b; --dc2:#ff466b}
+  .modes[data-d="extreme"]{--dc:#a855f7; --dc2:#ec4899} .modes[data-d="random"]{--dc:#22d3ee; --dc2:#a3e635}
+  #startScreen .menu[data-d="random"]{--dc:#22d3ee; --dc2:#a3e635}
+  .segs{grid-template-columns:repeat(5,1fr) !important; max-width:none}
+  .segind{width:20% !important}
+  .modes .segind{background:linear-gradient(90deg,var(--dc),var(--dc2)) !important}
+  .seg[data-d="random"]{--sc:#4fd8c4}
+  .seg[data-d="random"].on .sn{background:linear-gradient(90deg,#22d3ee,#a3e635); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .dlabel.random{color:#5fe0b0}
+  .modes .dnote{font-size:12.5px; color:color-mix(in srgb,var(--dc) 75%,var(--ink)); min-height:2.6em; margin:0}
+  .modesub{font-family:var(--f-mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); margin-top:6px}
+  .modes .seg .sn{font-size:13px !important} html.bsd .modes .seg .sn{font-size:17px !important}
+  .modeartists{width:100%}
+  .modes{overflow-y:auto; scrollbar-width:none; justify-content:flex-start}
+  .row2.one{grid-template-columns:1fr}
+  /* press feedback on the mode screen */
+  .modeopt, .modes .seg, .modeartists, #modeBack, .modego{transition:transform .14s ease, border-color .25s, background-color .25s, color .25s}
+  .modeopt:active, .modes .seg:active, .modeartists:active, #modeBack:active{transform:scale(.97)}
+  .modego:active{transform:scale(.985)}
 </style>
 </head>
 <body>
@@ -985,16 +1005,8 @@
       <div class="meta" style="--i:0"><span>Underground edition</span><span id="metaCount">60 artists</span></div>
       <h1 class="mk" style="--i:0"><span class="brand">UG<b>Neek</b>Peek</span></h1>
       <p class="tag" style="--i:1">Find out if you're a true neek of the underground by guessing the song based off of a little snippet. The faster you get it, the more score you get! (and brownie points because you're the true neek)</p>
-      <div class="segs" id="diffRow" role="radiogroup" aria-label="Difficulty" style="--i:2">
-        <span class="segind" aria-hidden="true"></span>
-        <button class="seg" data-d="easy" role="radio"><span class="sn">Easy</span><span class="sx">&times;0.9</span></button>
-        <button class="seg" data-d="normal" role="radio"><span class="sn">Normal</span><span class="sx">&times;1</span></button>
-        <button class="seg" data-d="hard" role="radio"><span class="sn">Hard</span><span class="sx">&times;1.15</span></button>
-        <button class="seg" data-d="extreme" role="radio"><span class="sn">Extreme</span><span class="sx">&times;1.5</span></button>
-      </div>
-      <div class="dnote" id="diffNote" style="--i:2"></div>
-      <button class="btn playall" id="startBtn" style="--i:3"><span class="pl">Play all artists</span><span class="arr">&rarr;</span></button>
-      <div class="row2" style="--i:3"><button class="btn sec" id="filterBtn">Choose artists</button><button class="btn sec" id="modBtn">Modifiers</button></div>
+      <button class="btn playall" id="startBtn" style="--i:3"><span class="pl">Play</span><span class="arr">&rarr;</span></button>
+      <div class="row2 one" style="--i:3"><button class="btn sec" id="modBtn">Modifiers</button></div>
       <div id="artistList" class="lineup" style="--i:4"></div>
       <div class="cap" id="poolInfo" style="--i:4"></div>
       <div class="foot" style="--i:5"><button class="flink" id="ssBtn">Is my song in it?</button><button class="flink" id="catBtn">Your history</button><button class="flink" id="setBtn">Themes &amp; volume</button></div>
@@ -1003,6 +1015,17 @@
     <div class="modes" id="modePanel" aria-hidden="true">
       <div class="modeshead"><button class="linkbtn" id="modeBack">&larr; back</button><span>Game mode</span></div>
       <div class="modelist" id="modeList"></div>
+      <div class="modesub">Difficulty</div>
+      <div class="segs" id="diffRow" role="radiogroup" aria-label="Difficulty" style="--i:2">
+        <span class="segind" aria-hidden="true"></span>
+        <button class="seg" data-d="easy" role="radio"><span class="sn">Easy</span><span class="sx">&times;0.9</span></button>
+        <button class="seg" data-d="normal" role="radio"><span class="sn">Normal</span><span class="sx">&times;1</span></button>
+        <button class="seg" data-d="hard" role="radio"><span class="sn">Hard</span><span class="sx">&times;1.15</span></button>
+        <button class="seg" data-d="extreme" role="radio"><span class="sn">Extreme</span><span class="sx">&times;1.5</span></button>
+        <button class="seg" data-d="random" role="radio"><span class="sn">Random</span><span class="sx">&times;1.25</span></button>
+      </div>
+      <div class="dnote" id="diffNote" style="--i:2"></div>
+      <button class="btn sec modeartists" id="filterBtn">Choose artists</button>
       <button class="btn playall modego" id="modeGo"><span class="pl">Play</span><span class="arr">&rarr;</span></button>
     </div>
   </div>
@@ -1787,7 +1810,8 @@ var DIFFS={
   easy:   {lo:0,   hi:1, min:6, mult:0.9,  w:function(p){ return 0.04+Math.pow(1-p,4); },  label:"Easy",    note:"The easiest of the easy: every artist\u2019s most popular hits."},
   normal: {lo:0,   hi:1, min:8, mult:1,    w:function(p){ return 0.35+Math.pow(1-p,1.4); }, label:"Normal",  note:"The middlest of middle grounds: mostly their big hits."},
   hard:   {lo:.2,  hi:1, min:8, mult:1.15, w:function(p){ return 0.3+p; },                   label:"Hard",    note:"Big hits are few and far between. You\u2019d better know your stuff."},
-  extreme:{lo:.55, hi:1, min:8, mult:1.5,  w:function(p){ return 0.15+p*p; },               label:"Extreme", note:"No big hits here. You must really think you know your stuff, huh?"}
+  extreme:{lo:.55, hi:1, min:8, mult:1.5,  w:function(p){ return 0.15+p*p; },               label:"Extreme", note:"No big hits here. You must really think you know your stuff, huh?"},
+  random: {lo:0,   hi:1, min:1, mult:1.25, w:function(){ return 1; },                         label:"Random",  note:"Every song from every difficulty in one pile. Anything goes."}
 };
 // songs out in the last ~3 months play like hits: they sit higher in the pool and show up more on easy
 function freshF(t){ var d=(Date.now()-Date.parse(t.date||""))/864e5; if(!(d>=0) || d>120) return 1; return d<=90 ? 0.3+0.3*(d/90) : 0.6+0.4*((d-90)/30); }
@@ -1849,7 +1873,7 @@ function windowed(p,dk){
 function renderDiff(){
   var d=curDiff(), bs=document.querySelectorAll("#diffRow .seg"), idx=0;
   for(var i=0;i<bs.length;i++){ var on=bs[i].getAttribute("data-d")===d; bs[i].classList.toggle("on",on); bs[i].setAttribute("aria-checked",on?"true":"false"); if(on) idx=i; }
-  $("diffRow").style.setProperty("--idx",idx); $("menu").setAttribute("data-d",d);
+  $("diffRow").style.setProperty("--idx",idx); $("menu").setAttribute("data-d",d); $("modePanel").setAttribute("data-d",d);
   var m=multOf(d); $("diffNote").textContent=DIFFS[d].note;
   $("diffLabel").className="dlabel "+d; $("diffLabel").textContent=DIFFS[d].label+" "+multTxt(d);
 }
