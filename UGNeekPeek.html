@@ -1007,6 +1007,9 @@
   .stage.revealed .stageInner{clip-path:inset(0 round 4px)}
   .dgoal{font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:-6px}
   .dgoal b{font-weight:700; color:var(--dc); background:linear-gradient(90deg,var(--dc),var(--dc2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; transition:color .3s}
+  .opt.ghostslot{opacity:.22; filter:grayscale(1); pointer-events:none; border-style:dashed}
+  .segs.locked{opacity:.35; filter:grayscale(1); pointer-events:none} .segs.locked .segind{opacity:0}
+  .segs.locked .seg.on, .segs.locked .seg.on .sx{color:color-mix(in srgb,var(--sc) 60%,var(--muted))} .segs.locked .seg.on .sn{-webkit-text-fill-color:currentColor; background:none}
 </style>
 </head>
 <body>
@@ -2029,8 +2032,7 @@ function newRound(){
   function waitMsg(t){ var w=$("roundWait"); if(w) w.textContent=t; }
 }
 function setupRound(a){
-  var all=byArtist[a].tracks, p=windowed(all), answer;
-  if(gmode()==="singles") p=p.filter(isSingle);
+  var all=byArtist[a].tracks, solo=mode==="artist", p=poolFor(a,solo), answer;
   var fresh=p.filter(function(t){ return !runSeen[t.id]; });
   if(!fresh.length){ runDone[a]=1; return false; }            // every allowed song by this artist already played this run
   answer=weightedPick(fresh);
@@ -2047,15 +2049,15 @@ function setupRound(a){
   var dis=[];
   dis=dis.concat(near(unused(p.filter(function(t){return t.sub===answer.sub;})),3));
   if(dis.length<3) dis=dis.concat(near(unused(p),3-dis.length));
-  if(dis.length<3 && !strict) dis=dis.concat(near(unused(all),3-dis.length));
+  if(dis.length<3 && !strict && !solo) dis=dis.concat(near(unused(all),3-dis.length));
   if(dis.length<3 && mode!=="artist"){ var rest=[]; includedArtists().forEach(function(k){ if(k!==a&&hasArtist(k)) rest=rest.concat(strict?windowed(byArtist[k].tracks):byArtist[k].tracks); });
     dis=dis.concat(sample(unused(rest),3-dis.length)); }
-  if(dis.length<3){   // last few songs of a one-artist run: not enough unplayed songs left, so reuse played ones
+  if(dis.length<3 && !solo){   // not enough unplayed songs left, so reuse played ones (one-artist runs grey the empty slots instead)
     var used=(strict?p:all).filter(function(t){ return t.id!==answer.id && dis.indexOf(t)===-1; });
     dis=dis.concat(near(used,3-dis.length)); }
   var opts=shuffle([answer].concat(dis));
   var allSame=opts.every(function(o){ return o.artist===answer.artist; });
-  R={answer:answer,opts:opts,artist:answer.artist,unlocked:0,over:false,picked:null,t0:performance.now(),started:false,lives:modActive("lives")?2:1,tried:{},offset:modActive("rand")?Math.random()*15:0};
+  R={ghosts:Math.max(0,4-opts.length),answer:answer,opts:opts,artist:answer.artist,unlocked:0,over:false,picked:null,t0:performance.now(),started:false,lives:modActive("lives")?2:1,tried:{},offset:modActive("rand")?Math.random()*15:0};
   applyMods(); document.body.classList.remove("lastlife"); $("stage").classList.toggle("peek", modActive("peek"));
   if(fading) pendingSrc=answer.preview; else { audio.src=answer.preview; audio.load(); }
   $("cover").src=answer.art; $("coverA").src=answer.art; $("coverB").src=answer.art;
@@ -2090,6 +2092,8 @@ function render(){
     b.onclick=function(){ guess(o); };
     box.appendChild(b);
   });
+  for(var gi=0;gi<(R.ghosts||0);gi++){ var g=document.createElement("button"); g.className="opt ghostslot"; g.disabled=true; g.setAttribute("aria-hidden","true");
+    g.innerHTML="<span class='optk'>"+"ABCD".charAt(R.opts.length+gi)+"</span><span class='opttext'><span class='optt'>\u2014</span></span>"; box.appendChild(g); }
   $("moreBtn").disabled = R.over || R.unlocked>=STAGES.length-1 || modActive("half");
   $("playBtn").disabled = R.over;
   $("skipBtn").disabled = R.over || !!skipUsed; $("skipBtn").innerHTML = skipUsed ? "skip used" : "&#9197; skip";
@@ -2134,9 +2138,13 @@ function guess(o){
   var pts=win?ptsAt(R.unlocked):0;
   runLog.push({t:R.answer, win:win, secs:R.secs, clip:STAGES[R.unlocked], pts:pts});
   runSeen[R.answer.id]=1;
-  if(win && mode==="artist"){ var pa=windowed(byArtist[pickArtist].tracks); wonAll=pa.every(function(t){ return runSeen[t.id]; });
+  var lastOne=null;
+  if(win && mode==="artist"){ var pa=poolFor(pickArtist,true), left=pa.filter(function(t){ return !runSeen[t.id]; });
+    // down to the final two and you got it: the last standing song counts as won too, no need to pick it
+    if(left.length===1){ lastOne=left[0]; runSeen[lastOne.id]=1; runLog.push({t:lastOne, win:true, secs:0, clip:0, pts:0, auto:true}); }
+    wonAll=pa.every(function(t){ return runSeen[t.id]; });
     $("modeLabel").textContent=pickArtist+"  "+pa.filter(function(t){ return runSeen[t.id]; }).length+" of "+pa.length; }
-  if(win){ score+=pts; streak++; solved++; if(goalOf() && solved>=goalOf()) wonAll=true; }
+  if(win){ score+=pts; streak++; solved++; if(lastOne){ solved++; streak++; } if(goalOf() && solved>=goalOf()) wonAll=true; }
   if(win) setProgress();
   else { streak=0; if(mode==="artist"){ usedCycle={}; } }
   if(!win || wonAll) commitRun();          // the run is over: now it counts
@@ -2347,11 +2355,25 @@ var GMODES=[
 var modeArtist=null, modeSet=null;     // modeSet: artists picked in Choose artists (null = everyone)          // set when the panel was opened from an artist in the lineup
 function isEndless(){ return gmode()==="endless" && includedArtists().length>=5; }
 function setNames(){ return modeSet ? ARTISTS.filter(function(a){ return modeSet[a]; }) : null; }
-function goalOf(){ return isEndless() ? 0 : (DIFFS[curDiff()].goal||0); }
+// the songs a run can ask: one artist + Single Mingle = all their singles (difficulty doesn't apply)
+function soloSingles(){ return gmode()==="singles"; }
+function poolFor(a,solo){ var all=byArtist[a].tracks; if(solo && soloSingles()) return all.filter(isSingle);
+  var p=windowed(all); return gmode()==="singles" ? p.filter(isSingle) : p; }
+function goalOf(){ if(isEndless()) return 0; var g=DIFFS[curDiff()].goal||0;
+  if(mode==="artist" && pickArtist && byArtist[pickArtist]) g=Math.min(g, poolFor(pickArtist,true).length);      // fewer songs than the goal: the goal shrinks to fit
+  return g; }
 function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ? prefs.gmode : "classic"; }
 function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
 function goalNote(){ var el=$("diffGoal"); if(!el) return;
-  el.innerHTML = gmode()==="endless" && !modeArtist ? "<b>\u221E</b> Endless \u2014 no song limit" : "<b>"+DIFFS[curDiff()].goal+"</b> songs this round"; }
+  var lock=!!modeArtist && soloSingles(); $("diffRow").classList.toggle("locked",lock); $("diffNote").style.visibility=lock?"hidden":"";
+  if(gmode()==="endless" && !modeArtist){ el.innerHTML="<b>\u221E</b> Endless \u2014 no song limit"; return; }
+  if(modeArtist){               // one artist: the round is capped by how many songs they actually have
+    var a=modeArtist;
+    if(!byArtist[a]){ el.innerHTML="counting songs\u2026"; ensureArtist(a).then(function(ok){ if(modeArtist!==a) return; if(ok && byArtist[a]) goalNote(); else el.innerHTML="couldn\u2019t count songs right now"; }); return; }
+    var n=poolFor(a,true).length, g=lock?n:Math.min(DIFFS[curDiff()].goal,n);
+    $("modeGo").disabled=!g; $("modeGo").classList.toggle("dead",!g);
+    el.innerHTML="<b>"+g+"</b> "+(soloSingles()?(g===1?"single":"singles"):(g===1?"song":"songs"))+" this round"; return; }
+  el.innerHTML="<b>"+DIFFS[curDiff()].goal+"</b> songs this round"; }
 function renderModes(){ setTimeout(goalNote,0);
   var names=modeArtist ? [modeArtist] : setNames(), canEndless=!names || names.length>=5, E=escapeHtml;
   var head = names && !names.length ? "No one?..." : modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
