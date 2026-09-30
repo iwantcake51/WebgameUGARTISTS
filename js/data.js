@@ -411,12 +411,18 @@ function initTicks(){
     var d=document.createElement("div"); d.className="tick"; bar.insertBefore(d, bp); TICKS.push(d);
   }
 }
+var barCt=0, barT=0;
 function drawBar(){
   viewSpan += (targetSpan-viewSpan)*0.12;
   var up=Math.min(100, availSec/viewSpan*100);
   $("barAvail").style.background="linear-gradient(90deg, var(--accent) 0%, var(--accent) "+up.toFixed(2)+"%, color-mix(in srgb, var(--accent) 16%, transparent) "+up.toFixed(2)+"%, color-mix(in srgb, var(--accent) 3%, transparent) 100%)";
   for(var i=0;i<TICKS.length;i++){ var pct=STAGES[i]/viewSpan*100; TICKS[i].style.left="calc("+pct.toFixed(2)+"% - 1px)"; TICKS[i].style.opacity=pct>99?0:1; }
-  var ct = (R && !fading) ? Math.max(0,(audio.currentTime||0)-(R.over?0:(R.offset||0))) : 0;
+  // audio.currentTime only ticks every ~250ms in some browsers, so extrapolate between updates for a smooth bar
+  var now=performance.now(), raw=audio.currentTime||0;
+  if(raw!==barCt){ barCt=raw; barT=now; }
+  var est=barCt+(audio.paused?0:Math.min(0.3,(now-barT)/1000));
+  var ct = (R && !fading) ? Math.max(0,est-(R.over?0:(R.offset||0))) : 0;
   $("barPlay").style.width=Math.min(100, ct/viewSpan*100)+"%";
+  $("barPlay").classList.toggle("live", !audio.paused && ct>0);
 }
 

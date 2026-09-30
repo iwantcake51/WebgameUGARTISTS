@@ -161,10 +161,16 @@ body.noholo .holo{display:none}
 @keyframes shake{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:7px 0}60%{translate:-4px 0}80%{translate:4px 0}}
 @keyframes vinyl{to{transform:rotate(360deg)}}
 
-.bar{position:relative; height:12px; border-radius:5px; overflow:hidden; background:var(--surface2); margin:16px 0 6px}
-.bar-avail{position:absolute; inset:0}
-.bar-play{position:absolute; top:0; bottom:0; left:0; width:0; background:rgba(255,255,255,.85);
-  box-shadow:0 0 10px rgba(255,255,255,.5)}
+.bar{position:relative; height:10px; border-radius:999px; background:var(--surface2); margin:16px 0 6px;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.55), 0 0 0 1px color-mix(in srgb,var(--accent) 18%,transparent)}
+.bar-avail{position:absolute; inset:0; border-radius:inherit; transition:filter .3s}
+.bar-play{position:absolute; top:0; bottom:0; left:0; width:0; border-radius:inherit;
+  background:linear-gradient(90deg, color-mix(in srgb,#fff 40%,var(--accent)), #fff);
+  box-shadow:0 0 10px color-mix(in srgb,var(--accent) 80%,#fff), 0 0 22px color-mix(in srgb,var(--accent) 55%,transparent)}
+.bar-play::after{content:""; position:absolute; right:-6px; top:50%; width:14px; height:14px; margin-top:-7px; border-radius:50%; background:#fff;
+  box-shadow:0 0 8px #fff, 0 0 18px var(--accent), 0 0 34px var(--accent); opacity:0; transform:scale(.4); transition:opacity .25s, transform .25s}
+.bar-play.live::after{opacity:1; transform:scale(1); animation:barPulse 1.1s ease-in-out infinite}
+@keyframes barPulse{50%{box-shadow:0 0 10px #fff, 0 0 24px var(--accent), 0 0 46px var(--accent)}}
 .tick{position:absolute; top:1px; bottom:1px; width:2px; border-radius:2px; background:rgba(243,238,251,.55)}
 .barmeta{display:flex; justify-content:space-between; margin-bottom:16px;
   font-family:var(--f-mono); font-size:11px; color:var(--muted)}
@@ -809,7 +815,7 @@ html:not(.bsd) .lu{font-family:var(--f-display)}
 .dlabel.extreme{background:none; color:#e070c8; -webkit-background-clip:border-box; background-clip:border-box}
 .stage{border-radius:4px}
 .stageInner{border-radius:4px}
-.bar{height:8px; border-radius:1px}
+.bar{height:9px; border-radius:999px}
 .play-btn, .more-btn, .next{border-radius:3px}
 .play-btn{text-transform:uppercase; letter-spacing:.06em; font-weight:700}
 .more-btn{background:transparent; border:1px solid var(--line); font-family:var(--f-mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.06em}

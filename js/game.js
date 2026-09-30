@@ -289,7 +289,7 @@ function paintBar(){
 }
 function renderStreak(){
   var sc=1+Math.min(streak,15)*0.09;
-  $("streak").innerHTML = streak>0 ? (streak+" <span class='fire' style='--fs:"+sc.toFixed(2)+"'>\uD83D\uDD25</span>") : "0";
+  $("streak").textContent = String(streak);
 }
 function render(){
   var box=$("opts"); box.innerHTML="";
