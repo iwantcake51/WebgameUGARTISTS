@@ -1047,7 +1047,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.57</div>
+  <div class="ver" title="version">v1.12.58</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -2342,7 +2342,7 @@ function openFilter(){
   var h=""; ARTISTS.forEach(function(a){ h+="<button class='filchip"+(filState[a]?" on":"")+"' data-a='"+escapeHtml(a)+"'>"+escapeHtml(a)+"</button>"; });
   $("filChips").innerHTML=h; $("filNote").textContent=""; renderGroups();
   var chips=$("filChips").querySelectorAll(".filchip");
-  for(var i=0;i<chips.length;i++){ (function(b){ b.onclick=function(){ var a=b.getAttribute("data-a"); filState[a]=!filState[a]; b.classList.toggle("on",filState[a]); }; })(chips[i]); }
+  for(var i=0;i<chips.length;i++){ (function(b){ b.onclick=function(){ var a=b.getAttribute("data-a"); filState[a]=!filState[a]; b.classList.toggle("on",filState[a]); applyFilter(); }; })(chips[i]); }
   openModal($("filter"));
 }
 // closing Choose artists (X, outside, Esc or the button) keeps whatever is picked
@@ -2361,11 +2361,11 @@ function renderGroups(){
   $("filGroups").innerHTML="<span class='fglab'>Groups</span>"+GROUPS.map(function(g,i){ return "<button class='fgroup' data-i='"+i+"' title='"+escapeHtml(groupArtists(g).join(", "))+"'>"+escapeHtml(g.n)+"</button>"; }).join("");
   [].forEach.call($("filGroups").querySelectorAll(".fgroup"),function(b){ b.onclick=function(){ var g=groupArtists(GROUPS[+b.getAttribute("data-i")]);
     ARTISTS.forEach(function(a){ filState[a]=g.indexOf(a)!==-1; }); filBuilt=true;
-    [].forEach.call($("filChips").querySelectorAll(".filchip"),function(c){ c.classList.toggle("on",!!filState[c.getAttribute("data-a")]); }); }; });
+    [].forEach.call($("filChips").querySelectorAll(".filchip"),function(c){ c.classList.toggle("on",!!filState[c.getAttribute("data-a")]); }); applyFilter(); }; });
 }
 function closeFilter(){ applyFilter(); closeModal($("filter")); }
 var filBuilt=false;        // true once you start from "none" and add artists yourself
-function filterSetAll(v){ filBuilt=!v; ARTISTS.forEach(function(a){ filState[a]=v; }); openFilter(); }
+function filterSetAll(v){ filBuilt=!v; ARTISTS.forEach(function(a){ filState[a]=v; }); openFilter(); applyFilter(); }
 function filStart(){ closeFilter(); }
 function openPicker(){
   var html="<button class='pickrow' data-a='__all'>All artists <span>mix of everyone</span></button>";
