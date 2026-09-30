@@ -1007,6 +1007,7 @@
   .stage.revealed .stageInner{clip-path:inset(0 round 4px)}
   .dgoal{font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:-6px}
   .dgoal b{font-weight:700; color:var(--dc); background:linear-gradient(90deg,var(--dc),var(--dc2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; transition:color .3s}
+  .seg.blocked{opacity:.28; filter:grayscale(1); cursor:not-allowed; text-decoration:line-through; text-decoration-thickness:1px}
   .opt.ghostslot{opacity:.22; filter:grayscale(1); pointer-events:none; border-style:dashed}
   .segs.locked{opacity:.35; filter:grayscale(1); pointer-events:none} .segs.locked .segind{opacity:0}
   .segs.locked .seg.on, .segs.locked .seg.on .sx{color:color-mix(in srgb,var(--sc) 60%,var(--muted))} .segs.locked .seg.on .sn{-webkit-text-fill-color:currentColor; background:none}
@@ -1038,7 +1039,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.53</div>
+  <div class="ver" title="version">v1.12.54</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -1649,7 +1650,7 @@ function boot(){
   window.addEventListener("resize", function(){ if(vctx) resizeViz(); });
   renderArtistList(); renderDiff(); renderModBtn();
   var dbs=document.querySelectorAll("#diffRow .seg");
-  for(var di=0;di<dbs.length;di++){ (function(b){ b.onclick=function(){ prefs.diff=b.getAttribute("data-d"); savePrefs(); renderDiff(); }; })(dbs[di]); }
+  for(var di=0;di<dbs.length;di++){ (function(b){ b.onclick=function(){ if(b.classList.contains("blocked")) return; prefs.diff=b.getAttribute("data-d"); savePrefs(); renderDiff(); }; })(dbs[di]); }
 
   BGV.resume();
   showShared();
@@ -2375,7 +2376,18 @@ function goalOf(){ if(isEndless()) return 0; var g=DIFFS[curDiff()].goal||0;
   return g; }
 function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ? prefs.gmode : "classic"; }
 function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
-function goalNote(){ var el=$("diffGoal"); if(!el) return;
+// Hard / Extreme need the picked artists to have at least 75% of that difficulty's song goal in their catalog
+function panelNames(){ return modeArtist ? [modeArtist] : setNames(); }
+function diffSongs(names,dk){ var n=0, done=true;
+  names.forEach(function(a){ if(byArtist[a]){ var p=windowed(byArtist[a].tracks,dk); if(gmode()==="singles") p=p.filter(isSingle); n+=p.length; } else if(!isUnavail(a)) done=false; });
+  return {n:n, done:done}; }
+function lockDiffs(){ var names=panelNames(), bad=false;
+  ["hard","extreme"].forEach(function(dk){ var b=document.querySelector("#diffRow .seg[data-d='"+dk+"']"); if(!b) return;
+    var c=names ? diffSongs(names,dk) : {n:1e9,done:true}, off=c.done && c.n < DIFFS[dk].goal*0.75;
+    b.classList.toggle("blocked",off); b.disabled=off; b.title=off?"Not enough songs for "+DIFFS[dk].label+" ("+c.n+" of "+Math.ceil(DIFFS[dk].goal*0.75)+" needed)":"";
+    if(off && curDiff()===dk) bad=true; });
+  if(bad){ prefs.diff="normal"; savePrefs(); renderDiff(); } }
+function goalNote(){ var el=$("diffGoal"); if(!el) return; lockDiffs();
   var lock=!!modeArtist && soloSingles(); $("diffRow").classList.toggle("locked",lock); $("diffNote").style.visibility=lock?"hidden":"";
   if(gmode()==="endless" && !modeArtist){ el.innerHTML="<b>\u221E</b> Endless \u2014 no song limit"; return; }
   if(modeArtist){               // one artist: the round is capped by how many songs they actually have
