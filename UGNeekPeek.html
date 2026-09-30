@@ -2287,7 +2287,7 @@ $("vol2").oninput=function(){ setVolume(parseFloat(this.value)); };
 var BGV=(function(){
   var vids=[$("bgA"),$("bgB")], cur=0, timer=0, loading=false, started=0, CUT=5200, lastSrc="", recentA=[];
   // clips cached per artist for a week: {artist:{at, list:[previewUrl]}} (empty list = no videos on Apple)
-  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips6")||"{}")||{}; }catch(e){ CACHE={}; }
+  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips7")||"{}")||{}; }catch(e){ CACHE={}; }
   var batches=0;
   // only videos whose lead artist IS this roster artist (no features, no similarly named artists)
   function credited(r,a){
@@ -2298,40 +2298,43 @@ var BGV=(function(){
   }
   function onRoster(name,a){ var n=norm(leadArtist(name)); return termsOf(a).concat([a]).some(function(t){ return norm(t)===n; }); }
   function fresh(a){ var c=CACHE[a]; return ARTISTS.indexOf(a)!==-1 && c && Date.now()-c.at<7*864e5; }
-  function saveCache(){ try{ localStorage.setItem("drop_bgclips6", JSON.stringify(CACHE)); }catch(e){} }
+  function saveCache(){ try{ localStorage.setItem("drop_bgclips7", JSON.stringify(CACHE)); }catch(e){} }
   function haveClips(){ for(var a in CACHE) if(fresh(a) && CACHE[a].list.length) return true; return false; }
   function want(){ return prefs.bgvid && !document.body.classList.contains("playing") && !document.hidden; }
   // look artists up in batches: mastered first, then the bigger names (most likely to have videos), then everyone else.
   // keeps going right away until something is found, then a batch every 20s while the menu is open (max 8 per page load)
+  // one artist = 2 requests (Apple ID lookup + name search). Search hits only count if they're credited by exact name (lead, "&" or feat.)
+  var inflight={};
+  function fetchArtist(a){
+    if(inflight[a]) return inflight[a];
+    var ids=termsOf(a).concat([a]).map(function(t){ return ARTIST_IDS[t]&&ARTIST_IDS[t].id; }).filter(function(x,i,arr){ return x && arr.indexOf(x)===i; });
+    var reqs=ids.map(function(id){ return getJSON("https://itunes.apple.com/lookup?id="+id+"&entity=musicVideo&limit=200").catch(function(){ return null; }); });
+    reqs.push(getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(termsOf(a)[0])+"&entity=musicVideo&limit=200").catch(function(){ return null; }));
+    return inflight[a]=Promise.all(reqs).then(function(ds){
+      delete inflight[a];
+      var got=[], seen={}, byId={}; ids.forEach(function(id){ byId[id]=1; });
+      ds.forEach(function(d){ ((d&&d.results)||[]).forEach(function(r){
+        if(!r.previewUrl || r.wrapperType!=="track" || seen[r.previewUrl]) return;
+        if(!byId[r.artistId] && !credited(r,a)) return;
+        seen[r.previewUrl]=1; got.push({u:r.previewUrl, t:noFeat(r.trackName||""), a:r.artistName||a}); }); });
+      if(ds.every(function(d){ return !d; })) return;            // all requests failed (rate limit / offline): don't cache, retry later
+      CACHE[a]={at:got.length?Date.now():Date.now()-6*864e5, list:got}; saveCache();
+    });
+  }
+  // background filler: 3 artists at a time, gently paced so Apple doesn't rate-limit the game
   function fetchClips(){
-    if(loading || batches>=20) return;
-    var tiers=mastery(), todo=ARTISTS.filter(function(a){ return !fresh(a); });
+    if(loading || batches>=25) return;
+    var tiers=mastery(), todo=ARTISTS.filter(function(a){ return !fresh(a) && !inflight[a]; });
     if(!todo.length) return;
     var big=ARTISTS.slice(0,30);
-    var pri=shuffle(todo.filter(function(a){ return tiers[a]; })),
-        mid=shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)!==-1; })),
-        rest=shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)===-1; }));
-    var pool=pri.concat(mid,rest).slice(0,8);
-    if(prefs.bgArtist && ARTISTS.indexOf(prefs.bgArtist)!==-1 && !fresh(prefs.bgArtist)) pool=[prefs.bgArtist].concat(pool.filter(function(x){ return x!==prefs.bgArtist; })).slice(0,8); loading=true; batches++;
-    Promise.all(pool.map(function(a){
-      // Apple ID lookup + name search; search hits only count if the artist is credited by exact name (lead, "&" or feat.)
-      var ids=termsOf(a).concat([a]).map(function(t){ return ARTIST_IDS[t]&&ARTIST_IDS[t].id; }).filter(Boolean);
-      var reqs=ids.map(function(id){ return getJSON("https://itunes.apple.com/lookup?id="+id+"&entity=musicVideo&limit=100").catch(function(){ return {}; }); });
-      termsOf(a).forEach(function(t){ ["&attribute=artistTerm",""].forEach(function(at){
-        reqs.push(getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(t)+"&entity=musicVideo"+at+"&limit=100").catch(function(){ return {}; })); }); });
-      return Promise.all(reqs).then(function(ds){
-        var got=[], seen={}, byId={}; ids.forEach(function(id){ byId[id]=1; });
-        ds.forEach(function(d){ (d.results||[]).forEach(function(r){
-          if(!r.previewUrl || r.kind!=="music-video" || seen[r.previewUrl]) return;
-          if(!byId[r.artistId] && !credited(r,a)) return;   // their Apple ID, or they're named exactly in the credits
-          seen[r.previewUrl]=1; got.push({u:r.previewUrl, t:noFeat(r.trackName||""), a:r.artistName||a}); }); });
-        if(got.length || ds.some(function(d){ return d.results; })) CACHE[a]={at:got.length?Date.now():Date.now()-6*864e5, list:got};
-      });
-    })).then(function(){
-      loading=false; saveCache();
-      if(want() && prefs.bgArtist && recentA[0]!==prefs.bgArtist && fresh(prefs.bgArtist)) next();
+    var pool=shuffle(todo.filter(function(a){ return tiers[a]; })).concat(
+      shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)!==-1; })),
+      shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)===-1; }))).slice(0,3);
+    loading=true; batches++;
+    Promise.all(pool.map(fetchArtist)).then(function(){
+      loading=false;
       if(want() && !vids[cur].classList.contains("on")) next();
-      if(want()) setTimeout(fetchClips, haveClips() ? 8000 : 300);
+      if(want()) setTimeout(fetchClips, haveClips() ? 15000 : 2500);
     });
   }
   // pick an artist (diamond x6, gold x4, others x1, avoiding the last few), then a random clip of theirs
@@ -2382,11 +2385,14 @@ var BGV=(function(){
     document.body.classList.toggle("bgv-on", !!prefs.bgvid);
     if(!want()){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); return; }
     if(Date.now()-started>60000){ started=Date.now(); setTimeout(fetchClips, 1500); }     // look up more artists each visit
+    if(prefs.bgArtist && ARTISTS.indexOf(prefs.bgArtist)!==-1 && !fresh(prefs.bgArtist)){ var ba=prefs.bgArtist; fetchArtist(ba).then(function(){ if(prefs.bgArtist===ba && want()) next(); }); }
     if(!haveClips()) return;
     var v=vids[cur]; if(v.src && v.classList.contains("on")){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); clearTimeout(timer); timer=setTimeout(next, CUT); } else next();
   }
   document.addEventListener("visibilitychange", resume);
-  function setArtist(a){ played={}; clearTimeout(timer); vids.forEach(function(v){ v.classList.remove("on"); }); nowPlaying(null);  /* fade the current clip out right away */ if(a && !fresh(a)){ batches=Math.min(batches,19); fetchClips(); } if(want()) next(); }
+  function setArtist(a){ played={}; clearTimeout(timer); vids.forEach(function(v){ v.classList.remove("on"); }); nowPlaying(null);  /* fade the current clip out right away */
+    if(a && !fresh(a)) fetchArtist(a).then(function(){ if(prefs.bgArtist===a && want()) next(); });      /* look them up now, skipping the queue */
+    else if(want()) next(); }
   return {setArtist:setArtist, nowPlaying:nowPlaying, pickClip:pickClip, cache:CACHE, resume:resume, toggle:resume, pause:function(){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); }};
 })();
 // ---- TV effects: animated grain (tiny canvas scaled up, ~12fps) and random glitch bursts every few seconds ----
