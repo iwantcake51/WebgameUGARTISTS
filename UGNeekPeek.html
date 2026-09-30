@@ -654,7 +654,7 @@
     background-size:250% 100%; background-position:100% 0; -webkit-background-clip:text; background-clip:text; animation:goldShine 7s ease-in-out infinite; text-shadow:none !important;
     filter:drop-shadow(0 0 6px rgba(242,193,78,.35))}
   .lu.gold:nth-child(3n){animation-delay:-2.3s} .lu.gold:nth-child(3n+1){animation-delay:-4.6s}
-  @keyframes goldShine{0%,70%{background-position:100% 0} 85%{background-position:0 0} 100%{background-position:0 0}}
+  @keyframes goldShine{0%,62%{background-position:100% 0} 88%,100%{background-position:-20% 0}}
   .lineup{text-align:center}
   .lurow{margin:0 auto 5px; line-height:1.12}
   .lurow.hl{margin-bottom:2px}
@@ -1008,6 +1008,12 @@
   .dgoal{font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:-6px}
   .dgoal b{font-weight:700; color:var(--dc); background:linear-gradient(90deg,var(--dc),var(--dc2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; transition:color .3s}
   .modeartist .lu{pointer-events:none; transform:none !important; --ps:1 !important}      /* panel names are labels, not buttons: no tap-zoom */
+  .filgroups{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:-4px 0 14px}
+  .fglab{font-family:var(--f-mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-right:4px}
+  .fgroup{font-family:var(--f-display); font-weight:800; font-size:14px; letter-spacing:.04em; text-transform:uppercase; padding:6px 11px; cursor:pointer;
+    color:var(--ink); background:var(--surface2); border:1px solid var(--line); border-radius:2px; transition:border-color .2s, color .2s, transform .35s cubic-bezier(.34,1.56,.64,1)}
+  .fgroup:hover{border-color:var(--accent); color:var(--accent)} .fgroup:active{transform:scale(.95); transition-duration:.1s}
+  .abonus{display:block; margin-top:4px; color:var(--accent); opacity:.85}
   .seg.blocked{opacity:.28; filter:grayscale(1); cursor:not-allowed; text-decoration:line-through; text-decoration-thickness:1px}
   .opt.ghostslot{opacity:.22; filter:grayscale(1); pointer-events:none; border-style:dashed}
   .segs.locked{opacity:.35; filter:grayscale(1); pointer-events:none} .segs.locked .segind{opacity:0}
@@ -1040,7 +1046,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.55</div>
+  <div class="ver" title="version">v1.12.56</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -1143,6 +1149,7 @@
         <button class="ghost2" id="filAll">Select all</button>
         <button class="ghost2" id="filNone">Clear</button>
       </div>
+      <div class="filgroups" id="filGroups"></div>
       <div id="filChips" class="filchips"></div>
       <div id="filNote" class="filnote"></div>
     </div>
@@ -1894,7 +1901,12 @@ function weightedPick(list){
 }
 function multOf(d){ return DIFFS[d||curDiff()].mult; }
 function multTxt(d){ var m=multOf(d); return "\u00d7"+(m%1?m.toFixed(m*100%10?2:1):m); }
-function ptsAt(i){ return Math.round(PTS[Math.min(i,PTS.length-1)]*multOf()*modMult()); }
+// more artists, more credit: every artist past the 3rd adds +0.1% to the score multiplier
+function artistBonusFor(n){ return 1+Math.max(0,n-3)*0.001; }
+function artistBonus(){ return mode==="artist" ? 1 : artistBonusFor(includedArtists().length); }
+function bonusTag(){ var b=artistBonus(); return b>1 ? "<div class='modtags'><span class='modtag'>\uD83D\uDC65 "+includedArtists().length+" artists "+bonusTxt(b)+"</span></div>" : ""; }
+function bonusTxt(b){ return "\u00d7"+b.toFixed(3).replace(/0+$/,"").replace(/\.$/,""); }
+function ptsAt(i){ return Math.round(PTS[Math.min(i,PTS.length-1)]*multOf()*modMult()*artistBonus()); }
 // ---- modifiers ----
 var MODS=[
   {k:"blind", icon:"\uD83D\uDE48", label:"My ears are trained", mult:1.3, desc:"Artist names and features (feat./ft./with) are hidden on every choice. Only counts with 3+ artists (all artists, or 3+ picked in Choose artists)."},
@@ -2217,7 +2229,7 @@ function showWin(){
   var n=runLog.length, wins=runLog.filter(function(x){return x.win;});
   var avg=wins.length?wins.reduce(function(s,x){return s+x.secs;},0)/wins.length:0;
   $("failTitle").textContent=(goalOf() && n>=goalOf())?goalOf()+" songs, no misses":"Every song, no misses"; $("failModal").classList.add("won"); $("failRetry").innerHTML="&#8635; Play again";
-  $("failSub").innerHTML="You got all <b>"+n+"</b> "+escapeHtml(pickArtist||"")+" songs on "+DIFFS[curDiff()].label+(wins.length?"<br>average "+avg.toFixed(2)+"s per song":"")+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"");
+  $("failSub").innerHTML="You got all <b>"+n+"</b> "+escapeHtml(pickArtist||"")+" songs on "+DIFFS[curDiff()].label+(wins.length?"<br>average "+avg.toFixed(2)+"s per song":"")+bonusTag()+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"");
 }
 // ---- fail screen ----
 function showFail(){
@@ -2230,7 +2242,7 @@ function showFail(){
   var avg=wins.length?wins.reduce(function(s,x){return s+x.secs;},0)/wins.length:0;
   $("fScore").textContent=score; $("fBest").textContent=BEST[dk]||0; $("fSolved").textContent = mode==="artist" && byArtist[pickArtist] ? solved+"/"+windowed(byArtist[pickArtist].tracks).length : solved;
   $("fBestLbl").textContent="best ("+DIFFS[dk].label+")"; $("fBestBox").classList.toggle("new",isNew);
-  $("failSub").innerHTML = last ? "It was <b>"+escapeHtml(last.t.title)+"</b> by "+escapeHtml(last.t.credit||last.t.artist)+(wins.length?"<br>fastest "+fast.toFixed(2)+"s, average "+avg.toFixed(2)+"s":"")+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"") : "";
+  $("failSub").innerHTML = last ? "It was <b>"+escapeHtml(last.t.title)+"</b> by "+escapeHtml(last.t.credit||last.t.artist)+(wins.length?"<br>fastest "+fast.toFixed(2)+"s, average "+avg.toFixed(2)+"s":"")+bonusTag()+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"") : "";
   $("failList").innerHTML="<div class='sslabel'>This run: "+runLog.length+" song"+(runLog.length===1?"":"s")+"</div>"+runLog.slice().reverse().map(function(x){
     var st=STATS[x.t.id]||{}, miss=(st.s||0)-(st.c||0);
     return "<div class='sres"+(x.win?"":" lost")+"'><img src='"+escapeHtml(x.t.art)+"' alt=''><div class='st'><div class='stt'>"+(x.win?"\u2713 ":"\u2717 ")+escapeHtml(x.t.title)+"</div><div class='sta'>"+escapeHtml(x.t.credit||x.t.artist)+"</div></div>"+
@@ -2327,7 +2339,7 @@ var filState={}, filInit=false;
 function openFilter(){
   if(!filInit){ ARTISTS.forEach(function(a){ filState[a]=true; }); filInit=true; }
   var h=""; ARTISTS.forEach(function(a){ h+="<button class='filchip"+(filState[a]?" on":"")+"' data-a='"+escapeHtml(a)+"'>"+escapeHtml(a)+"</button>"; });
-  $("filChips").innerHTML=h; $("filNote").textContent="";
+  $("filChips").innerHTML=h; $("filNote").textContent=""; renderGroups();
   var chips=$("filChips").querySelectorAll(".filchip");
   for(var i=0;i<chips.length;i++){ (function(b){ b.onclick=function(){ var a=b.getAttribute("data-a"); filState[a]=!filState[a]; b.classList.toggle("on",filState[a]); }; })(chips[i]); }
   openModal($("filter"));
@@ -2335,6 +2347,21 @@ function openFilter(){
 // closing Choose artists (X, outside, Esc or the button) keeps whatever is picked
 function applyFilter(){ if(!filInit) return; var sel={}, cnt=0; ARTISTS.forEach(function(a){ if(filState[a]){ sel[a]=true; cnt++; } });
   modeSet = cnt===ARTISTS.length ? null : sel; if(typeof renderModes==="function" && $("modeList")) renderModes(); }
+// preset crews: tap one to play just that group
+var GROUPS=[
+  {n:"Opium", a:["Playboi Carti","Ken Carson","Destroy Lonely","Homixide Gang"]},
+  {n:"Slayworld", a:["Summrs","Autumn!","Kankan","Jace! / Iayze"]},
+  {n:"1C34", a:["Xaviersobased","Ksuuvi","Nettspend","OsamaSon"]},
+  {n:"NXO", a:["OsamaSon","Nettspend"]},
+  {n:"2016LYFE", a:["OsamaSon","1oneam","Ohsxnta","Boolymon","TDF"]}
+];
+function groupArtists(g){ return g.a.map(function(x){ var k=x.toLowerCase(); return ARTISTS.filter(function(a){ return a.toLowerCase()===k; })[0]; }).filter(Boolean); }
+function renderGroups(){
+  $("filGroups").innerHTML="<span class='fglab'>Groups</span>"+GROUPS.map(function(g,i){ return "<button class='fgroup' data-i='"+i+"' title='"+escapeHtml(groupArtists(g).join(", "))+"'>"+escapeHtml(g.n)+"</button>"; }).join("");
+  [].forEach.call($("filGroups").querySelectorAll(".fgroup"),function(b){ b.onclick=function(){ var g=groupArtists(GROUPS[+b.getAttribute("data-i")]);
+    ARTISTS.forEach(function(a){ filState[a]=g.indexOf(a)!==-1; }); filBuilt=true;
+    [].forEach.call($("filChips").querySelectorAll(".filchip"),function(c){ c.classList.toggle("on",!!filState[c.getAttribute("data-a")]); }); }; });
+}
 function closeFilter(){ applyFilter(); closeModal($("filter")); }
 var filBuilt=false;        // true once you start from "none" and add artists yourself
 function filterSetAll(v){ filBuilt=!v; ARTISTS.forEach(function(a){ filState[a]=v; }); openFilter(); }
@@ -2362,6 +2389,7 @@ function closeSettings(){ closeModal($("settings")); }
 // ---- game modes: Play swipes the menu away (greys it out on desktop) and shows the modes, Play there starts ----
 var GMODES=[
   {k:"classic", name:"Classic", desc:"The vanilla, intended experience. Singles, albums, EPs."},
+  {k:"albums", name:"Big Releases only", desc:"I never really cared for singles, just the albums and EPs"},
   {k:"singles", name:"Single Mingle", desc:"Only singles, because that\u2019s how we roll."},
   {k:"endless", name:"Endless", desc:"Test yourself and see how far you can get. No win condition."}
 ];
@@ -2371,7 +2399,7 @@ function setNames(){ return modeSet ? ARTISTS.filter(function(a){ return modeSet
 // the songs a run can ask: one artist + Single Mingle = all their singles (difficulty doesn't apply)
 function soloSingles(){ return gmode()==="singles"; }
 function poolFor(a,solo){ var all=byArtist[a].tracks; if(solo && soloSingles()) return all.filter(isSingle);
-  var p=windowed(all); return gmode()==="singles" ? p.filter(isSingle) : p; }
+  var p=windowed(all); return gmode()==="singles" ? p.filter(isSingle) : gmode()==="albums" ? p.filter(function(t){ return !isSingle(t); }) : p; }
 function goalOf(){ if(isEndless()) return 0; var g=DIFFS[curDiff()].goal||0;
   if(mode==="artist" && pickArtist && byArtist[pickArtist]) g=Math.min(g, poolFor(pickArtist,true).length);      // fewer songs than the goal: the goal shrinks to fit
   return g; }
@@ -2380,7 +2408,7 @@ function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple
 // Hard / Extreme need the picked artists to have at least 75% of that difficulty's song goal in their catalog
 function panelNames(){ return modeArtist ? [modeArtist] : setNames(); }
 function diffSongs(names,dk){ var n=0, done=true;
-  names.forEach(function(a){ if(byArtist[a]){ var p=windowed(byArtist[a].tracks,dk); if(gmode()==="singles") p=p.filter(isSingle); n+=p.length; } else if(!isUnavail(a)) done=false; });
+  names.forEach(function(a){ if(byArtist[a]){ var p=windowed(byArtist[a].tracks,dk); if(gmode()==="singles") p=p.filter(isSingle); else if(gmode()==="albums") p=p.filter(function(t){ return !isSingle(t); }); n+=p.length; } else if(!isUnavail(a)) done=false; });
   return {n:n, done:done}; }
 function lockDiffs(){ var names=panelNames(), bad=false;
   ["hard","extreme"].forEach(function(dk){ var b=document.querySelector("#diffRow .seg[data-d='"+dk+"']"); if(!b) return;
@@ -2390,14 +2418,16 @@ function lockDiffs(){ var names=panelNames(), bad=false;
   if(bad){ prefs.diff="normal"; savePrefs(); renderDiff(); } }
 function goalNote(){ var el=$("diffGoal"); if(!el) return; lockDiffs();
   var lock=!!modeArtist && soloSingles(); $("diffRow").classList.toggle("locked",lock); $("diffNote").style.visibility=lock?"hidden":"";
-  if(gmode()==="endless" && !modeArtist){ el.innerHTML="<b>\u221E</b> Endless \u2014 no song limit"; return; }
+  if(gmode()==="endless" && !modeArtist){ el.innerHTML="<b>\u221E</b> Endless \u2014 no song limit"+bonusLine(); return; }
   if(modeArtist){               // one artist: the round is capped by how many songs they actually have
     var a=modeArtist;
     if(!byArtist[a]){ el.innerHTML="counting songs\u2026"; ensureArtist(a).then(function(ok){ if(modeArtist!==a) return; if(ok && byArtist[a]) goalNote(); else el.innerHTML="couldn\u2019t count songs right now"; }); return; }
     var n=poolFor(a,true).length, g=lock?n:Math.min(DIFFS[curDiff()].goal,n);
     $("modeGo").disabled=!g; $("modeGo").classList.toggle("dead",!g);
     el.innerHTML="<b>"+g+"</b> "+(soloSingles()?(g===1?"single":"singles"):(g===1?"song":"songs"))+" this round"; return; }
-  el.innerHTML="<b>"+DIFFS[curDiff()].goal+"</b> songs this round"; }
+  el.innerHTML="<b>"+DIFFS[curDiff()].goal+"</b> songs this round"+bonusLine(); }
+function bonusLine(){ var n=(setNames()||ARTISTS).length, b=artistBonusFor(n);
+  return b>1 ? "<span class='abonus'>"+n+" artists "+bonusTxt(b)+"</span>" : ""; }
 var singlesAsked="";
 function singlesCount(names){ var n=0, done=true;
   names.forEach(function(a){ if(byArtist[a]) n+=byArtist[a].tracks.filter(isSingle).length; else if(!isUnavail(a)) done=false; });
@@ -2800,7 +2830,7 @@ var CLICK=(function(){
 })();
 // ---- button tilt + ripple ----
 (function(){
-  var SEL=".btn,.opt,.modcard,.sw,.dbtn,.iconbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.chip,.swatch,.vlink,.linkbtn,.lu,.seg,.flink,.modeopt,.bgpo", cur=null;
+  var SEL=".btn,.opt,.modcard,.sw,.dbtn,.iconbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.chip,.swatch,.vlink,.linkbtn,.lu,.seg,.flink,.modeopt,.bgpo,.fgroup", cur=null;
   function tilt(el,e){
     var r=el.getBoundingClientRect(), px=(e.clientX-r.left)/r.width-0.5, py=(e.clientY-r.top)/r.height-0.5;
     var max = el.classList.contains("lu") ? 9 : (r.width>220 ? 5 : 11);   // artist names tilt gently
