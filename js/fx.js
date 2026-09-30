@@ -10,6 +10,20 @@
     if(LOWFX) setTimeout(function(){ requestAnimationFrame(loop); }, 66); else requestAnimationFrame(loop);
   })(t0);
 })();
+// ---- parallax: menu and game UI drift a few px with the mouse (uses the translate property, so existing transforms are untouched) ----
+(function(){
+  var tx=0, ty=0, x=0, y=0, running=false, MAX=7;
+  function els(){ return [$("menu"), $("gameScreen")]; }
+  function step(){
+    x+=(tx-x)*0.08; y+=(ty-y)*0.08;
+    var done=Math.abs(tx-x)+Math.abs(ty-y)<0.05, v=done?(tx+"px "+ty+"px"):(x.toFixed(2)+"px "+y.toFixed(2)+"px");
+    els().forEach(function(e){ if(e) e.style.translate=v; });
+    if(done){ running=false; return; } requestAnimationFrame(step); }
+  window.addEventListener("pointermove",function(e){
+    if(!prefs.plx || e.pointerType==="touch"){ if(tx||ty){ tx=ty=0; if(!running){ running=true; requestAnimationFrame(step); } } return; }
+    tx=(e.clientX/innerWidth-0.5)*-MAX; ty=(e.clientY/innerHeight-0.5)*-MAX*0.7;
+    if(!running){ running=true; requestAnimationFrame(step); } },{passive:true});
+})();
 // ---- menu background: an edit of music video previews from the artists (Apple previews, muted, blurred) ----
 var BGV=(function(){
   var vids=[$("bgA"),$("bgB")], cur=0, timer=0, loading=false, started=0, CUT=5200, lastSrc="", recentA=[];
