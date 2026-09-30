@@ -694,6 +694,10 @@
   /* brand: original halftone gradient lettering, in the chosen display font */
   .brand{font-family:var(--f-display); font-weight:400; text-transform:uppercase; letter-spacing:.005em}
   html:not(.bsd) .brand{font-weight:800; letter-spacing:-.02em}
+  /* NEEK: solid accent box with black letters (UG/PEEK keep the halftone gradient) */
+  .brand b{background:var(--accent) !important; -webkit-background-clip:border-box !important; background-clip:border-box !important;
+    color:#0a0711 !important; -webkit-text-fill-color:#0a0711; -webkit-text-stroke:0 !important; animation:none !important;
+    padding:0 .08em; margin:0 .04em; display:inline-block; line-height:1.02}
   html[data-font="editorial"] .brand{text-transform:none; font-style:italic}
   /* the logo and difficulty tabs are sized to the screen, so the text-size setting doesn't push them off it */
   .menu .mk{filter:none !important; font-size:calc(clamp(46px,14vw,74px) / var(--ui-zoom,1)); line-height:.9; margin:4px 0 0; white-space:nowrap}
@@ -783,15 +787,15 @@
   /* ===== v2.1: halftone logo, halftone play button that inverts on hover, restyled menus ===== */
   @property --htc{syntax:"<color>"; inherits:true; initial-value:rgba(0,0,0,.35)}
   /* play button: halftone vignette in the theme colour; hover inverts (dark button, coloured text and dots), all eased */
-  #startScreen .playall{position:relative; overflow:hidden; isolation:isolate; --htc:color-mix(in srgb,var(--dc) 55%,#000);
+  #startScreen .playall{position:relative; overflow:hidden; isolation:isolate; --htc:#000;
     background:var(--dc) !important; color:#0a0711; filter:none !important;
     transition:background-color .35s ease, color .35s ease, box-shadow .35s ease, --htc .35s ease}
   #startScreen .playall::after{content:none !important}
   #startScreen .playall::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
     background:radial-gradient(circle, var(--htc) 0 1.1px, transparent 1.6px) 0 0/5px 5px;
     -webkit-mask:radial-gradient(ellipse 80% 120% at center, transparent 45%, #000 100%); mask:radial-gradient(ellipse 80% 120% at center, transparent 45%, #000 100%);
-    opacity:.55; animation:htPulse 3.2s ease-in-out infinite}
-  @keyframes htPulse{0%,100%{opacity:.45} 50%{opacity:.7}}
+    opacity:.6; animation:htPulse 2.6s ease-in-out infinite}
+  @keyframes htPulse{0%,100%{opacity:.2} 50%{opacity:.9}}
   #startScreen .playall .arr{font-family:var(--f-body); font-weight:600; font-size:.8em; transition:transform .35s ease}
   #startScreen .playall:hover, #startScreen .playall:focus-visible, #startScreen .playall.held{background:#0a0711 !important; color:var(--dc); --htc:var(--dc);
     box-shadow:inset 0 0 0 1px var(--dc) !important}
@@ -1626,7 +1630,7 @@ var MODS=[
   {k:"lives", icon:"\u2764\uFE0F", label:"Extra life", mult:0.7,  desc:"One extra guess per song. A miss greys out that choice and unlocks the next snippet length."},
   {k:"half",  icon:"\u23F1\uFE0F", label:"1 second is too much anyways", mult:1.3, desc:"You only get the 0.5 second snippet. No hearing more, no ifs, ands or buts."},
   {k:"rand",  icon:"\uD83C\uDFB2", label:"Anywhere but the beginning", mult:1.15, desc:"The snippet starts at a random spot between 0 and 15 seconds into the song."},
-  {k:"mc",    icon:"\u26CF\uFE0F", label:"I want Minecraft", mult:1.25, desc:"Everything in the game gets pixelated, text included."},
+  {k:"mc",    icon:"\u26CF\uFE0F", label:"I want Minecraft", mult:1.05, desc:"Everything in the game gets pixelated, text included."},
   {k:"skip",  icon:"\u23ED\uFE0F", label:"Get out of jail free", mult:0.8, desc:"One skip per run: pass on a song you don't know without losing. The end screen and shared scores show if you used it."}
 ];
 function modPct(m){ return (m.mult>1?"+":"\u2212")+Math.round(Math.abs(m.mult-1)*100)+"%"; }
