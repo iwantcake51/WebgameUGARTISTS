@@ -451,7 +451,7 @@ function showFail(){
   $("failList").innerHTML="<div class='sslabel'>This run: "+runLog.length+" song"+(runLog.length===1?"":"s")+"</div>"+runLog.slice().reverse().map(function(x){
     var st=STATS[x.t.id]||{}, miss=(st.s||0)-(st.c||0);
     return "<div class='sres"+(x.win?"":" lost")+"'><img src='"+escapeHtml(x.t.art)+"' alt=''><div class='st'><div class='stt'>"+(x.win?"\u2713 ":"\u2717 ")+escapeHtml(x.t.title)+"</div><div class='sta'>"+escapeHtml(x.t.credit||x.t.artist)+"</div></div>"+
-      "<div class='fstat'><b>"+x.secs.toFixed(2)+"s</b><span>"+x.clip+"s snippet"+(x.win?", +"+x.pts:"")+"</span><span"+(miss?" class='miss'":"")+">"+(miss?"\u2717"+miss+" missed total":"never missed")+"</span></div></div>";
+      "<div class='fstat'><b>"+x.secs.toFixed(2)+"s</b><span>"+x.clip+"s snippet"+(x.win?", +"+x.pts:"")+"</span><span"+(miss&&!x.win?" class='miss'":"")+">"+(miss?"missed "+miss+"\u00d7 all-time":"never missed")+"</span></div></div>";
   }).join("");
   openModal($("failModal"));
   if(location.protocol!=="file:") makeShortLink();
