@@ -2340,6 +2340,7 @@ document.addEventListener("click",function(e){ if(!document.body.classList.conta
   closeModes(); });
 $("startBtn").onclick=function(){ var b=this; b.classList.add("held"); setTimeout(function(){ b.classList.remove("held"); }, 900); openModes(); };
 $("modeBack").onclick=closeModes;
+$("startBtn").addEventListener("pointerleave",function(){ this.classList.remove("held"); this.blur(); });     // swipe back the moment you move off
 $("modeGo").onclick=function(){ if(modeArtist) startGame(modeArtist); else if(modeSet) startMulti(modeSet); else startGame(null); setTimeout(closeModes, 760); };
 document.addEventListener("keydown",function(e){ if(e.key==="Escape" && $("startScreen").classList.contains("modes-open") && !document.querySelector(".modal.open")) closeModes(); });
 $("modBtn").onclick=function(){ renderMods(); openModal($("mods")); };
