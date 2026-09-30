@@ -625,8 +625,8 @@
   #bgv video.on{opacity:1; animation:bgZoom 7s ease-out forwards}
   #bgv.solo video{transition:opacity 3s ease}      /* one artist picked: slower, longer crossfades */
   html.lowfx #bgv video{filter:saturate(1.2) brightness(.58); will-change:opacity}
-  html.lowfx .modal, html.lowfx [style*="backdrop-filter"]{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
-  html.lowfx .modal{--mbg:rgba(5,3,10,.82); --mblur:0px}
+  html.nofrost .modal, html.nofrost [style*="backdrop-filter"], html.nofrost .chip{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
+  html.nofrost .modal{--mbg:rgba(5,3,10,.82); --mblur:0px}
   @keyframes bgZoom{from{transform:translate(-50%,-50%) scale(2.8)} to{transform:translate(-50%,-50%) scale(3.1)}}
   .bgvshade{position:absolute; inset:0; background:
     radial-gradient(ellipse at 50% 42%, rgba(10,7,17,.15) 0%, rgba(10,7,17,.72) 70%, rgba(10,7,17,.92) 100%),
@@ -956,7 +956,7 @@
     body::before{content:""; position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; background:rgba(5,3,10,.55);
       -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); transition:opacity .45s ease}
     body.modes-open:not(.playing):not(.nodim)::before{opacity:1}
-    html.lowfx body::before{-webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(5,3,10,.75)}
+    html.nofrost body::before{-webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(5,3,10,.75)}
     body.launching .modes, body.playing .modes{opacity:0 !important; transition:opacity .35s ease !important}
     .modes{position:fixed; left:auto; right:0; top:0; bottom:0; width:400px; max-width:none; padding:40px 32px; z-index:6;
       background:var(--surface); border-left:1px solid var(--line)}
@@ -1268,8 +1268,8 @@ function setFavicon(c){
 }
 
 // ---- prefs ----
-var prefs={theme:"plum", volume:0.9, autoplay:false, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
-try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
+var prefs={theme:"plum", volume:0.9, autoplay:false, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, frost:null, bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
+try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring","frost"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
 function savePrefs(){ try{ localStorage.setItem("drop_prefs", JSON.stringify(prefs)); }catch(e){} }
 function applyTheme(id){
   var th=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){th=THEMES[i];break;} } if(!th) th=THEMES[0];
@@ -1298,11 +1298,13 @@ var TOGGLES=[
   {k:"tv",        label:"TV effects",         desc:"Film grain, scanlines and the odd signal glitch over everything"},
   {k:"bgvid",     label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
   {k:"anim",      label:"Menu animations",    desc:"Menus slide up with a little bounce"},
+  {k:"frost",     label:"Frosted glass blur", desc:"Frosted blur behind menus and panels. \u26A0\uFE0F Performance heavy, can lag on phones and older computers"},
   {k:"dim",       label:"Dim & blur behind menus", desc:"Darkens and blurs the page behind menus and the results screen"}
 ];
 function renderToggles(){
   var h=""; TOGGLES.forEach(function(t){
-    h+="<div class='toggle'><div><div class='tlabel'>"+t.label+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(prefs[t.k]?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
+    var val = t.k==="frost" ? frostOn() : prefs[t.k];
+    h+="<div class='toggle'><div><div class='tlabel'>"+t.label+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(val?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
   });
   $("toggles").innerHTML=h;
   var bt=$("toggles").querySelector(".sw[data-k='bgvid']").parentNode, pk=document.createElement("div");
@@ -1310,7 +1312,7 @@ function renderToggles(){
     "<div class='bgpwrap'><input id='bgPickIn' class='dsel' placeholder='All artists' autocomplete='off' spellcheck='false'><button id='bgPickX' class='bgpx' aria-label='Clear'>\u2715</button><div id='bgPickList' class='bgplist'></div></div>";
   bt.parentNode.insertBefore(pk, bt.nextSibling); initBgPick();
   var sw=$("toggles").querySelectorAll(".sw");
-  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid") syncBgPick(); }; })(sw[i]); }
+  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]= k==="frost" ? !frostOn() : !prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid") syncBgPick(); }; })(sw[i]); }
 }
 // background artist picker: type to filter, pick one (or "All artists"); greyed out while the video background is off
 function syncBgPick(){ var el=$("bgPick"); if(!el) return; var off=!prefs.bgvid; el.classList.toggle("off",off); $("bgPickIn").disabled=$("bgPickX").disabled=off;
@@ -1404,7 +1406,8 @@ function renderCB(){
   var bs=$("cbRow").querySelectorAll(".cchip");
   for(var i=0;i<bs.length;i++){ (function(b){ b.onclick=function(){ prefs.cb=b.getAttribute("data-cb"); savePrefs(); applyPrefs(); renderCB(); }; })(bs[i]); }
 }
-function applyPrefs(){ document.body.classList.toggle("tv-on", !!prefs.tv); if(window.TVFX) TVFX.toggle(); document.documentElement.setAttribute("data-cb", prefs.cb||"off"); if(window.BGV) BGV.toggle(); document.body.classList.toggle("noholo", !prefs.holo); document.documentElement.classList.toggle("bw", !!prefs.bw); document.body.classList.toggle("noanim", !prefs.anim); document.body.classList.toggle("nodim", !prefs.dim); }
+function frostOn(){ return prefs.frost!=null ? prefs.frost : !(matchMedia("(pointer:coarse), (max-width:700px)").matches || (navigator.hardwareConcurrency||8)<=4); }
+function applyPrefs(){ document.documentElement.classList.toggle("nofrost", !frostOn()); document.body.classList.toggle("tv-on", !!prefs.tv); if(window.TVFX) TVFX.toggle(); document.documentElement.setAttribute("data-cb", prefs.cb||"off"); if(window.BGV) BGV.toggle(); document.body.classList.toggle("noholo", !prefs.holo); document.documentElement.classList.toggle("bw", !!prefs.bw); document.body.classList.toggle("noanim", !prefs.anim); document.body.classList.toggle("nodim", !prefs.dim); }
 
 // ---- stats ----
 var STATS={};
@@ -2275,7 +2278,8 @@ function openFilter(){
   openModal($("filter"));
 }
 function closeFilter(){ closeModal($("filter")); }
-function filterSetAll(v){ ARTISTS.forEach(function(a){ filState[a]=v; }); openFilter(); }
+var filBuilt=false;        // true once you start from "none" and add artists yourself
+function filterSetAll(v){ filBuilt=!v; ARTISTS.forEach(function(a){ filState[a]=v; }); openFilter(); }
 function filStart(){
   var sel={}, cnt=0; ARTISTS.forEach(function(a){ if(filState[a]){ sel[a]=true; cnt++; } });
   if(!cnt){ $("filNote").textContent="Pick at least one artist."; return; }
@@ -2315,10 +2319,11 @@ function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ?
 function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
 function renderModes(){
   var names=modeArtist ? [modeArtist] : setNames(), canEndless=!names || names.length>=5, E=escapeHtml;
+  var head = modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
   if(!canEndless && gmode()==="endless"){ prefs.gmode="classic"; }
   // header: "A + B + C", or "A + B + C and 32 more"
-  $("modeArtist").innerHTML = names ? names.slice(0,3).map(E).join("<i>+</i>") + (names.length>3 ? " <small>and "+(names.length-3)+" more</small>" : "") : "";
-  $("modeArtist").style.display=names?"":"none";
+  $("modeArtist").innerHTML = head ? E(head) : names.slice(0,3).map(E).join("<i>+</i>") + (names.length>3 ? " <small>and "+(names.length-3)+" more</small>" : "");
+  $("modeArtist").style.display="";
   $("filterBtn").style.display=modeArtist?"none":"";
   $("filterBtn").lastChild.textContent = modeSet ? "Change artists" : "Choose artists";
   $("modeList").innerHTML=GMODES.map(function(m,i){ var off=m.k==="endless"&&!canEndless;
