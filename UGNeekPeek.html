@@ -2248,12 +2248,12 @@ $("vol2").oninput=function(){ setVolume(parseFloat(this.value)); };
 var BGV=(function(){
   var vids=[$("bgA"),$("bgB")], cur=0, timer=0, loading=false, started=0, CUT=5200, lastSrc="", recentA=[];
   // clips cached per artist for a week: {artist:{at, list:[previewUrl]}} (empty list = no videos on Apple)
-  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips3")||"{}")||{}; }catch(e){ CACHE={}; }
+  var CACHE={}; try{ CACHE=JSON.parse(localStorage.getItem("drop_bgclips4")||"{}")||{}; }catch(e){ CACHE={}; }
   var batches=0;
   // only videos whose lead artist IS this roster artist (no features, no similarly named artists)
   function onRoster(name,a){ var n=norm(leadArtist(name)); return termsOf(a).concat([a]).some(function(t){ return norm(t)===n; }); }
   function fresh(a){ var c=CACHE[a]; return ARTISTS.indexOf(a)!==-1 && c && Date.now()-c.at<7*864e5; }
-  function saveCache(){ try{ localStorage.setItem("drop_bgclips3", JSON.stringify(CACHE)); }catch(e){} }
+  function saveCache(){ try{ localStorage.setItem("drop_bgclips4", JSON.stringify(CACHE)); }catch(e){} }
   function haveClips(){ for(var a in CACHE) if(fresh(a) && CACHE[a].list.length) return true; return false; }
   function want(){ return prefs.bgvid && !document.body.classList.contains("playing") && !document.hidden; }
   // look artists up in batches: mastered first, then the bigger names (most likely to have videos), then everyone else.
@@ -2268,10 +2268,18 @@ var BGV=(function(){
         rest=shuffle(todo.filter(function(a){ return !tiers[a] && big.indexOf(a)===-1; }));
     var pool=pri.concat(mid,rest).slice(0,8); loading=true; batches++;
     Promise.all(pool.map(function(a){
-      return getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(termsOf(a)[0])+"&entity=musicVideo&limit=25").then(function(d){
-        var got=[], seen={}; (d.results||[]).forEach(function(r){ if(r.previewUrl && onRoster(r.artistName||"",a) && !seen[r.previewUrl]){ seen[r.previewUrl]=1; got.push({u:r.previewUrl, t:noFeat(r.trackName||""), a:r.artistName||a}); } });
-        CACHE[a]={at:Date.now(), list:got};
-      },function(){});
+      // exact artist lookup by Apple ID (all their videos), plus a name search as backup
+      var ids=termsOf(a).concat([a]).map(function(t){ return ARTIST_IDS[t]&&ARTIST_IDS[t].id; }).filter(Boolean);
+      var reqs=ids.map(function(id){ return getJSON("https://itunes.apple.com/lookup?id="+id+"&entity=musicVideo&limit=100").catch(function(){ return {}; }); });
+      reqs.push(getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(termsOf(a)[0])+"&entity=musicVideo&attribute=artistTerm&limit=50").catch(function(){ return {}; }));
+      return Promise.all(reqs).then(function(ds){
+        var got=[], seen={}, byId={}; ids.forEach(function(id){ byId[id]=1; });
+        ds.forEach(function(d){ (d.results||[]).forEach(function(r){
+          if(!r.previewUrl || r.kind!=="music-video" || seen[r.previewUrl]) return;
+          if(!byId[r.artistId] && !onRoster(r.artistName||"",a)) return;
+          seen[r.previewUrl]=1; got.push({u:r.previewUrl, t:noFeat(r.trackName||""), a:r.artistName||a}); }); });
+        if(got.length || ds.some(function(d){ return d.results; })) CACHE[a]={at:got.length?Date.now():Date.now()-6*864e5, list:got};
+      });
     })).then(function(){
       loading=false; saveCache();
       if(want() && !vids[cur].classList.contains("on")) next();
