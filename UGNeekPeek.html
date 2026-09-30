@@ -952,6 +952,11 @@
   /* desktop: the menu stays put and greys out; modes slide in beside it */
   @media (min-width:900px){
     #startScreen.modes-open .menu{transform:none; opacity:.28; filter:grayscale(1); cursor:pointer}
+    /* dim + blur everything behind the panel, like the other menus (off with "Dim & blur behind menus") */
+    body::before{content:""; position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; background:rgba(5,3,10,.55);
+      -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); transition:opacity .45s ease}
+    body.modes-open:not(.playing):not(.nodim)::before{opacity:1}
+    html.lowfx body::before{-webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(5,3,10,.75)}
     body.launching .modes, body.playing .modes{opacity:0 !important; transition:opacity .35s ease !important}
     .modes{position:fixed; left:auto; right:0; top:0; bottom:0; width:400px; max-width:none; padding:40px 32px; z-index:6;
       background:var(--surface); border-left:1px solid var(--line)}
@@ -979,6 +984,8 @@
   .modeopt b{transition:color .3s ease}
   .modeopt:active, .modes .seg:active, .modeartists:active, #modeBack:active{transform:scale(.97); transition-duration:.12s, .3s, .3s, .3s; transition-timing-function:ease-out}
   .modego:active{transform:scale(.985)}
+  #startScreen .menu #startBtn{--dc:var(--accent); --dc2:var(--accent)}      /* main Play keeps the theme colour */
+  #bgv{transition:opacity 1.2s ease, filter .45s ease} body.modes-open:not(.nodim) #bgv{filter:brightness(.55) blur(3px)}
 </style>
 </head>
 <body>
