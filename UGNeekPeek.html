@@ -385,6 +385,7 @@
   .toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid rgba(120,110,150,.1)}
   .toggle .tlabel{font-size:14px}
   .ttag{display:inline-block; margin-left:8px; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; vertical-align:2px; color:#ffb347; border:1px solid rgba(255,179,71,.5)}
+  .ttag.lo{color:#4cd97b; border-color:rgba(76,217,123,.5)} .ttag.mid{color:#ffc93c; border-color:rgba(255,201,60,.5)} .ttag.hi{color:#ff4d5e; border-color:rgba(255,77,94,.55)}
   .toggle .tdesc{font-size:11px;color:var(--muted);margin-top:2px}
   .bgpick{padding:12px 0;border-bottom:1px solid var(--line);transition:opacity .2s}
   .bgpick .tlabel{font-size:14px} .bgpick .tdesc{font-size:11px;color:var(--muted);margin:2px 0 8px}
@@ -1083,7 +1084,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.13.0</div>
+  <div class="ver" title="version">v1.13.1</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -1375,22 +1376,22 @@ var TOGGLES=[
   {cat:"sound", k:"menumusic", label:"Music in menu",      desc:"Plays music while you hover over artists and while the game mode panel is open"},
   {cat:"sound", k:"endmusic",  label:"Music on round end", desc:"Play the song when you win or lose a round"},
   {cat:"fx", k:"chroma",    label:"Chromatic reveal",   desc:"RGB-split flourish on the cover"},
-  {cat:"fx", k:"holo",      tag:"Resource Intensive", label:"3D cover",           desc:"Makes the album cover 3D!!"},
+  {cat:"fx", k:"holo",      lag:"lo", tag:"Resource Intensive", label:"3D cover",           desc:"Makes the album cover 3D!!"},
   {cat:"fx", k:"bw",        label:"Black & white",      desc:"Removes all color, album covers included"},
   {cat:"fx", k:"confetti",  label:"Confetti",           desc:"Confetti falls when you get a song right"},
   {cat:"sound", k:"clicks",    label:"UI interaction sounds", desc:"Clicks, blips and whooshes when you press buttons, flip switches and open menus"},
   {cat:"ui", k:"ring",      label:"Click ripple",       desc:"The circle that expands where you tap or click"},
-  {cat:"fx", k:"tv",        tag:"Resource Intensive", label:"TV effects",         desc:"Film grain, scanlines and the odd signal glitch over everything"},
-  {cat:"fx", k:"bgvid",     tag:"Resource Intensive", label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
-  {cat:"fx", k:"gamevid",   label:"Videos in round", tag:"Resource Intensive", desc:"Keep the music video clips playing behind the game during rounds"},
+  {cat:"fx", k:"tv",        lag:"mid", tag:"Resource Intensive", label:"TV effects",         desc:"Film grain, scanlines and the odd signal glitch over everything"},
+  {cat:"fx", k:"bgvid",     lag:"mid", tag:"Resource Intensive", label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
+  {cat:"fx", k:"gamevid",   label:"Videos in round", lag:"hi", tag:"Resource Intensive", desc:"Keep the music video clips playing behind the game during rounds"},
   {cat:"ui", k:"anim",      label:"Menu animations",    desc:"Menus slide up with a little bounce"},
-  {cat:"fx", k:"dim",       tag:"Resource Intensive", label:"Dim & blur behind menus", desc:"Darkens and blurs the page behind menus and the results screen"}
+  {cat:"fx", k:"dim",       lag:"mid", tag:"Resource Intensive", label:"Dim & blur behind menus", desc:"Darkens and blurs the page behind menus and the results screen"}
 ];
 function renderToggles(){
   var tgs=document.querySelectorAll("#settings .tg"); for(var ti=0;ti<tgs.length;ti++) tgs[ti].innerHTML="";
   TOGGLES.forEach(function(t){
     var val = prefs[t.k], h="";
-    h+="<div class='toggle'><div><div class='tlabel'>"+t.label+(t.tag?"<span class='ttag'>"+t.tag+"</span>":"")+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(val?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
+    h+="<div class='toggle'><div><div class='tlabel'>"+t.label+(t.tag?"<span class='ttag "+(t.lag||"")+"'>"+t.tag+"</span>":"")+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(val?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
     document.querySelector("#settings .tg[data-cat='"+t.cat+"']").insertAdjacentHTML("beforeend",h);
   });
   var bt=$("settings").querySelector(".sw[data-k='bgvid']").parentNode, pk=document.createElement("div");
@@ -1398,7 +1399,7 @@ function renderToggles(){
     "<div class='bgpwrap'><input id='bgPickIn' class='dsel' placeholder='All artists' autocomplete='off' spellcheck='false'><button id='bgPickX' class='bgpx' aria-label='Clear'>\u2715</button><div id='bgPickList' class='bgplist'></div></div>";
   bt.parentNode.insertBefore(pk, bt.nextSibling); initBgPick();
   var vb=document.createElement("div"); vb.id="vbRow"; vb.className="bgpick";
-  vb.innerHTML="<div class='tlabel'>Video blur<span class='ttag'>Resource Intensive</span></div><div class='tdesc'>Basic blurs the videos. Quality blurs them more smoothly.</div>"+
+  vb.innerHTML="<div class='tlabel'>Video blur<span class='ttag hi'>Resource Intensive</span></div><div class='tdesc'>Basic blurs the videos. Quality blurs them more smoothly.</div>"+
     "<select id='vbSel' class='dsel'><option value='off'>Off</option><option value='basic'>Basic</option><option value='quality'>Quality</option></select>";
   pk.parentNode.insertBefore(vb, pk.nextSibling); $("vbSel").value=vblur();
   $("vbSel").onchange=function(){ prefs.vblur=this.value; savePrefs(); applyPrefs(); };
