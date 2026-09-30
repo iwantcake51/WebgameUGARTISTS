@@ -1061,7 +1061,7 @@
 
 <script id="catalog-data" type="application/json">null</script>
 <script>
-var ARTISTS=["Playboi Carti","Ken Carson","Destroy Lonely","Yeat","SoFaygo","Homixide Gang","Cochise","Lucki","Summrs","Autumn!","Kankan","tana","Rich Amiri","BKTHERULA","Molly Santana","OsamaSon","Nettspend","Che","xaviersobased","Glokk40Spaz","LAZER DIM 700","Lucy Bedroque","prettifun","Jace! / iayze","ksuuvi","kuru","1oneam","fakemink","skaiwater","EsDeeKid","YT","2hollis","Hardrock","Edward Skeletrix","Dom Corleo","BabyChiefDoit","Duwap Kaine","pz'","rexv2","tezzus","diamond*","maxon","boolymon","ohsxnta","Protect","percaso","pradabagshawty","Lil Tony","devstacks","glo","2slimey","lelo","1300saint","swapa","1900rugrat","feng","jaydes","wifiskeleton","subiibabii","tdf"];
+var ARTISTS=["Playboi Carti","Ken Carson","Destroy Lonely","Yeat","SoFaygo","Homixide Gang","Cochise","Lucki","Summrs","Autumn!","Kankan","tana","Rich Amiri","BKTHERULA","Molly Santana","OsamaSon","Nettspend","Che","xaviersobased","Glokk40Spaz","LAZER DIM 700","Lucy Bedroque","prettifun","Jace! / iayze","ksuuvi","kuru","1oneam","fakemink","skaiwater","EsDeeKid","YT","2hollis","Hardrock","Edward Skeletrix","Dom Corleo","BabyChiefDoit","Duwap Kaine","pz'","rexv2","tezzus","diamond*","maxon","boolymon","ohsxnta","Protect","percaso","pradabagshawty","Lil Tony","devstacks","glo","2slimey","lelo","1300saint","swapa","1900rugrat","feng","jaydes","wifiskeleton","subiibabii","tdf","Lil Uzi Vert"];
 var QMAP={"Jace! / iayze":["Jace!","iayze"]};
 var STAGES=[0.5,1,3,6,10,15];
 var PTS=[100,80,60,45,30,15];
@@ -1289,6 +1289,7 @@ var ARTIST_IDS={"Jace!":{id:1696363433,name:"Jace"}, "iayze":{id:1490328498,name
   "YT":{id:1555092926,name:"YT"},
   "glo":{id:1788814664,name:"glo"},
   "tdf":{id:1503455317,name:"tdf"},
+  "Lil Uzi Vert":{id:940710524,name:"Lil Uzi Vert"},
   "pz'":{id:1816179885,name:"pz"},
   "feng":{id:1761933449,name:"feng"},
   "lelo":{id:1443736146,name:"lelo"},
@@ -1468,7 +1469,7 @@ function mastery(){
   for(var a in acc){ var r=acc[a].c/acc[a].s; if(acc[a].s>=5) out[a] = r>=0.9 ? "diamond" : r>=0.75 ? "gold" : r>=0.65 ? "silver" : r>=0.5 ? "bronze" : ""; if(!out[a]) delete out[a]; }
   return out;
 }
-var LU_RANK=["Playboi Carti","Ken Carson","Yeat","Destroy Lonely","Nettspend","OsamaSon","2hollis","EsDeeKid","Lucki","fakemink","Che","BKTHERULA",
+var LU_RANK=["Playboi Carti","Lil Uzi Vert","Ken Carson","Yeat","Destroy Lonely","Nettspend","OsamaSon","2hollis","EsDeeKid","Lucki","fakemink","Che","BKTHERULA",
   "skaiwater","Rich Amiri","SoFaygo","Homixide Gang","Cochise","Molly Santana","YT","Lucy Bedroque","Hardrock","Glokk40Spaz","xaviersobased","Summrs",
   "Autumn!","Kankan","tana","prettifun","Jace! / iayze","LAZER DIM 700","Edward Skeletrix","kuru","ksuuvi","1oneam","Dom Corleo","BabyChiefDoit","Duwap Kaine"];
 function renderArtistList(){            // festival-flyer lineup: biggest artists on top, shrinking tier by tier
