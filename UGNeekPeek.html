@@ -986,6 +986,10 @@
   .modego:active{transform:scale(.985)}
   #startScreen .menu #startBtn{--dc:var(--accent); --dc2:var(--accent)}      /* main Play keeps the theme colour */
   #bgv{transition:opacity 1.2s ease, filter .45s ease} body.modes-open:not(.nodim) #bgv{filter:brightness(.55) blur(3px)}
+  .modeartist{font-family:var(--f-display); font-weight:800; font-size:26px; line-height:1.05; text-transform:uppercase; letter-spacing:.01em; color:var(--ink); margin:2px 0 -4px}
+  html:not(.bsd) .modeartist{font-size:21px}
+  .modeopt.off{opacity:.35; cursor:not-allowed; filter:grayscale(1)}
+  #goalTag{font-family:var(--f-mono); font-size:11px; color:var(--muted); margin-left:8px; letter-spacing:.06em}
 </style>
 </head>
 <body>
@@ -1024,6 +1028,7 @@
     </div>
     <div class="modes" id="modePanel" aria-hidden="true">
       <div class="modeshead"><button class="linkbtn" id="modeBack">&larr; back</button><span>Game mode</span></div>
+      <div class="modeartist" id="modeArtist" style="display:none"></div>
       <div class="modelist" id="modeList"></div>
       <div class="modesub">Difficulty</div>
       <div class="segs" id="diffRow" role="radiogroup" aria-label="Difficulty" style="--i:2">
@@ -1050,7 +1055,7 @@
         <button class="iconbtn" id="homeBtn" title="menu"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></button>
       </div>
     </div>
-    <div class="modeline"><div class="ml ml-mode"><i>Mode</i><span id="modeLabel">All artists</span></div><div class="ml"><i>Level</i><span id="diffLabel" class="dlabel"></span></div><div class="ml"><i>Score</i><span id="score">0</span></div><div class="ml"><i>Streak</i><span id="streak">0</span></div><div class="ml"><i>Solved</i><span id="acc">0/0</span></div><div class="ml" id="lives"></div></div>
+    <div class="modeline"><div class="ml ml-mode"><i>Mode</i><span id="modeLabel">All artists</span><span id="goalTag"></span></div><div class="ml"><i>Level</i><span id="diffLabel" class="dlabel"></span></div><div class="ml"><i>Score</i><span id="score">0</span></div><div class="ml"><i>Streak</i><span id="streak">0</span></div><div class="ml"><i>Solved</i><span id="acc">0/0</span></div><div class="ml" id="lives"></div></div>
 
     <div class="stage" id="stage">
       <div class="stageInner">
@@ -1683,7 +1688,7 @@ function renderArtistList(){            // festival-flyer lineup: biggest artist
     [["diamond","\uD83D\uDC8E"],["gold","\uD83E\uDD47"],["silver","\uD83E\uDD48"],["bronze","\uD83E\uDD49"]].map(function(t){ return "<span>"+t[1]+" "+cnt[t[0]]+"</span>"; }).join("")+
     "<span class='tall'>"+cnt.diamond+"/"+ARTISTS.length+" diamond</span></div>" : "");
   var cs=$("artistList").querySelectorAll(".lu");
-  for(var i=0;i<cs.length;i++){ (function(c){ c.onclick=function(){ startGame(c.getAttribute("data-a")); }; })(cs[i]); }
+  for(var i=0;i<cs.length;i++){ (function(c){ c.onclick=function(e){ e.stopPropagation(); openModes(c.getAttribute("data-a")); }; })(cs[i]); }
 }
 (function(){                              // lineup: eased wheel scrolling at ~35% speed
   var el=$("artistList"), target=null, raf=0;
@@ -1807,7 +1812,7 @@ function closeModal(el){
   el.classList.add("closing"); clearTimeout(el._ct);
   el._ct=setTimeout(function(){ el.classList.remove("open","closing"); }, 220);
 }
-function resetRun(){ PENDING=[]; skipUsed=null; runLog=[]; runSeen={}; runDone={}; wonAll=false; runBest0=BEST[curDiff()]||0; $("failModal").classList.remove("open","won"); }
+function resetRun(){ setTimeout(setProgress,0); PENDING=[]; skipUsed=null; runLog=[]; runSeen={}; runDone={}; wonAll=false; runBest0=BEST[curDiff()]||0; $("failModal").classList.remove("open","won"); }
 
 function sample(arr,n){ var p=arr.slice(); for(var i=p.length-1;i>0;i--){var j=Math.random()*(i+1)|0;var t=p[i];p[i]=p[j];p[j]=t;} return p.slice(0,n); }
 function shuffle(a){ for(var i=a.length-1;i>0;i--){var j=Math.random()*(i+1)|0;var t=a[i];a[i]=a[j];a[j]=t;} return a; }
@@ -1817,11 +1822,11 @@ function includedArtists(){
   return ARTISTS;
 }
 var DIFFS={
-  easy:   {lo:0,   hi:1, min:6, mult:0.9,  w:function(p){ return 0.04+Math.pow(1-p,4); },  label:"Easy",    note:"The easiest of the easy: every artist\u2019s most popular hits."},
-  normal: {lo:0,   hi:1, min:8, mult:1,    w:function(p){ return 0.35+Math.pow(1-p,1.4); }, label:"Normal",  note:"The middlest of middle grounds: mostly their big hits."},
-  hard:   {lo:.2,  hi:1, min:8, mult:1.15, w:function(p){ return 0.3+p; },                   label:"Hard",    note:"Big hits are few and far between. You\u2019d better know your stuff."},
-  extreme:{lo:.55, hi:1, min:8, mult:1.5,  w:function(p){ return 0.15+p*p; },               label:"Extreme", note:"No big hits here. You must really think you know your stuff, huh?"},
-  random: {lo:0,   hi:1, min:1, mult:1.25, w:function(){ return 1; },                         label:"Random",  note:"A Mashup of difficulties, to give you the most varied experience"}
+  easy:   {goal:20, lo:0,   hi:1, min:6, mult:0.9,  w:function(p){ return 0.04+Math.pow(1-p,4); },  label:"Easy",    note:"The easiest of the easy: every artist\u2019s most popular hits."},
+  normal: {goal:50, lo:0,   hi:1, min:8, mult:1,    w:function(p){ return 0.35+Math.pow(1-p,1.4); }, label:"Normal",  note:"The middlest of middle grounds: mostly their big hits."},
+  hard:   {goal:75, lo:.2,  hi:1, min:8, mult:1.15, w:function(p){ return 0.3+p; },                   label:"Hard",    note:"Big hits are few and far between. You\u2019d better know your stuff."},
+  extreme:{goal:90, lo:.55, hi:1, min:8, mult:1.5,  w:function(p){ return 0.15+p*p; },               label:"Extreme", note:"No big hits here. You must really think you know your stuff, huh?"},
+  random: {goal:60, lo:0,   hi:1, min:1, mult:1.25, w:function(){ return 1; },                         label:"Random",  note:"A Mashup of difficulties, to give you the most varied experience"}
 };
 // songs out in the last ~3 months play like hits: they sit higher in the pool and show up more on easy
 function freshF(t){ var d=(Date.now()-Date.parse(t.date||""))/864e5; if(!(d>=0) || d>120) return 1; return d<=90 ? 0.3+0.3*(d/90) : 0.6+0.4*((d-90)/30); }
@@ -2091,11 +2096,14 @@ function guess(o){
   runSeen[R.answer.id]=1;
   if(win && mode==="artist"){ var pa=windowed(byArtist[pickArtist].tracks); wonAll=pa.every(function(t){ return runSeen[t.id]; });
     $("modeLabel").textContent=pickArtist+"  "+pa.filter(function(t){ return runSeen[t.id]; }).length+" of "+pa.length; }
-  if(win){ score+=pts; streak++; solved++; }
+  if(win){ score+=pts; streak++; solved++; if(goalOf() && solved>=goalOf()) wonAll=true; }
+  if(win) setProgress();
   else { streak=0; if(mode==="artist"){ usedCycle={}; } }
   if(!win || wonAll) commitRun();          // the run is over: now it counts
   end(win);
 }
+function setProgress(){ var g=goalOf(), el=$("goalTag"); if(!el) return;
+  el.textContent = g ? Math.min(solved,g)+" / "+g : (isEndless() ? "\u221E "+solved : ""); }
 function end(win){
   clearTimeout(stopT); cancelAnimationFrame(rafId); document.body.classList.remove("lastlife");
   var fl=$("flash"); fl.classList.remove("win","lose"); void fl.offsetWidth; fl.classList.add(win?"win":"lose");
@@ -2147,7 +2155,7 @@ function showWin(){
   showFail();
   var n=runLog.length, wins=runLog.filter(function(x){return x.win;});
   var avg=wins.length?wins.reduce(function(s,x){return s+x.secs;},0)/wins.length:0;
-  $("failTitle").textContent="Every song, no misses"; $("failModal").classList.add("won"); $("failRetry").innerHTML="&#8635; Play again";
+  $("failTitle").textContent=(goalOf() && n>=goalOf())?goalOf()+" songs, no misses":"Every song, no misses"; $("failModal").classList.add("won"); $("failRetry").innerHTML="&#8635; Play again";
   $("failSub").innerHTML="You got all <b>"+n+"</b> "+escapeHtml(pickArtist||"")+" songs on "+DIFFS[curDiff()].label+(wins.length?"<br>average "+avg.toFixed(2)+"s per song":"")+modTags(activeMods().map(function(m){return m.k;}))+(modActive("skip")?(skipUsed?skipTxt(skipUsed):"<div class='skipnote'>\u23ED\uFE0F skip not used</div>"):"");
 }
 // ---- fail screen ----
@@ -2292,12 +2300,21 @@ function closeSettings(){ closeModal($("settings")); }
 // ---- game modes: Play swipes the menu away (greys it out on desktop) and shows the modes, Play there starts ----
 var GMODES=[
   {k:"classic", name:"Classic", desc:"Every song, albums and singles."},
-  {k:"singles", name:"Single Mingle", desc:"Only songs released as singles. No album tracks."}
+  {k:"singles", name:"Single Mingle", desc:"Only songs released as singles. No album tracks."},
+  {k:"endless", name:"Endless", desc:"No finish line. Keeps going until you miss. Needs 5+ artists."}
 ];
+var modeArtist=null;          // set when the panel was opened from an artist in the lineup
+function isEndless(){ return gmode()==="endless" && includedArtists().length>=5; }
+function goalOf(){ return isEndless() ? 0 : (DIFFS[curDiff()].goal||0); }
 function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ? prefs.gmode : "classic"; }
 function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
 function renderModes(){
-  $("modeList").innerHTML=GMODES.map(function(m,i){ return "<button class='modeopt"+(m.k===gmode()?" on":"")+"' data-k='"+m.k+"' style='--i:"+i+"'><b>"+m.name+"</b><span>"+m.desc+"</span></button>"; }).join("");
+  var canEndless=!modeArtist;
+  if(!canEndless && gmode()==="endless"){ prefs.gmode="classic"; }
+  $("modeArtist").innerHTML=modeArtist?escapeHtml(modeArtist):""; $("modeArtist").style.display=modeArtist?"":"none";
+  $("filterBtn").style.display=modeArtist?"none":"";
+  $("modeList").innerHTML=GMODES.map(function(m,i){ var off=m.k==="endless"&&!canEndless;
+    return "<button class='modeopt"+(m.k===gmode()?" on":"")+(off?" off":"")+"' data-k='"+m.k+"' style='--i:"+i+"'"+(off?" disabled":"")+"><b>"+m.name+"</b><span>"+m.desc+"</span></button>"; }).join("");
   var bs=$("modeList").querySelectorAll(".modeopt");      // switch the highlight in place so it eases instead of re-rendering
   [].forEach.call(bs,function(b){ b.onclick=function(){ prefs.gmode=b.getAttribute("data-k"); savePrefs(); [].forEach.call(bs,function(x){ x.classList.toggle("on",x===b); }); }; });
 }
@@ -2305,7 +2322,7 @@ function renderModes(){
 function placeModes(){ var pn=$("modePanel"), desk=matchMedia("(min-width:900px)").matches;
   if(desk && pn.parentNode!==document.body) document.body.appendChild(pn);
   else if(!desk && pn.parentNode!==$("startScreen")) $("startScreen").appendChild(pn); }
-function openModes(){ placeModes(); renderModes(); void $("modePanel").offsetWidth; $("startScreen").classList.add("modes-open"); document.body.classList.add("modes-open"); $("modePanel").setAttribute("aria-hidden","false"); }
+function openModes(a){ modeArtist=(typeof a==="string")?a:null; placeModes(); renderModes(); void $("modePanel").offsetWidth; $("startScreen").classList.add("modes-open"); document.body.classList.add("modes-open"); $("modePanel").setAttribute("aria-hidden","false"); }
 function closeModes(){ $("startScreen").classList.remove("modes-open"); document.body.classList.remove("modes-open"); $("modePanel").setAttribute("aria-hidden","true"); }
 // click anywhere outside the panel (the greyed menu, the background) to close it; clicks inside open menus don't count
 document.addEventListener("click",function(e){ if(!document.body.classList.contains("modes-open") || document.body.classList.contains("playing")) return;
@@ -2315,7 +2332,7 @@ document.addEventListener("click",function(e){ if(!document.body.classList.conta
   closeModes(); });
 $("startBtn").onclick=function(){ var b=this; b.classList.add("held"); setTimeout(function(){ b.classList.remove("held"); }, 900); openModes(); };
 $("modeBack").onclick=closeModes;
-$("modeGo").onclick=function(){ startGame(null); setTimeout(closeModes, 760); };
+$("modeGo").onclick=function(){ startGame(modeArtist); setTimeout(closeModes, 760); };
 document.addEventListener("keydown",function(e){ if(e.key==="Escape" && $("startScreen").classList.contains("modes-open") && !document.querySelector(".modal.open")) closeModes(); });
 $("modBtn").onclick=function(){ renderMods(); openModal($("mods")); };
 $("modsClose").onclick=function(){ closeModal($("mods")); };
