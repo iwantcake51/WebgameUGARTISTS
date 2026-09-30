@@ -952,7 +952,7 @@
   .modego{margin-top:auto}
   /* desktop: the menu stays put and greys out; modes slide in beside it */
   @media (min-width:900px){
-    #startScreen.modes-open .menu{transform:none; opacity:.28; filter:grayscale(1); cursor:pointer}
+    #startScreen.modes-open .menu{transform:none; opacity:.4; filter:saturate(.4); cursor:pointer}
     /* dim + blur everything behind the panel, like the other menus (off with "Dim & blur behind menus") */
     body::before{content:""; position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; background:rgba(5,3,10,.55);
       -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); transition:opacity .45s ease}
@@ -986,7 +986,8 @@
   .modeopt:active, .modes .seg:active, .modeartists:active, #modeBack:active{transform:scale(.97); transition-duration:.12s, .3s, .3s, .3s; transition-timing-function:ease-out}
   .modego:active{transform:scale(.985)}
   #startScreen .menu #startBtn{--dc:var(--accent); --dc2:var(--accent)}      /* main Play keeps the theme colour */
-  #bgv{transition:opacity 1.2s ease, filter .45s ease} body.modes-open:not(.nodim) #bgv{filter:brightness(.55) blur(3px)}
+  #bgv{transition:opacity 1.2s ease, filter .45s ease} body.modes-open:not(.nodim) #bgv{filter:brightness(.55) blur(3px) saturate(.45)}
+  body.modes-open.nodim #bgv{filter:saturate(.45)}      /* side panel open: some desaturation behind it, eased in and out */
   .modeartist{font-family:var(--f-display); font-weight:800; font-size:26px; line-height:1.05; text-transform:uppercase; letter-spacing:.01em; color:var(--ink); margin:2px 0 -4px}
   html:not(.bsd) .modeartist{font-size:21px}
   .modeopt.off{opacity:.35; cursor:not-allowed; filter:grayscale(1)}
@@ -1021,8 +1022,10 @@
   .abonus{display:block; margin-top:4px; color:var(--accent); opacity:.85}
   .seg.blocked{opacity:.28; filter:grayscale(1); cursor:not-allowed; text-decoration:line-through; text-decoration-thickness:1px}
   /* picked mastery names keep their effect; an accent underline marks them instead */
-  .lu.picked:is(.diamond,.gold,.silver,.bronze)::after{content:""; position:absolute; left:8%; right:8%; bottom:-2px; height:2px; border-radius:2px; background:var(--accent);
+  .lu.picked::after, .lu.unpick::after{content:""; position:absolute; left:8%; right:8%; bottom:-2px; height:2px; border-radius:2px; background:var(--accent);
     box-shadow:0 0 8px var(--accent); animation:pickLine .35s cubic-bezier(.2,.8,.2,1) both}
+  .lu.unpick::after{animation:pickOut .35s ease both}
+  @keyframes pickOut{from{opacity:1; transform:none} to{opacity:0; transform:scaleX(.6)}}
   @keyframes pickLine{from{transform:scaleX(0); opacity:0} to{transform:none; opacity:1}}
   /* diamond: iridescent ice with a breathing glow */
   .lu.diamond{background-image:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.95) 47%,transparent 59%),
@@ -1031,8 +1034,8 @@
     background-size:300% 100%, 14px 12px, 300% 100% !important;
     animation:diamondShine 5s ease-in-out infinite, diaIri 9s linear infinite, diaGlow 3.4s ease-in-out infinite !important}
   @keyframes diaIri{from{background-position:120% 0, 0 0, 150% 0} to{background-position:120% 0, 0 0, 0% 0}}
-  @keyframes diaGlow{0%,100%{filter:drop-shadow(0 0 6px rgba(150,220,255,.5)) drop-shadow(0 0 1px rgba(255,255,255,.8))}
-    50%{filter:drop-shadow(0 0 13px rgba(190,170,255,.7)) drop-shadow(0 0 2px #fff) brightness(1.12)}}
+  @keyframes diaGlow{0%,100%{filter:drop-shadow(0 0 3px rgba(150,220,255,.45)) drop-shadow(0 0 .5px rgba(255,255,255,.9))}
+    50%{filter:drop-shadow(0 0 6px rgba(190,170,255,.6)) drop-shadow(0 0 .5px #fff)}}
   /* sparkles drifting off diamond names */
   .dspark{position:absolute; pointer-events:none; z-index:3; width:var(--sz,6px); height:var(--sz,6px); left:var(--x); top:var(--y); opacity:0;
     background:radial-gradient(circle,#fff 0 18%,transparent 60%), conic-gradient(from 45deg,transparent 0 10%,#fff 12%,transparent 14% 35%,#fff 37%,transparent 39% 60%,#fff 62%,transparent 64% 85%,#fff 87%,transparent 89%);
@@ -1070,7 +1073,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.68</div>
+  <div class="ver" title="version">v1.12.69</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -2512,7 +2515,7 @@ function placeModes(){ var pn=$("modePanel"), desk=matchMedia("(min-width:900px)
   if(desk && pn.parentNode!==document.body) document.body.appendChild(pn);
   else if(!desk && pn.parentNode!==$("startScreen")) $("startScreen").appendChild(pn); }
 function openModes(a){ modeArtist=(typeof a==="string")?a:null; if(modeArtist) modeSet=null; placeModes(); renderModes(); void $("modePanel").offsetWidth; $("startScreen").classList.add("modes-open"); document.body.classList.add("modes-open"); $("modePanel").setAttribute("aria-hidden","false"); }
-function closeModes(){ [].forEach.call(document.querySelectorAll(".lu.picked"),function(x){ x.classList.remove("picked"); }); $("startScreen").classList.remove("modes-open"); document.body.classList.remove("modes-open"); $("modePanel").setAttribute("aria-hidden","true"); }
+function closeModes(){ [].forEach.call(document.querySelectorAll(".lu.picked"),function(x){ x.classList.remove("picked"); x.classList.add("unpick"); setTimeout(function(){ x.classList.remove("unpick"); },380); }); $("startScreen").classList.remove("modes-open"); document.body.classList.remove("modes-open"); $("modePanel").setAttribute("aria-hidden","true"); }
 // click anywhere outside the panel (the greyed menu, the background) to close it; clicks inside open menus don't count
 document.addEventListener("click",function(e){ if(!document.body.classList.contains("modes-open") || document.body.classList.contains("playing")) return;
   // use the path from when the click happened: buttons that re-render themselves are detached by now and would look "outside"
