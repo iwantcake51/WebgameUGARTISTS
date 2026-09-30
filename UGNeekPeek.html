@@ -1230,6 +1230,8 @@
       <div class="setcat">Advanced</div>
       <div class="setlabel">Network log</div>
       <pre id="netlog" class="netlog"></pre>
+      <div class="setlabel">Dev stats</div>
+      <pre id="devlog" class="netlog"></pre>
     </div>
   </div>
 </div>
@@ -1373,16 +1375,16 @@ var TOGGLES=[
   {cat:"sound", k:"menumusic", label:"Music in menu",      desc:"Plays music while you hover over artists and while the game mode panel is open"},
   {cat:"sound", k:"endmusic",  label:"Music on round end", desc:"Play the song when you win or lose a round"},
   {cat:"fx", k:"chroma",    label:"Chromatic reveal",   desc:"RGB-split flourish on the cover"},
-  {cat:"fx", k:"holo",      label:"3D cover",           desc:"Makes the album cover 3D!!"},
+  {cat:"fx", k:"holo",      tag:"Resource Intensive", label:"3D cover",           desc:"Makes the album cover 3D!!"},
   {cat:"fx", k:"bw",        label:"Black & white",      desc:"Removes all color, album covers included"},
   {cat:"fx", k:"confetti",  label:"Confetti",           desc:"Confetti falls when you get a song right"},
   {cat:"sound", k:"clicks",    label:"UI interaction sounds", desc:"Clicks, blips and whooshes when you press buttons, flip switches and open menus"},
   {cat:"ui", k:"ring",      label:"Click ripple",       desc:"The circle that expands where you tap or click"},
-  {cat:"fx", k:"tv",        label:"TV effects",         desc:"Film grain, scanlines and the odd signal glitch over everything"},
-  {cat:"fx", k:"bgvid",     label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
+  {cat:"fx", k:"tv",        tag:"Resource Intensive", label:"TV effects",         desc:"Film grain, scanlines and the odd signal glitch over everything"},
+  {cat:"fx", k:"bgvid",     tag:"Resource Intensive", label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
   {cat:"fx", k:"gamevid",   label:"Videos in round", tag:"Resource Intensive", desc:"Keep the music video clips playing behind the game during rounds"},
   {cat:"ui", k:"anim",      label:"Menu animations",    desc:"Menus slide up with a little bounce"},
-  {cat:"ui", k:"dim",       label:"Dim & blur behind menus", desc:"Darkens and blurs the page behind menus and the results screen"}
+  {cat:"fx", k:"dim",       tag:"Resource Intensive", label:"Dim & blur behind menus", desc:"Darkens and blurs the page behind menus and the results screen"}
 ];
 function renderToggles(){
   var tgs=document.querySelectorAll("#settings .tg"); for(var ti=0;ti<tgs.length;ti++) tgs[ti].innerHTML="";
@@ -2489,12 +2491,40 @@ function openPicker(){
   openModal($("picker"));
 }
 function closePicker(){ closeModal($("picker")); }
+// ---- dev stats (Settings > Advanced): fps, bandwidth, memory, media, storage ----
+var DEV=(function(){
+  var t0=performance.now(), frames=0, fps=0, worst=0, last=performance.now(), bytes=0, reqs=0, hist=[], longT=0, longMs=0;
+  (function tick(now){ frames++; var d=now-last; last=now; if(d>worst) worst=d; requestAnimationFrame(tick); })(performance.now());
+  setInterval(function(){ fps=frames; frames=0; hist.push({t:performance.now(),b:bytes}); if(hist.length>11) hist.shift(); },1000);
+  function add(es){ es.forEach(function(e){ reqs++; bytes+=e.transferSize||e.encodedBodySize||0; }); }
+  try{ add(performance.getEntriesByType("resource")); new PerformanceObserver(function(l){ add(l.getEntries()); }).observe({type:"resource",buffered:false}); }catch(e){}
+  try{ new PerformanceObserver(function(l){ l.getEntries().forEach(function(e){ longT++; longMs+=e.duration; }); }).observe({type:"longtask"}); }catch(e){}
+  function kb(n){ return n>1048576 ? (n/1048576).toFixed(2)+" MB" : (n/1024).toFixed(1)+" KB"; }
+  function text(){
+    var h=hist.length>1?hist:null, bw=h?(h[h.length-1].b-h[0].b)/((h[h.length-1].t-h[0].t)/1000):0;
+    var m=performance.memory, c=navigator.connection||{}, ls=0; try{ for(var k in localStorage) if(localStorage.hasOwnProperty(k)) ls+=(k.length+localStorage.getItem(k).length)*2; }catch(e){}
+    var vids=[].filter.call(document.querySelectorAll("video"),function(v){ return !v.paused; }).length;
+    var nav=performance.getEntriesByType("navigation")[0];
+    var out=["fps: "+fps+"   worst frame: "+worst.toFixed(1)+" ms", "long tasks: "+longT+" ("+Math.round(longMs)+" ms total)",
+      "bandwidth: "+kb(bw)+"/s (10s avg)", "downloaded: "+kb(bytes)+" over "+reqs+" requests",
+      m?"js heap: "+kb(m.usedJSHeapSize)+" / "+kb(m.jsHeapSizeLimit):"js heap: n/a (Chrome only)",
+      "dom nodes: "+document.getElementsByTagName("*").length, "videos playing: "+vids+"   game audio: "+(audio.paused?"paused":"playing"),
+      "audio ctx: "+(AC?AC.state+" @ "+AC.sampleRate+" Hz":"none")+(corsFail?" (cors fallback)":""),
+      "artists loaded: "+Object.keys(byArtist).length+" / "+ARTISTS.length+"   loading: "+Object.keys(LOADING).length,
+      "localStorage: "+kb(ls), "network: "+(c.effectiveType||"?")+(c.downlink?", "+c.downlink+" Mbps":"")+(c.rtt!=null?", rtt "+c.rtt+" ms":"")+(c.saveData?", save-data":""),
+      "device: "+(navigator.hardwareConcurrency||"?")+" cores, "+(navigator.deviceMemory?navigator.deviceMemory+" GB":"? GB")+" ram",
+      "viewport: "+innerWidth+"x"+innerHeight+" @"+devicePixelRatio+"x", "page load: "+(nav?Math.round(nav.loadEventEnd||nav.duration)+" ms":"?")+"   uptime: "+Math.round((performance.now()-t0)/1000)+" s",
+      "ua: "+navigator.userAgent];
+    worst=0; return out.join("\n"); }
+  setInterval(function(){ var el=$("devlog"); if(el && $("settings").classList.contains("open")) el.textContent=text(); },1000);
+  return {text:text};
+})();
 function renderNet(){
   var L=["Apple: "+NET.ok+" ok, "+NET.limited+" rate-limited, "+NET.fail+" gave up",
          "mode: "+NET.mode+(NET.cache?"\ncache: "+NET.cache:"")+(NET.last?"\nlast issue: "+NET.last:""),
          "queue: "+AQ.length+" waiting, "+AS.running+" running"+(applePausedFor()?", paused "+applePausedFor()+"s (rate limit)":"")];
   var fails=DIAG.filter(function(x){ return /failed/.test(x); }); if(fails.length) L.push("\nFailed artists:\n  "+fails.slice(-15).join("\n  "));
-  $("netlog").textContent=L.join("\n");
+  $("netlog").textContent=L.join("\n"); try{ $("devlog").textContent=DEV.text(); }catch(e){}
 }
 function showUid(){ var u=null; try{ u=localStorage.getItem("drop_uid"); }catch(e){}
   if(u){ $("uidVal").textContent="#"+u; return; }
