@@ -996,6 +996,7 @@
   @media (min-width:900px){ .modes{background:linear-gradient(180deg, var(--surface) 0%, var(--surface) 35%, color-mix(in srgb, var(--accent) 14%, #050308) 100%)} }
   .toggle.off{opacity:.4; filter:grayscale(1); pointer-events:none; transition:opacity .2s}
   .modego.dead{opacity:.35 !important; filter:grayscale(1) !important; pointer-events:none; transition:opacity .3s, filter .3s}
+  .modeartist em{display:block; font-style:normal; font-family:var(--f-body); font-weight:800; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -2325,7 +2326,7 @@ function renderModes(){
   var head = names && !names.length ? "No artists picked" : modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
   if(!canEndless && gmode()==="endless"){ prefs.gmode="classic"; }
   // header: "A + B + C", or "A + B + C and 32 more"
-  $("modeArtist").innerHTML = head ? E(head) : names.slice(0,3).map(E).join("<i>+</i>") + (names.length>3 ? " <small>and "+(names.length-3)+" more</small>" : "");
+  $("modeArtist").innerHTML = "<em>Featuring:</em>" + (head ? E(head) : names.slice(0,3).map(E).join("<i>+</i>") + (names.length>3 ? " <small>and "+(names.length-3)+" more</small>" : ""));
   $("modeArtist").style.display="";
   $("filterBtn").style.display=modeArtist?"none":"";
   var none=!!(names && !names.length); $("modeGo").disabled=none; $("modeGo").classList.toggle("dead",none);
