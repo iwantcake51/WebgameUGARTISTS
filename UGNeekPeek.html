@@ -990,6 +990,10 @@
   html:not(.bsd) .modeartist{font-size:21px}
   .modeopt.off{opacity:.35; cursor:not-allowed; filter:grayscale(1)}
   #goalTag{font-family:var(--f-mono); font-size:11px; color:var(--muted); margin-left:8px; letter-spacing:.06em}
+  .modeartist i{font-style:normal; color:var(--accent); margin:0 .28em; font-weight:400}
+  .modeartist small{font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; white-space:nowrap; vertical-align:.3em}
+  .modeopt{--dc:var(--accent)}         /* mode cards keep the theme colour whatever the difficulty */
+  @media (min-width:900px){ .modes{background:linear-gradient(180deg, var(--surface) 0%, var(--surface) 35%, color-mix(in srgb, var(--accent) 14%, #050308) 100%)} }
 </style>
 </head>
 <body>
@@ -1118,7 +1122,7 @@
       <div id="filChips" class="filchips"></div>
       <div id="filNote" class="filnote"></div>
     </div>
-    <div class="filfoot"><button class="btn big" id="filStart">Start mix</button></div>
+    <div class="filfoot"><button class="btn big" id="filStart">Use these artists</button></div>
   </div>
 </div>
 
@@ -2275,7 +2279,7 @@ function filterSetAll(v){ ARTISTS.forEach(function(a){ filState[a]=v; }); openFi
 function filStart(){
   var sel={}, cnt=0; ARTISTS.forEach(function(a){ if(filState[a]){ sel[a]=true; cnt++; } });
   if(!cnt){ $("filNote").textContent="Pick at least one artist."; return; }
-  closeFilter(); startMulti(sel);
+  closeFilter(); modeSet = cnt===ARTISTS.length ? null : sel; renderModes();       // back to the mode panel with this mix
 }
 function openPicker(){
   var html="<button class='pickrow' data-a='__all'>All artists <span>mix of everyone</span></button>";
@@ -2299,20 +2303,24 @@ function closeSettings(){ closeModal($("settings")); }
 // ---- wiring ----
 // ---- game modes: Play swipes the menu away (greys it out on desktop) and shows the modes, Play there starts ----
 var GMODES=[
-  {k:"classic", name:"Classic", desc:"Every song, albums and singles."},
-  {k:"singles", name:"Single Mingle", desc:"Only songs released as singles. No album tracks."},
-  {k:"endless", name:"Endless", desc:"No finish line. Keeps going until you miss. Needs 5+ artists."}
+  {k:"classic", name:"Classic", desc:"The vanilla, intended experience. Singles, albums, EPs."},
+  {k:"singles", name:"Single Mingle", desc:"Only singles, because that\u2019s how we roll."},
+  {k:"endless", name:"Endless", desc:"Test yourself and see how far you can get. No win condition."}
 ];
-var modeArtist=null;          // set when the panel was opened from an artist in the lineup
+var modeArtist=null, modeSet=null;     // modeSet: artists picked in Choose artists (null = everyone)          // set when the panel was opened from an artist in the lineup
 function isEndless(){ return gmode()==="endless" && includedArtists().length>=5; }
+function setNames(){ return modeSet ? ARTISTS.filter(function(a){ return modeSet[a]; }) : null; }
 function goalOf(){ return isEndless() ? 0 : (DIFFS[curDiff()].goal||0); }
 function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ? prefs.gmode : "classic"; }
 function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
 function renderModes(){
-  var canEndless=!modeArtist;
+  var names=modeArtist ? [modeArtist] : setNames(), canEndless=!names || names.length>=5, E=escapeHtml;
   if(!canEndless && gmode()==="endless"){ prefs.gmode="classic"; }
-  $("modeArtist").innerHTML=modeArtist?escapeHtml(modeArtist):""; $("modeArtist").style.display=modeArtist?"":"none";
+  // header: "A + B + C", or "A + B + C and 32 more"
+  $("modeArtist").innerHTML = names ? names.slice(0,3).map(E).join("<i>+</i>") + (names.length>3 ? " <small>and "+(names.length-3)+" more</small>" : "") : "";
+  $("modeArtist").style.display=names?"":"none";
   $("filterBtn").style.display=modeArtist?"none":"";
+  $("filterBtn").lastChild.textContent = modeSet ? "Change artists" : "Choose artists";
   $("modeList").innerHTML=GMODES.map(function(m,i){ var off=m.k==="endless"&&!canEndless;
     return "<button class='modeopt"+(m.k===gmode()?" on":"")+(off?" off":"")+"' data-k='"+m.k+"' style='--i:"+i+"'"+(off?" disabled":"")+"><b>"+m.name+"</b><span>"+m.desc+"</span></button>"; }).join("");
   var bs=$("modeList").querySelectorAll(".modeopt");      // switch the highlight in place so it eases instead of re-rendering
@@ -2322,7 +2330,7 @@ function renderModes(){
 function placeModes(){ var pn=$("modePanel"), desk=matchMedia("(min-width:900px)").matches;
   if(desk && pn.parentNode!==document.body) document.body.appendChild(pn);
   else if(!desk && pn.parentNode!==$("startScreen")) $("startScreen").appendChild(pn); }
-function openModes(a){ modeArtist=(typeof a==="string")?a:null; placeModes(); renderModes(); void $("modePanel").offsetWidth; $("startScreen").classList.add("modes-open"); document.body.classList.add("modes-open"); $("modePanel").setAttribute("aria-hidden","false"); }
+function openModes(a){ modeArtist=(typeof a==="string")?a:null; if(modeArtist) modeSet=null; placeModes(); renderModes(); void $("modePanel").offsetWidth; $("startScreen").classList.add("modes-open"); document.body.classList.add("modes-open"); $("modePanel").setAttribute("aria-hidden","false"); }
 function closeModes(){ $("startScreen").classList.remove("modes-open"); document.body.classList.remove("modes-open"); $("modePanel").setAttribute("aria-hidden","true"); }
 // click anywhere outside the panel (the greyed menu, the background) to close it; clicks inside open menus don't count
 document.addEventListener("click",function(e){ if(!document.body.classList.contains("modes-open") || document.body.classList.contains("playing")) return;
@@ -2332,7 +2340,7 @@ document.addEventListener("click",function(e){ if(!document.body.classList.conta
   closeModes(); });
 $("startBtn").onclick=function(){ var b=this; b.classList.add("held"); setTimeout(function(){ b.classList.remove("held"); }, 900); openModes(); };
 $("modeBack").onclick=closeModes;
-$("modeGo").onclick=function(){ startGame(modeArtist); setTimeout(closeModes, 760); };
+$("modeGo").onclick=function(){ if(modeArtist) startGame(modeArtist); else if(modeSet) startMulti(modeSet); else startGame(null); setTimeout(closeModes, 760); };
 document.addEventListener("keydown",function(e){ if(e.key==="Escape" && $("startScreen").classList.contains("modes-open") && !document.querySelector(".modal.open")) closeModes(); });
 $("modBtn").onclick=function(){ renderMods(); openModal($("mods")); };
 $("modsClose").onclick=function(){ closeModal($("mods")); };
