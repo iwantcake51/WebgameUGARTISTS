@@ -2379,6 +2379,10 @@ function goalNote(){ var el=$("diffGoal"); if(!el) return;
     $("modeGo").disabled=!g; $("modeGo").classList.toggle("dead",!g);
     el.innerHTML="<b>"+g+"</b> "+(soloSingles()?(g===1?"single":"singles"):(g===1?"song":"songs"))+" this round"; return; }
   el.innerHTML="<b>"+DIFFS[curDiff()].goal+"</b> songs this round"; }
+var singlesAsked="";
+function singlesCount(names){ var n=0, done=true;
+  names.forEach(function(a){ if(byArtist[a]) n+=byArtist[a].tracks.filter(isSingle).length; else if(!isUnavail(a)) done=false; });
+  return {n:n, done:done}; }
 function renderModes(){ setTimeout(goalNote,0);
   var names=modeArtist ? [modeArtist] : setNames(), canEndless=!names || names.length>=5, E=escapeHtml;
   var head = names && !names.length ? "No one?..." : modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
@@ -2390,7 +2394,12 @@ function renderModes(){ setTimeout(goalNote,0);
   $("filterBtn").style.display=modeArtist?"none":"";
   var none=!!(names && !names.length); $("modeGo").disabled=none; $("modeGo").classList.toggle("dead",none);
   $("filterBtn").lastChild.textContent = modeSet ? "Change artists" : "Choose artists";
-  $("modeList").innerHTML=GMODES.map(function(m,i){ var off=m.k==="endless"&&!canEndless;
+  // Single Mingle needs 20+ singles across the picked artists (everyone easily clears that)
+  var sc=names ? singlesCount(names) : {n:99,done:true}, canSingles = sc.n>=20 || !sc.done;
+  var key=names?names.join("|"):""; if(names && !sc.done && sc.n<20 && singlesAsked!==key){ singlesAsked=key;
+    Promise.all(names.map(function(a){ return ensureArtist(a).catch(function(){}); })).then(function(){ if($("modePanel").getAttribute("aria-hidden")==="false") renderModes(); }); }
+  if(!canSingles && gmode()==="singles") prefs.gmode="classic";
+  $("modeList").innerHTML=GMODES.map(function(m,i){ var off=(m.k==="endless"&&!canEndless) || (m.k==="singles"&&!canSingles);
     return "<button class='modeopt"+(m.k===gmode()?" on":"")+(off?" off":"")+"' data-k='"+m.k+"' style='--i:"+i+"'"+(off?" disabled":"")+"><b>"+m.name+"</b><span>"+m.desc+"</span></button>"; }).join("");
   var bs=$("modeList").querySelectorAll(".modeopt");      // switch the highlight in place so it eases instead of re-rendering
   [].forEach.call(bs,function(b){ b.onclick=function(){ prefs.gmode=b.getAttribute("data-k"); savePrefs(); goalNote(); [].forEach.call(bs,function(x){ x.classList.toggle("on",x===b); }); }; });
