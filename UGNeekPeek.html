@@ -1026,7 +1026,7 @@
 
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
-      <div class="meta" style="--i:0"><span>Underground edition</span><span id="metaCount">60 artists</span></div>
+      <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
       <h1 class="mk" style="--i:0"><span class="brand">UG<b>Neek</b>Peek</span></h1>
       <p class="tag" style="--i:1">Find out if you're a true neek of the underground by guessing the song based off of a little snippet. The faster you get it, the more score you get! (and brownie points because you're the true neek)</p>
       <button class="btn playall" id="startBtn" style="--i:3"><span class="pl">Play</span><span class="arr">&rarr;</span></button>
@@ -2502,7 +2502,14 @@ $("setBtn").onclick=openSettings; $("setBtn2").onclick=openSettings; $("settings
 $("settings").onclick=function(e){ if(e.target===$("settings")) closeSettings(); };
 $("vol").oninput=function(){ setVolume(parseFloat(this.value)); };
 $("nameInput").value=prefs.name||"";
-$("nameInput").oninput=function(){ prefs.name=this.value.replace(/\s+/g," ").slice(0,20); savePrefs(); };
+$("nameInput").oninput=function(){ prefs.name=this.value.replace(/\s+/g," ").slice(0,20); savePrefs(); greet(); };
+// top-left greeting: first visit / back without a name / "Hello, NAME" in a random language
+var GREETS=["Hello","Hola","Bonjour","Ciao","Hallo","Ol\u00e1","Hej","Konnichiwa","Annyeong","Ni hao","Namaste","Merhaba","Salut","Aloha","Privet","Jambo","Shalom","Marhaba","Sawubona","Kamusta"];
+var firstVisit=false; try{ firstVisit=!localStorage.getItem("drop_seen"); localStorage.setItem("drop_seen","1"); }catch(e){}
+var greetWord=GREETS[Math.random()*GREETS.length|0];
+function greet(){ var n=(prefs.name||"").trim();
+  $("greet").textContent = n ? greetWord+", "+n : firstVisit ? "Welcome, Enjoy your stay" : "Back so soon?"; }
+greet();
 $("vol2").oninput=function(){ setVolume(parseFloat(this.value)); };
 
 // ---- background sway ----
