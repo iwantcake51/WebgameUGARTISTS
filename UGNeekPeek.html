@@ -647,14 +647,15 @@
     filter:drop-shadow(0 0 7px rgba(150,220,255,.55)) drop-shadow(0 0 1px rgba(255,255,255,.8))}
   @keyframes diamondShine{0%,62%{background-position:120% 0, 0 0, 0 0} 82%,100%{background-position:-20% 0, 14px 12px, 0 0}}
   .lu.silver, .lu.bronze{color:transparent !important; opacity:1 !important; text-shadow:none !important;
-    background-size:250% 100%; background-position:100% 0; -webkit-background-clip:text; background-clip:text; animation:goldShine 8s ease-in-out infinite}
-  .lu.silver{background-image:linear-gradient(100deg,#b9c0cb 0%,#b9c0cb 34%,#eef1f5 44%,#ffffff 48%,#eef1f5 52%,#b9c0cb 62%,#b9c0cb 100%); filter:drop-shadow(0 0 5px rgba(210,220,235,.3))}
-  .lu.bronze{background-image:linear-gradient(100deg,#bd7a42 0%,#bd7a42 34%,#e9b17f 44%,#f7d2ae 48%,#e9b17f 52%,#bd7a42 62%,#bd7a42 100%); filter:drop-shadow(0 0 5px rgba(205,127,50,.3))}
-  .lu.gold{color:transparent !important; opacity:1 !important; background:linear-gradient(100deg,#e3b247 0%,#e3b247 34%,#f7d27a 44%,#fff3c4 48%,#f7d27a 52%,#e3b247 62%,#e3b247 100%);
-    background-size:250% 100%; background-position:100% 0; -webkit-background-clip:text; background-clip:text; animation:goldShine 7s ease-in-out infinite; text-shadow:none !important;
+    background-size:300% 100%; background-position:150% 0; -webkit-background-clip:text; background-clip:text; animation:tierSweep 8s linear infinite}
+  .lu.silver{background-image:linear-gradient(100deg,#9aa2ae 0%,#c3c9d3 22%,#e8ecf1 30%,#ffffff 33%,#e8ecf1 36%,#c3c9d3 46%,#9aa2ae 72%,#9aa2ae 100%); filter:drop-shadow(0 0 5px rgba(210,220,235,.3))}
+  .lu.bronze{background-image:linear-gradient(100deg,#9a5a2c 0%,#c98247 22%,#eab383 30%,#f8d6b3 33%,#eab383 36%,#c98247 46%,#9a5a2c 72%,#9a5a2c 100%); filter:drop-shadow(0 0 5px rgba(205,127,50,.3))}
+  .lu.gold{color:transparent !important; opacity:1 !important; background:linear-gradient(100deg,#c28f2a 0%,#f2c14e 22%,#f7d27a 30%,#fff3c4 33%,#f7d27a 36%,#f2c14e 46%,#c28f2a 72%,#c28f2a 100%);
+    background-size:300% 100%; background-position:150% 0; -webkit-background-clip:text; background-clip:text; animation:tierSweep 7s linear infinite; text-shadow:none !important;
     filter:drop-shadow(0 0 6px rgba(242,193,78,.35))}
   .lu.gold:nth-child(3n){animation-delay:-2.3s} .lu.gold:nth-child(3n+1){animation-delay:-4.6s}
   @keyframes goldShine{0%,62%{background-position:100% 0} 88%,100%{background-position:-20% 0}}
+  @keyframes tierSweep{from{background-position:150% 0} to{background-position:0% 0}}      /* one full tile per loop = seamless */
   .lineup{text-align:center}
   .lurow{margin:0 auto 5px; line-height:1.12}
   .lurow.hl{margin-bottom:2px}
@@ -1013,8 +1014,8 @@
   .fgroup{font-family:var(--f-display); font-weight:800; font-size:14px; letter-spacing:.04em; text-transform:uppercase; padding:6px 11px; cursor:pointer;
     color:var(--ink); background:var(--surface2); border:1px solid var(--line); border-radius:2px; transition:border-color .2s, color .2s, transform .35s cubic-bezier(.34,1.56,.64,1)}
   .fgroup:hover{border-color:var(--accent); color:var(--accent)} .fgroup:active{transform:scale(.95); transition-duration:.1s}
-  .modeartist .mgrp{color:transparent; background:linear-gradient(100deg,var(--accent) 0%,var(--accent) 38%,#fff 50%,var(--accent) 62%,var(--accent) 100%);
-    background-size:250% 100%; -webkit-background-clip:text; background-clip:text; animation:grpShine 4.5s ease-in-out infinite}
+  .modeartist .mgrp{color:transparent; background:linear-gradient(100deg,var(--accent) 0%,var(--accent) 24%,color-mix(in srgb,var(--accent) 45%,#fff) 31%,#fff 33%,color-mix(in srgb,var(--accent) 45%,#fff) 35%,var(--accent) 42%,var(--accent) 100%);
+    background-size:300% 100%; -webkit-background-clip:text; background-clip:text; animation:tierSweep 5s linear infinite}
   @keyframes grpShine{0%,55%{background-position:100% 0} 85%,100%{background-position:-20% 0}}
   .abonus{display:block; margin-top:4px; color:var(--accent); opacity:.85}
   .seg.blocked{opacity:.28; filter:grayscale(1); cursor:not-allowed; text-decoration:line-through; text-decoration-thickness:1px}
@@ -1049,7 +1050,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.62</div>
+  <div class="ver" title="version">v1.12.63</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -2453,8 +2454,8 @@ function renderModes(){ setTimeout(goalNote,0);
   var none=!!(names && !names.length); $("modeGo").disabled=none; $("modeGo").classList.toggle("dead",none);
   $("filterBtn").lastChild.textContent = modeSet ? "Change artists" : "Choose artists";
   // Single Mingle needs 20+ singles across the picked artists (everyone easily clears that)
-  var sc=names ? singlesCount(names) : {n:99,done:true}, canSingles = sc.n>=20 || !sc.done;
-  var key=names?names.join("|"):""; if(names && !sc.done && sc.n<20 && singlesAsked!==key){ singlesAsked=key;
+  var sc=names ? singlesCount(names) : {n:99,done:true}, canSingles = sc.n>=8 || !sc.done;
+  var key=names?names.join("|"):""; if(names && !sc.done && sc.n<8 && singlesAsked!==key){ singlesAsked=key;
     Promise.all(names.map(function(a){ return ensureArtist(a).catch(function(){}); })).then(function(){ if($("modePanel").getAttribute("aria-hidden")==="false") renderModes(); }); }
   if(!canSingles && gmode()==="singles") prefs.gmode="classic";
   $("modeList").innerHTML=GMODES.map(function(m,i){ var off=(m.k==="endless"&&!canEndless) || (m.k==="singles"&&!canSingles);
