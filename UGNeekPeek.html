@@ -1035,7 +1035,7 @@
       <div class="row2 one" style="--i:3"><button class="btn sec" id="modBtn">Modifiers</button></div>
       <div id="artistList" class="lineup" style="--i:4"></div>
       <div class="cap" id="poolInfo" style="--i:4"></div>
-      <div class="foot" style="--i:5"><button class="flink" id="ssBtn">Is my song in it?</button><button class="flink" id="catBtn">Your history</button><button class="flink" id="setBtn">Themes &amp; volume</button></div>
+      <div class="foot" style="--i:5"><button class="flink" id="ssBtn">Song catalog</button><button class="flink" id="catBtn">Your history</button><button class="flink" id="setBtn">Themes &amp; volume</button></div>
       <div class="err" id="startErr"></div>
     </div>
     <div class="modes" id="modePanel" aria-hidden="true">
@@ -1136,7 +1136,7 @@
 
 <div id="songsearch" class="modal">
   <div class="sheet">
-    <div class="sheethead"><div style="display:flex;align-items:center;gap:6px;min-width:0"><button id="ssBack" class="linkbtn" style="display:none;font-size:15px">&larr;</button><div id="ssTitle">Is my song in it?</div></div><button id="ssClose" class="linkbtn">close</button></div>
+    <div class="sheethead"><div style="display:flex;align-items:center;gap:6px;min-width:0"><button id="ssBack" class="linkbtn" style="display:none;font-size:15px">&larr;</button><div id="ssTitle">Song catalog</div></div><button id="ssClose" class="linkbtn">close</button></div>
     <div class="catsearchwrap" style="padding-bottom:10px;border-bottom:1px solid var(--line)"><input id="ssInput" class="catsearch" type="text" placeholder="Search an artist…" autocomplete="off"></div>
     <div id="ssBody" class="sheetbody"></div>
   </div>
@@ -2459,7 +2459,7 @@ function closeShared(){ closeModal($("shareView")); try{ history.replaceState(nu
 $("svClose").onclick=closeShared;
 $("homeBtn").onclick=goHomeFade; $("logoBtn").onclick=goHomeFade;
 
-// ---- "Is my song in it?": pick an artist, then search only their in-game songs ----
+// ---- "Song catalog": pick an artist, then search only their in-game songs ----
 (function(){
   var cur=null, seq=0;
   function diffTags(tr){ var m={}; ["easy","normal","hard","extreme"].forEach(function(k){ windowed(tr,k).forEach(function(t){ (m[t.id]=m[t.id]||[]).push(DIFFS[k].label); }); }); return m; }
@@ -2487,7 +2487,7 @@ $("homeBtn").onclick=goHomeFade; $("logoBtn").onclick=goHomeFade;
     $("ssBody").innerHTML="<div class='sslabel'>"+(words.length?hits.length+" of "+pool.length+" in-game songs":pool.length+" songs in the game, most popular first")+"</div>"+
       (hits.length ? hits.map(function(t){ return row(t,tags[t.id]||[]); }).join("") : "<div class='roundwait'>Not in the game. Only "+escapeHtml(cur)+"'s top songs on Apple are used.</div>");
   }
-  function back(){ cur=null; seq++; $("ssInput").value=""; $("ssInput").placeholder="Search an artist\u2026"; $("ssTitle").textContent="Is my song in it?"; $("ssBack").style.display="none"; showArtists(); }
+  function back(){ cur=null; seq++; $("ssInput").value=""; $("ssInput").placeholder="Search an artist\u2026"; $("ssTitle").textContent="Song catalog"; $("ssBack").style.display="none"; showArtists(); }
   $("ssBtn").onclick=function(){ back(); openModal($("songsearch")); setTimeout(function(){ $("ssInput").focus(); },60); };
   $("ssBack").onclick=back;
   $("ssInput").oninput=function(){ if(cur) showSongs(); else showArtists(); };
