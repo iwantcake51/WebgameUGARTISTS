@@ -780,6 +780,74 @@
   .sel:focus{outline:none; border-color:var(--accent)}
   .sel option{background:var(--surface); color:var(--ink)}
   @media (max-width:420px){ .setrow2{grid-template-columns:1fr} }
+
+  /* ===== v2.1: halftone logo, halftone play button that inverts on hover, restyled menus ===== */
+  @property --htc{syntax:"<color>"; inherits:true; initial-value:rgba(0,0,0,.35)}
+  /* logo: ink letters printed with a halftone screen; NEEK sits on an accent block with dots fading in from its edges */
+  .brand{color:transparent !important;
+    background:radial-gradient(circle, rgba(0,0,0,.42) 0 .75px, transparent 1.15px) 0 0/4px 4px, var(--ink) !important;
+    -webkit-background-clip:text !important; background-clip:text !important}
+  .brand b{position:relative; color:var(--accent-ink) !important; background:var(--accent) !important; -webkit-background-clip:border-box !important; background-clip:border-box !important; isolation:isolate}
+  .brand b::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(circle, color-mix(in srgb,var(--accent) 45%,#000) 0 .9px, transparent 1.35px) 0 0/4px 4px;
+    -webkit-mask:radial-gradient(ellipse at center, transparent 35%, #000 100%); mask:radial-gradient(ellipse at center, transparent 35%, #000 100%)}
+
+  /* play button: halftone vignette in the theme colour; hover inverts (dark button, coloured text and dots), all eased */
+  #startScreen .playall{position:relative; overflow:hidden; isolation:isolate; --htc:color-mix(in srgb,var(--dc) 55%,#000);
+    background:var(--dc) !important; color:#0a0711; filter:none !important;
+    transition:background-color .35s ease, color .35s ease, box-shadow .35s ease, --htc .35s ease}
+  #startScreen .playall::after{content:none !important}
+  #startScreen .playall::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(circle, var(--htc) 0 1.1px, transparent 1.6px) 0 0/5px 5px;
+    -webkit-mask:radial-gradient(ellipse 75% 110% at center, transparent 30%, #000 100%); mask:radial-gradient(ellipse 75% 110% at center, transparent 30%, #000 100%)}
+  #startScreen .playall .arr{font-family:var(--f-body); font-weight:600; font-size:.8em; transition:transform .35s ease}
+  #startScreen .playall:hover, #startScreen .playall:focus-visible{background:#0a0711 !important; color:var(--dc); --htc:var(--dc);
+    box-shadow:inset 0 0 0 1px var(--dc) !important}
+  #startScreen .playall:hover .arr{transform:translateX(4px)}
+
+  /* now playing (menu video) */
+  #nowVid{position:fixed; left:14px; bottom:10px; z-index:2; max-width:calc(100% - 28px); pointer-events:none;
+    font-family:var(--f-mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.5);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0; transition:opacity .6s ease}
+  #nowVid.on{opacity:1}
+  body.playing #nowVid, body:not(.bgv-on) #nowVid{opacity:0}
+
+  /* all other menus: same flat, ruled, square look */
+  .sheet{border-radius:6px 6px 0 0}
+  .modal.mid .sheet, #failModal .sheet, #shareView .sheet{border-radius:6px}
+  .sheethead{font-family:var(--f-display); font-weight:400; text-transform:uppercase; letter-spacing:.03em; font-size:20px; padding:14px 18px 12px}
+  html:not(.bsd) .sheethead{font-weight:700; font-size:17px; letter-spacing:.01em}
+  .linkbtn{text-transform:uppercase; letter-spacing:.1em; font-size:11px; color:var(--muted)} .linkbtn:hover{color:var(--ink)}
+  .setlabel{letter-spacing:.14em; font-size:10px}
+  .catsearch, .sel{border-radius:3px}
+  .cchip, .filchip{border-radius:2px !important; text-transform:uppercase; letter-spacing:.06em; font-family:var(--f-mono); font-size:10.5px}
+  .cchip.on, .filchip.on{background:var(--ink) !important; color:var(--bg) !important; border-color:var(--ink) !important}
+  .toggle{border-bottom:1px solid var(--line)}
+  .tlabel{font-weight:600}
+  .sw{width:40px; height:22px; border-radius:2px; background:transparent; border:1px solid var(--line)}
+  .sw::after{top:3px; left:3px; width:14px; height:14px; border-radius:1px; background:var(--muted)}
+  .sw.on{background:var(--accent); border-color:var(--accent)}
+  .sw.on::after{transform:translateX(18px); background:var(--accent-ink)}
+  .swatch{border-radius:3px}
+  .pickrow{border-radius:3px; background:transparent} .pickrow:hover:not(:disabled){background:color-mix(in srgb,var(--ink) 5%,transparent)}
+  .ghost, .ghost2, .dbtn{border-radius:3px !important; background:transparent; text-transform:uppercase; letter-spacing:.06em; font-size:12.5px}
+  .ghost:hover, .ghost2:hover{border-color:var(--ink)}
+  .failtop{text-align:left}
+  .failtop h2{font-family:var(--f-display); font-weight:400; text-transform:uppercase; letter-spacing:.01em; font-size:34px; line-height:1}
+  html:not(.bsd) .failtop h2{font-weight:800; font-size:28px}
+  .failscores{justify-content:flex-start}
+  .fbox{max-width:none; background:transparent; text-align:left; padding:8px 10px}
+  .fbox .fl, .sslabel{text-transform:uppercase; letter-spacing:.12em; font-size:9.5px}
+  .failbtns .big{text-transform:uppercase; letter-spacing:.06em}
+  .modtags, .svacc{justify-content:flex-start; margin-left:0}
+  .modtag{border-radius:2px}
+  .svhero{text-align:left; font-family:var(--f-display); font-weight:400}
+  html:not(.bsd) .svhero{font-weight:800}
+  .modcard{background:transparent} .modcard.on{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+  .modcard .mx{border-radius:2px}
+  .catstats div{background:transparent; text-align:left; padding:8px 10px}
+  .catsec{background:transparent}
+  .rimg{border-radius:2px}
 </style>
 </head>
 <body>
@@ -816,7 +884,7 @@
         <button class="seg" data-d="extreme" role="radio"><span class="sn">Extreme</span><span class="sx">&times;1.5</span></button>
       </div>
       <div class="dnote" id="diffNote" style="--i:2"></div>
-      <button class="btn playall" id="startBtn" style="--i:3">Play all artists</button>
+      <button class="btn playall" id="startBtn" style="--i:3"><span class="pl">Play all artists</span><span class="arr">&rarr;</span></button>
       <div class="row2" style="--i:3"><button class="btn sec" id="filterBtn">Choose artists</button><button class="btn sec" id="modBtn">Modifiers</button></div>
       <div id="artistList" class="lineup" style="--i:4"></div>
       <div class="cap" id="poolInfo" style="--i:4"></div>
@@ -978,6 +1046,7 @@
 </div>
 
 <div id="vignette" aria-hidden="true"></div>
+<div id="nowVid" aria-hidden="true"></div>
 <div id="tvfx" aria-hidden="true"><div id="tvgrain"></div><div class="tvlines"></div><div class="tvroll"></div><div class="tvtears"></div></div>
 <div id="blackout" aria-hidden="true"><div class="ld">loading</div></div>
 <div id="flash" class="flash"></div>
@@ -2193,7 +2262,7 @@ var BGV=(function(){
     var pool=pri.concat(mid,rest).slice(0,6); loading=true; batches++;
     Promise.all(pool.map(function(a){
       return getJSON("https://itunes.apple.com/search?term="+encodeURIComponent(termsOf(a)[0])+"&entity=musicVideo&limit=10").then(function(d){
-        var got=[]; (d.results||[]).forEach(function(r){ if(r.previewUrl && artistMatch(r.artistName||"",termsOf(a)[0]) && got.indexOf(r.previewUrl)===-1) got.push(r.previewUrl); });
+        var got=[], seen={}; (d.results||[]).forEach(function(r){ if(r.previewUrl && artistMatch(r.artistName||"",termsOf(a)[0]) && !seen[r.previewUrl]){ seen[r.previewUrl]=1; got.push({u:r.previewUrl, t:noFeat(r.trackName||""), a:r.artistName||a}); } });
         CACHE[a]={at:Date.now(), list:got};
       },function(){});
     })).then(function(){
@@ -2203,6 +2272,12 @@ var BGV=(function(){
     });
   }
   // pick an artist (diamond x6, gold x4, others x1, avoiding the last few), then a random clip of theirs
+  var nvT=0;
+  function nowPlaying(c){         // small caption: what video is on screen
+    var el=$("nowVid"), txt=c && (c.t||c.a) ? "\u25B6 "+(c.a||"")+(c.t?" \u2014 "+c.t:"") : "";
+    el.classList.remove("on"); clearTimeout(nvT);
+    nvT=setTimeout(function(){ el.textContent=txt; if(txt) el.classList.add("on"); }, 350);
+  }
   function pickClip(){
     var tiers=mastery(), cands=[], tot=0;
     for(var a in CACHE){ if(!fresh(a) || !CACHE[a].list.length) continue;
@@ -2211,17 +2286,18 @@ var BGV=(function(){
     var r=Math.random()*tot, pick=cands[cands.length-1][0];
     for(var i=0;i<cands.length;i++){ r-=cands[i][1]; if(r<=0){ pick=cands[i][0]; break; } }
     recentA.unshift(pick); recentA=recentA.slice(0,1);
-    var list=CACHE[pick].list, src=list[Math.random()*list.length|0];
-    if(src===lastSrc && list.length>1) src=list[(list.indexOf(src)+1)%list.length];
-    lastSrc=src; return src;
+    var list=CACHE[pick].list, clip=list[Math.random()*list.length|0];
+    if(list.length>1 && (clip.u||clip)===lastSrc) clip=list[(list.indexOf(clip)+1)%list.length];
+    if(typeof clip==="string") clip={u:clip, t:"", a:pick==="__mix"?"":pick};      // clips cached by older versions are plain URLs
+    lastSrc=clip.u; return clip;
   }
   function next(){
     clearTimeout(timer); if(!want()) return;
-    var src=pickClip(); if(!src) return;
+    var clip=pickClip(); if(!clip) return; var src=clip.u;
     var v=vids[1-cur], old=vids[cur];
     v.src=src; v.muted=true;
     var shown=false;
-    function show(){ if(shown) return; shown=true; v.classList.remove("on"); void v.offsetWidth; v.classList.add("on"); old.classList.remove("on"); cur=1-cur;
+    function show(){ if(shown) return; shown=true; v.classList.remove("on"); void v.offsetWidth; v.classList.add("on"); old.classList.remove("on"); cur=1-cur; nowPlaying(clip);
       setTimeout(function(){ if(!old.classList.contains("on")) try{ old.pause(); }catch(e){} },1500);
       timer=setTimeout(next, CUT); }
     v.onloadedmetadata=function(){ try{ v.currentTime=Math.min(Math.max(0,(v.duration||30)-CUT/1000-1), 3+Math.random()*14); }catch(e){} };
@@ -2237,7 +2313,7 @@ var BGV=(function(){
     var v=vids[cur]; if(v.src && v.classList.contains("on")){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); clearTimeout(timer); timer=setTimeout(next, CUT); } else next();
   }
   document.addEventListener("visibilitychange", resume);
-  return {pickClip:pickClip, cache:CACHE, resume:resume, toggle:resume, pause:function(){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); }};
+  return {nowPlaying:nowPlaying, pickClip:pickClip, cache:CACHE, resume:resume, toggle:resume, pause:function(){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); }};
 })();
 // ---- TV effects: animated grain (tiny canvas scaled up, ~12fps) and random glitch bursts every few seconds ----
 var TVFX=(function(){
