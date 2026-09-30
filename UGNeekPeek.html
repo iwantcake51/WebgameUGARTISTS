@@ -929,6 +929,33 @@
   #shareView .failtop h2, #shareView.won .failtop h2{text-shadow:none}
   .toggle .tdesc, .bgpick .tdesc{font-size:11.5px; line-height:1.4}
   .dsel, .bgpo, .filchip, .modcard{border-radius:2px !important}
+  /* game mode panel */
+  #startScreen{position:relative}
+  #startScreen .menu{transition:transform .55s cubic-bezier(.65,0,.35,1), opacity .45s ease, filter .45s ease}
+  .modes{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; gap:14px; padding:20px 0; width:100%; max-width:420px; margin:0 auto;
+    transform:translateX(110%); opacity:0; visibility:hidden; transition:transform .55s cubic-bezier(.65,0,.35,1), opacity .4s ease, visibility 0s .55s}
+  #startScreen.modes-open .menu{transform:translateX(-110%); opacity:0; pointer-events:none}
+  #startScreen.modes-open .modes{transform:none; opacity:1; visibility:visible; transition:transform .55s cubic-bezier(.65,0,.35,1), opacity .4s ease .1s, visibility 0s}
+  .modeshead{display:flex; align-items:center; justify-content:space-between; font-family:var(--f-mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted);
+    padding-bottom:10px; border-bottom:1px solid var(--line)}
+  .modelist{display:flex; flex-direction:column; gap:10px}
+  .modeopt{display:flex; flex-direction:column; gap:4px; text-align:left; padding:16px; cursor:pointer; font:inherit; color:var(--ink);
+    background:var(--surface2); border:1px solid var(--line); border-radius:2px; transition:border-color .25s, background-color .25s}
+  .modeopt b{font-family:var(--f-display); font-size:22px; font-weight:800; text-transform:uppercase; letter-spacing:.01em; line-height:1}
+  html:not(.bsd) .modeopt b{font-size:18px}
+  .modeopt span{font-size:12.5px; color:var(--muted)}
+  .modeopt:hover{border-color:color-mix(in srgb,var(--dc) 60%,var(--line))}
+  .modeopt.on{border-color:var(--dc); background:color-mix(in srgb,var(--dc) 14%,var(--surface2))}
+  .modeopt.on b{color:var(--dc)}
+  #startScreen .modes{--dc:var(--accent)}
+  .modego{margin-top:auto}
+  /* desktop: the menu stays put and greys out; modes slide in beside it */
+  @media (min-width:900px){
+    #startScreen.modes-open .menu{transform:none; opacity:.28; filter:grayscale(1)}
+    .modes{position:fixed; left:auto; right:0; top:0; bottom:0; width:400px; max-width:none; padding:40px 32px; z-index:6;
+      background:var(--surface); border-left:1px solid var(--line)}
+    .modego{margin-top:12px}
+  }
 </style>
 </head>
 <body>
@@ -972,6 +999,11 @@
       <div class="cap" id="poolInfo" style="--i:4"></div>
       <div class="foot" style="--i:5"><button class="flink" id="ssBtn">Is my song in it?</button><button class="flink" id="catBtn">Your history</button><button class="flink" id="setBtn">Themes &amp; volume</button></div>
       <div class="err" id="startErr"></div>
+    </div>
+    <div class="modes" id="modePanel" aria-hidden="true">
+      <div class="modeshead"><button class="linkbtn" id="modeBack">&larr; back</button><span>Game mode</span></div>
+      <div class="modelist" id="modeList"></div>
+      <button class="btn playall modego" id="modeGo"><span class="pl">Play</span><span class="arr">&rarr;</span></button>
     </div>
   </div>
 
@@ -1194,8 +1226,8 @@ function setFavicon(c){
 }
 
 // ---- prefs ----
-var prefs={theme:"plum", volume:0.9, autoplay:false, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, bgArtist:"", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
-try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
+var prefs={theme:"plum", volume:0.9, autoplay:false, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
+try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
 function savePrefs(){ try{ localStorage.setItem("drop_prefs", JSON.stringify(prefs)); }catch(e){} }
 function applyTheme(id){
   var th=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){th=THEMES[i];break;} } if(!th) th=THEMES[0];
@@ -1919,6 +1951,7 @@ function newRound(){
 }
 function setupRound(a){
   var all=byArtist[a].tracks, p=windowed(all), answer;
+  if(gmode()==="singles") p=p.filter(isSingle);
   var fresh=p.filter(function(t){ return !runSeen[t.id]; });
   if(!fresh.length){ runDone[a]=1; return false; }            // every allowed song by this artist already played this run
   answer=weightedPick(fresh);
@@ -2222,7 +2255,23 @@ function openSettings(){ renderNet(); openModal($("settings")); }
 function closeSettings(){ closeModal($("settings")); }
 
 // ---- wiring ----
-$("startBtn").onclick=function(){ var b=this; b.classList.add("held"); setTimeout(function(){ b.classList.remove("held"); }, 1400); startGame(null); };
+// ---- game modes: Play swipes the menu away (greys it out on desktop) and shows the modes, Play there starts ----
+var GMODES=[
+  {k:"classic", name:"Classic", desc:"Every song, albums and singles."},
+  {k:"singles", name:"Single Mingle", desc:"Only songs released as singles. No album tracks."}
+];
+function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ? prefs.gmode : "classic"; }
+function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
+function renderModes(){
+  $("modeList").innerHTML=GMODES.map(function(m,i){ return "<button class='modeopt"+(m.k===gmode()?" on":"")+"' data-k='"+m.k+"' style='--i:"+i+"'><b>"+m.name+"</b><span>"+m.desc+"</span></button>"; }).join("");
+  [].forEach.call($("modeList").querySelectorAll(".modeopt"),function(b){ b.onclick=function(){ prefs.gmode=b.getAttribute("data-k"); savePrefs(); renderModes(); }; });
+}
+function openModes(){ renderModes(); $("startScreen").classList.add("modes-open"); $("modePanel").setAttribute("aria-hidden","false"); }
+function closeModes(){ $("startScreen").classList.remove("modes-open"); $("modePanel").setAttribute("aria-hidden","true"); }
+$("startBtn").onclick=function(){ var b=this; b.classList.add("held"); setTimeout(function(){ b.classList.remove("held"); }, 900); openModes(); };
+$("modeBack").onclick=closeModes;
+$("modeGo").onclick=function(){ startGame(null); setTimeout(closeModes, 760); };
+document.addEventListener("keydown",function(e){ if(e.key==="Escape" && $("startScreen").classList.contains("modes-open") && !document.querySelector(".modal.open")) closeModes(); });
 $("modBtn").onclick=function(){ renderMods(); openModal($("mods")); };
 $("modsClose").onclick=function(){ closeModal($("mods")); };
 $("mods").onclick=function(e){ if(e.target===$("mods")) closeModal($("mods")); };
