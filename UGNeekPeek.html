@@ -934,8 +934,9 @@
   #startScreen .menu{transition:transform .55s cubic-bezier(.65,0,.35,1), opacity .45s ease, filter .45s ease}
   .modes{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; gap:14px; padding:20px 0; width:100%; max-width:420px; margin:0 auto;
     transform:translateX(110%); opacity:0; visibility:hidden; transition:transform .55s cubic-bezier(.65,0,.35,1), opacity .4s ease, visibility 0s .55s}
-  #startScreen.modes-open .menu{transform:translateX(-110%); opacity:0; pointer-events:none}
-  #startScreen.modes-open .modes{transform:none; opacity:1; visibility:visible; transition:transform .55s cubic-bezier(.65,0,.35,1), opacity .4s ease .1s, visibility 0s}
+  #startScreen.modes-open .menu{transform:translateX(-110%); opacity:0}
+  #startScreen.modes-open .menu *{pointer-events:none}
+  body.modes-open .modes{transform:none; opacity:1; visibility:visible; transition:transform .55s cubic-bezier(.65,0,.35,1), opacity .4s ease .1s, visibility 0s}
   .modeshead{display:flex; align-items:center; justify-content:space-between; font-family:var(--f-mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted);
     padding-bottom:10px; border-bottom:1px solid var(--line)}
   .modelist{display:flex; flex-direction:column; gap:10px}
@@ -950,7 +951,8 @@
   .modego{margin-top:auto}
   /* desktop: the menu stays put and greys out; modes slide in beside it */
   @media (min-width:900px){
-    #startScreen.modes-open .menu{transform:none; opacity:.28; filter:grayscale(1)}
+    #startScreen.modes-open .menu{transform:none; opacity:.28; filter:grayscale(1); cursor:pointer}
+    body.launching .modes, body.playing .modes{opacity:0 !important; transition:opacity .35s ease !important}
     .modes{position:fixed; left:auto; right:0; top:0; bottom:0; width:400px; max-width:none; padding:40px 32px; z-index:6;
       background:var(--surface); border-left:1px solid var(--line)}
     .modego{margin-top:12px}
@@ -1025,7 +1027,7 @@
         <button class="seg" data-d="random" role="radio"><span class="sn">Random</span><span class="sx">&times;1.25</span></button>
       </div>
       <div class="dnote" id="diffNote" style="--i:2"></div>
-      <button class="btn sec modeartists" id="filterBtn">Choose artists</button>
+      <button class="btn sec modeartists" id="filterBtn"><svg class="si" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>Choose artists</button>
       <button class="btn playall modego" id="modeGo"><span class="pl">Play</span><span class="arr">&rarr;</span></button>
     </div>
   </div>
@@ -2290,8 +2292,15 @@ function renderModes(){
   $("modeList").innerHTML=GMODES.map(function(m,i){ return "<button class='modeopt"+(m.k===gmode()?" on":"")+"' data-k='"+m.k+"' style='--i:"+i+"'><b>"+m.name+"</b><span>"+m.desc+"</span></button>"; }).join("");
   [].forEach.call($("modeList").querySelectorAll(".modeopt"),function(b){ b.onclick=function(){ prefs.gmode=b.getAttribute("data-k"); savePrefs(); renderModes(); }; });
 }
-function openModes(){ renderModes(); $("startScreen").classList.add("modes-open"); $("modePanel").setAttribute("aria-hidden","false"); }
-function closeModes(){ $("startScreen").classList.remove("modes-open"); $("modePanel").setAttribute("aria-hidden","true"); }
+// desktop: the panel lives on <body> so the menu's launch zoom can't drag it into the middle; phones keep it in the menu to slide with it
+function placeModes(){ var pn=$("modePanel"), desk=matchMedia("(min-width:900px)").matches;
+  if(desk && pn.parentNode!==document.body) document.body.appendChild(pn);
+  else if(!desk && pn.parentNode!==$("startScreen")) $("startScreen").appendChild(pn); }
+function openModes(){ placeModes(); renderModes(); void $("modePanel").offsetWidth; $("startScreen").classList.add("modes-open"); document.body.classList.add("modes-open"); $("modePanel").setAttribute("aria-hidden","false"); }
+function closeModes(){ $("startScreen").classList.remove("modes-open"); document.body.classList.remove("modes-open"); $("modePanel").setAttribute("aria-hidden","true"); }
+// click anywhere outside the panel (the greyed menu, the background) to close it; clicks inside open menus don't count
+document.addEventListener("click",function(e){ if(!document.body.classList.contains("modes-open") || document.body.classList.contains("playing")) return;
+  if($("modePanel").contains(e.target) || e.target.closest(".modal") || e.target.closest("#startBtn")) return; closeModes(); });
 $("startBtn").onclick=function(){ var b=this; b.classList.add("held"); setTimeout(function(){ b.classList.remove("held"); }, 900); openModes(); };
 $("modeBack").onclick=closeModes;
 $("modeGo").onclick=function(){ startGame(null); setTimeout(closeModes, 760); };
