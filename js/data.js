@@ -268,7 +268,7 @@ function mastery(){
   for(var a in acc){ var r=acc[a].c/acc[a].s; if(acc[a].s>=5) out[a] = r>=0.9 ? "diamond" : r>=0.75 ? "gold" : r>=0.65 ? "silver" : r>=0.5 ? "bronze" : ""; if(!out[a]) delete out[a]; }
   return out;
 }
-var LU_RANK=["Playboi Carti","Lil Uzi Vert","Ken Carson","Yeat","Destroy Lonely","Nettspend","OsamaSon","2hollis","EsDeeKid","Lucki","Chief Keef","fakemink","Che","Nine Vicious","BKTHERULA",
+var LU_RANK=["Playboi Carti","Lil Uzi Vert","Chief Keef","Ken Carson","Yeat","Destroy Lonely","Nettspend","OsamaSon","2hollis","EsDeeKid","Lucki","fakemink","Che","Nine Vicious","BKTHERULA",
   "skaiwater","Rich Amiri","SoFaygo","Homixide Gang","Cochise","Molly Santana","YT","Lucy Bedroque","Hardrock","Glokk40Spaz","xaviersobased","Summrs",
   "Autumn!","Kankan","tana","prettifun","Jace! / iayze","LAZER DIM 700","Edward Skeletrix","kuru","ksuuvi","1oneam","Dom Corleo","BabyChiefDoit","Duwap Kaine"];
 // diamond names shed a slow sparkle every so often (only while visible; skipped with reduced motion)
