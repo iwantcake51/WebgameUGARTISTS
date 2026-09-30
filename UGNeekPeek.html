@@ -1050,7 +1050,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.12.64</div>
+  <div class="ver" title="version">v1.12.65</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -1698,6 +1698,7 @@ function buildArtist(a, terms, lists){
   return tracks;
 }
 var AKEY="drop_art_v8:", ATTL=3*24*3600*1000, UNAVAIL={}, LOADING={};
+try{ if(!localStorage.getItem("drop_fix_nett")){ localStorage.removeItem(AKEY+"Nettspend"); localStorage.setItem("drop_fix_nett","1"); } }catch(e){}      // drop songs cached under his old, wrong Apple ID
 function cacheGet(a){ try{ var c=JSON.parse(localStorage.getItem(AKEY+a)||"null"); if(c&&c.t&&c.r&&Date.now()-c.t<ATTL) return decodeTracks(a,c.r); }catch(e){} return null; }
 function cachePut(a,tr){ try{ localStorage.setItem(AKEY+a, JSON.stringify({t:Date.now(),r:encodeTracks(tr)})); }catch(e){} }
 function hasArtist(a){ return !!(byArtist[a]&&byArtist[a].tracks.length>=NEED); }
