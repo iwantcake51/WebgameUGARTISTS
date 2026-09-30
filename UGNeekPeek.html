@@ -623,6 +623,10 @@
   #bgv video{position:absolute; left:50%; top:50%; width:40vw; height:40vh; object-fit:cover; opacity:0; transition:opacity 1.4s ease;
     filter:blur(5px) saturate(1.25) brightness(.62); transform:translate(-50%,-50%) scale(2.8); will-change:transform,opacity}
   #bgv video.on{opacity:1; animation:bgZoom 7s ease-out forwards}
+  #bgv.solo video{transition:opacity 3s ease}      /* one artist picked: slower, longer crossfades */
+  html.lowfx #bgv video{filter:saturate(1.2) brightness(.58); will-change:opacity}
+  html.lowfx .modal, html.lowfx [style*="backdrop-filter"]{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
+  html.lowfx .modal{--mbg:rgba(5,3,10,.82); --mblur:0px}
   @keyframes bgZoom{from{transform:translate(-50%,-50%) scale(2.8)} to{transform:translate(-50%,-50%) scale(3.1)}}
   .bgvshade{position:absolute; inset:0; background:
     radial-gradient(ellipse at 50% 42%, rgba(10,7,17,.15) 0%, rgba(10,7,17,.72) 70%, rgba(10,7,17,.92) 100%),
@@ -1617,6 +1621,9 @@ function onAudioError(){
   }
 }
 
+// phones / low-power devices: lighter effects (no live blurs, slower idle loops)
+var LOWFX=matchMedia("(pointer:coarse), (max-width:700px)").matches || (navigator.hardwareConcurrency||8)<=4;
+if(LOWFX) document.documentElement.classList.add("lowfx");
 var viz=$("viz"), vctx=null, VBARS=56, vsmooth=[], vphase=0, vizW=0, vizH=0;
 function initViz(){
   vctx=viz.getContext("2d");
@@ -2325,9 +2332,9 @@ $("vol2").oninput=function(){ setVolume(parseFloat(this.value)); };
   window.addEventListener("pointermove",onMove,{passive:true}); window.addEventListener("touchmove",onMove,{passive:true});
   (function loop(now){
     var k=(now-t0)/1000, dx=Math.sin(k*0.23)*5+Math.sin(k*0.11)*3, dy=Math.cos(k*0.17)*3;
-    x+=(tx+dx-x)*0.04; y+=(ty+dy-y)*0.04;
-    el.style.transform="translate3d("+x.toFixed(2)+"px,"+y.toFixed(2)+"px,0)";
-    requestAnimationFrame(loop);
+    var nx=x+(tx+dx-x)*0.04, ny=y+(ty+dy-y)*0.04;
+    if(Math.abs(nx-x)+Math.abs(ny-y)>0.02){ x=nx; y=ny; el.style.transform="translate3d("+x.toFixed(1)+"px,"+y.toFixed(1)+"px,0)"; }
+    if(LOWFX) setTimeout(function(){ requestAnimationFrame(loop); }, 66); else requestAnimationFrame(loop);
   })(t0);
 })();
 // ---- menu background: an edit of music video previews from the artists (Apple previews, muted, blurred) ----
@@ -2396,7 +2403,6 @@ var BGV=(function(){
   function pickClip(){
     var all=[];
     var only=prefs.bgArtist && ARTISTS.indexOf(prefs.bgArtist)!==-1 ? prefs.bgArtist : "";
-    if(only && fresh(only) && !CACHE[only].list.length) only="";      // Apple has no videos for them: fall back to everyone
     for(var a in CACHE){ if(!fresh(a) || (only && a!==only)) continue; CACHE[a].list.forEach(function(c){ var u=c.u||c; if(!played[u]) all.push([a,c]); }); }
     if(!all.length){ played={}; for(var a2 in CACHE){ if(fresh(a2) && (!only || a2===only)) CACHE[a2].list.forEach(function(c){ if((c.u||c)!==lastSrc) all.push([a2,c]); }); }
       if(!all.length && only && fresh(only)) CACHE[only].list.forEach(function(c){ all.push([only,c]); }); }
@@ -2410,14 +2416,14 @@ var BGV=(function(){
   }
   function next(){
     clearTimeout(timer); if(!want()) return;
-    var clip=pickClip(); if(!clip) return; var src=clip.u;
+    var clip=pickClip(); if(!clip) return; var src=clip.u, solo=!!prefs.bgArtist; $("bgv").classList.toggle("solo",solo);
     var v=vids[1-cur], old=vids[cur];
     v.src=src; v.muted=true;
     var shown=false;
     function show(){ if(shown) return; shown=true; v.classList.remove("on"); void v.offsetWidth; v.classList.add("on"); old.classList.remove("on"); cur=1-cur; nowPlaying(clip);
-      setTimeout(function(){ if(!old.classList.contains("on")) try{ old.pause(); }catch(e){} },1500);
-      timer=setTimeout(next, CUT); }
-    v.onloadedmetadata=function(){ try{ v.currentTime=Math.min(Math.max(0,(v.duration||30)-CUT/1000-1), 3+Math.random()*14); }catch(e){} };
+      setTimeout(function(){ if(!old.classList.contains("on")) try{ old.pause(); }catch(e){} }, solo?3300:1500);
+      timer=setTimeout(next, solo?CUT*1.8:CUT); }
+    v.onloadedmetadata=function(){ try{ v.currentTime=Math.min(Math.max(0,(v.duration||30)-(solo?CUT*1.8:CUT)/1000-1), 3+Math.random()*14); }catch(e){} };
     v.oncanplay=function(){ var p=v.play(); if(p&&p.then) p.then(show,function(){ timer=setTimeout(next,1500); }); else show(); };
     v.onerror=function(){ if(v===vids[cur]&&shown){ clearTimeout(timer); timer=setTimeout(next,300); } else if(!shown){ clearTimeout(timer); timer=setTimeout(next,300); } };
     // freeze guard: if the visible clip ends, stalls or stops advancing, cut to the next one
@@ -2437,9 +2443,16 @@ var BGV=(function(){
     var v=vids[cur]; if(v.src && v.classList.contains("on")){ var p=v.play(); if(p&&p.catch) p.catch(function(){}); clearTimeout(timer); timer=setTimeout(next, CUT); } else next();
   }
   document.addEventListener("visibilitychange", resume);
+  function noVids(a){ nowPlaying({a:"Apple has no music video previews for "+a, t:""}); }
+  function loadPick(a,tries){       /* look the picked artist up now, skipping the queue; retry if Apple refused */
+    fetchArtist(a).then(function(){ if(prefs.bgArtist!==a) return;
+      if(!fresh(a)){ if(tries<3) setTimeout(function(){ loadPick(a,tries+1); }, 4000*(tries+1)); return; }
+      if(!CACHE[a].list.length){ noVids(a); return; }
+      if(want()) next(); }); }
   function setArtist(a){ played={}; clearTimeout(timer);
     var pend=vids[1-cur]; pend.oncanplay=pend.onloadedmetadata=pend.onerror=null; try{ pend.pause(); }catch(e){}     /* drop a clip that was still loading for the old pick */ vids.forEach(function(v){ v.classList.remove("on"); }); nowPlaying(null);  /* fade the current clip out right away */
-    if(a && !fresh(a)) fetchArtist(a).then(function(){ if(prefs.bgArtist===a && want()) next(); });      /* look them up now, skipping the queue */
+    if(a && !fresh(a)) loadPick(a, 0);
+    else if(a && !CACHE[a].list.length) noVids(a);
     else if(want()) next(); }
   return {setArtist:setArtist, nowPlaying:nowPlaying, pickClip:pickClip, cache:CACHE, resume:resume, toggle:resume, pause:function(){ clearTimeout(timer); vids.forEach(function(v){ try{ v.pause(); }catch(e){} }); }};
 })();
@@ -2549,6 +2562,7 @@ var CLICK=(function(){
   (function loop(now){
     var on=st.classList.contains("revealed") && prefs.holo, k=(now-t0)/1000;
     var gx=on?(hover?tx:Math.sin(k*0.9)*0.28):0, gy=on?(hover?ty:Math.cos(k*0.7)*0.22):0;
+    if(!on && Math.abs(x)+Math.abs(y)<0.0005){ requestAnimationFrame(loop); return; }
     x+=(gx-x)*0.1; y+=(gy-y)*0.1;
     st.style.setProperty("--trx",(-y*14).toFixed(2)+"deg"); st.style.setProperty("--try",(x*16).toFixed(2)+"deg");
     st.style.setProperty("--gx",(50+x*110).toFixed(1)+"%"); st.style.setProperty("--gy",(50+y*110).toFixed(1)+"%");
