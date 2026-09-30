@@ -1005,6 +1005,7 @@
   .stageInner, .holo{border-radius:inherit} .holo{overflow:hidden; clip-path:inset(0 round 4px)}
   .stage.revealed .stageInner{clip-path:inset(0 round 4px)}
   .dgoal{font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:-6px}
+  .dgoal b{font-weight:700; color:var(--dc); background:linear-gradient(90deg,var(--dc),var(--dc2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; transition:color .3s}
 </style>
 </head>
 <body>
@@ -2349,7 +2350,7 @@ function goalOf(){ return isEndless() ? 0 : (DIFFS[curDiff()].goal||0); }
 function gmode(){ return GMODES.some(function(m){ return m.k===prefs.gmode; }) ? prefs.gmode : "classic"; }
 function isSingle(t){ return /\s-\ssingle$/i.test(t.album||""); }       // Apple names single releases "Title - Single"
 function goalNote(){ var el=$("diffGoal"); if(!el) return;
-  el.textContent = gmode()==="endless" && !modeArtist ? "Endless \u2014 no song limit" : DIFFS[curDiff()].goal+" songs this round"; }
+  el.innerHTML = gmode()==="endless" && !modeArtist ? "<b>\u221E</b> Endless \u2014 no song limit" : "<b>"+DIFFS[curDiff()].goal+"</b> songs this round"; }
 function renderModes(){ setTimeout(goalNote,0);
   var names=modeArtist ? [modeArtist] : setNames(), canEndless=!names || names.length>=5, E=escapeHtml;
   var head = names && !names.length ? "No one?..." : modeArtist || (names && filBuilt) ? null : (names ? names.length+" artists" : "All Artists");
