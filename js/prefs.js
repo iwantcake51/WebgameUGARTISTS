@@ -1,6 +1,6 @@
 // ---- prefs ----
-var prefs={theme:"plum", volume:0.5, plx:true, uivol:1, mmvol:1, autoplay:false, endmusic:true, menumusic:true, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, gamevid:false, vblur:"", bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, diff:"normal"}, VIZ_ACCENT="#8c5cff";
-try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; ["uivol","mmvol"].forEach(function(k){ if(typeof pp[k]==="number") prefs[k]=pp[k]; }); if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.vblur==="string") prefs.vblur=pp.vblur; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","plx","endmusic","menumusic","gamevid","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
+var prefs={theme:"plum", volume:0.5, plx:true, uivol:1, mmvol:1, autoplay:false, endmusic:true, menumusic:true, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, gamevid:false, vblur:"", bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, vsync:false, diff:"normal"}, VIZ_ACCENT="#8c5cff";
+try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; ["uivol","mmvol"].forEach(function(k){ if(typeof pp[k]==="number") prefs[k]=pp[k]; }); if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.vblur==="string") prefs.vblur=pp.vblur; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","plx","endmusic","menumusic","gamevid","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring","vsync"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
 function savePrefs(){ try{ localStorage.setItem("drop_prefs", JSON.stringify(prefs)); }catch(e){} }
 function applyTheme(id){
   var th=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){th=THEMES[i];break;} } if(!th) th=THEMES[0];
@@ -28,6 +28,7 @@ var TOGGLES=[
   {cat:"fx", k:"bw",        label:"Black & white",      desc:"Removes all color, album covers included"},
   {cat:"fx", k:"confetti",  label:"Confetti",           desc:"Confetti falls when you get a song right"},
   {cat:"sound", k:"clicks",    label:"UI interaction sounds", desc:"Clicks, blips and whooshes when you press buttons, flip switches and open menus"},
+  {cat:"vsync", k:"vsync", lag:"lo", tag:"Resource Intensive", label:"Sync colours to video", desc:"The theme follows the background video, blending its average colour in smoothly as clips play", need:["bgvid","gamevid"]},
   {cat:"ui", k:"ring",      label:"Click ripple",       desc:"The circle that expands where you tap or click"},
   {cat:"fx", k:"tv",        lag:"mid", tag:"Resource Intensive", label:"CRT effects",        desc:"Curved screen, film grain, scanlines and the odd signal glitch over everything"},
   {cat:"fx", k:"bgvid",     lag:"mid", tag:"Resource Intensive", label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
@@ -41,6 +42,7 @@ function renderToggles(){
   TOGGLES.forEach(function(t){
     var val = prefs[t.k], h="";
     h+="<div class='toggle'><div><div class='tlabel'>"+t.label+(t.tag?"<span class='ttag "+(t.lag||"")+"'>"+t.tag+"</span>":"")+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(val?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
+    if(t.need) h=h.replace("<div class='toggle'>","<div class='toggle needs' data-need='"+t.k+"'>").replace("</div></div><button","</div><div class='tneed'>Needs "+t.need.map(function(n){ var o=TOGGLES.filter(function(x){ return x.k===n; })[0]; return "<b>"+(o?o.label:n)+"</b>"; }).join(" and ")+" turned on</div></div><button");
     document.querySelector("#settings .tg[data-cat='"+t.cat+"']").insertAdjacentHTML("beforeend",h);
   });
   var bt=$("settings").querySelector(".sw[data-k='bgvid']").parentNode, pk=document.createElement("div");
@@ -52,9 +54,17 @@ function renderToggles(){
     "<select id='vbSel' class='dsel'><option value='off'>Off</option><option value='basic'>Basic</option><option value='quality'>Quality</option></select>";
   pk.parentNode.insertBefore(vb, pk.nextSibling); $("vbSel").value=vblur();
   $("vbSel").onchange=function(){ prefs.vblur=this.value; savePrefs(); applyPrefs(); };
-  ladderSelect($("vbSel")); syncFrost();
+  ladderSelect($("vbSel")); syncFrost(); syncNeeds();
   var sw=$("settings").querySelectorAll(".tg .sw");
-  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid"){ syncBgPick(); syncFrost(); } if(k==="gamevid") try{ document.dispatchEvent(new Event("visibilitychange")); }catch(e){} }; })(sw[i]); }
+  for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid"){ syncBgPick(); syncFrost(); } syncNeeds(); if(k==="gamevid") try{ document.dispatchEvent(new Event("visibilitychange")); }catch(e){} }; })(sw[i]); }
+}
+// settings that need others on are greyed out (with a note) until they are; video colour sync also greys out the theme swatches
+function vsyncOn(){ return !!(prefs.vsync && prefs.bgvid && prefs.gamevid); }
+function syncNeeds(){
+  [].forEach.call(document.querySelectorAll("#settings .toggle.needs"),function(r){ var t=TOGGLES.filter(function(x){ return x.k===r.getAttribute("data-need"); })[0]; if(!t) return;
+    var ok=t.need.every(function(n){ return prefs[n]; }); r.classList.toggle("blocked",!ok); var b=r.querySelector(".sw"); if(b) b.disabled=!ok; });
+  var sw=$("swatches"); if(sw){ sw.classList.toggle("off",vsyncOn()); var n=$("swNote"); if(n) n.style.display=vsyncOn()?"":"none"; }
+  if(window.VSYNC) VSYNC.toggle();
 }
 // background artist picker: type to filter, pick one (or "All artists"); greyed out while the video background is off
 function syncFrost(){ var row=$("vbRow"); if(row) row.classList.toggle("off", !prefs.bgvid); }

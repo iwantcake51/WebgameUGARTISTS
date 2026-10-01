@@ -108,6 +108,7 @@ var BGV=(function(){
     clearTimeout(timer); if(!want()) return;
     var clip=pickClip(); if(!clip) return; var src=clip.u, solo=!!prefs.bgArtist; $("bgv").classList.toggle("solo",solo);
     var v=vids[1-cur], old=vids[cur];
+    if(window.VSYNC && VSYNC.cors()) v.crossOrigin="anonymous"; else v.removeAttribute("crossorigin");      // colour sync needs to read the frames
     v.src=src; v.muted=true;
     var shown=false;
     function show(){ if(shown) return; shown=true; v.classList.remove("on"); void v.offsetWidth; v.classList.add("on"); old.classList.remove("on"); cur=1-cur; nowPlaying(clip);
@@ -115,7 +116,8 @@ var BGV=(function(){
       timer=setTimeout(next, solo?CUT*1.8:CUT); }
     v.onloadedmetadata=function(){ try{ v.currentTime=Math.min(Math.max(0,(v.duration||30)-(solo?CUT*1.8:CUT)/1000-1), 3+Math.random()*14); }catch(e){} };
     v.oncanplay=function(){ var p=v.play(); if(p&&p.then) p.then(show,function(){ timer=setTimeout(next,1500); }); else show(); };
-    v.onerror=function(){ if(v===vids[cur]&&shown){ clearTimeout(timer); timer=setTimeout(next,300); } else if(!shown){ clearTimeout(timer); timer=setTimeout(next,300); } };
+    v.onerror=function(){ if(v.crossOrigin && window.VSYNC){ VSYNC.noCors(); v.removeAttribute("crossorigin"); v.src=src; return; }      // CDN refused CORS: play without colour sync
+      if(v===vids[cur]&&shown){ clearTimeout(timer); timer=setTimeout(next,300); } else if(!shown){ clearTimeout(timer); timer=setTimeout(next,300); } };
     // freeze guard: if the visible clip ends, stalls or stops advancing, cut to the next one
     v.onended=function(){ if(shown && v===vids[cur]) next(); };
     var lastT=-1; clearInterval(v._wd); v._wd=setInterval(function(){
@@ -341,4 +343,41 @@ var BULGE=(function(){
         if(el.scrollTop===before){ s.raf=0; el.style.scrollBehavior=""; return; }       // hit an edge
         s.raf=requestAnimationFrame(step); })(); }
   },{passive:false});
+})();
+// ---- colour sync: the theme follows the background video's average colour, blended smoothly in real time ----
+var VSYNC=(function(){
+  var cv=document.createElement("canvas"), cx=null, sT=0, lT=0, cur=null, tgt=null, blocked=false, last="";
+  cv.width=32; cv.height=18;
+  function on(){ return vsyncOn() && !blocked; }
+  function sample(){
+    if(!on() || document.hidden) return;
+    var v=document.querySelector("#bgv video.on"); if(!v || v.readyState<2 || !v.crossOrigin) return;
+    try{ cx=cx||cv.getContext("2d",{willReadFrequently:true}); cx.drawImage(v,0,0,32,18); var d=cx.getImageData(0,0,32,18).data; }catch(e){ noCors(); return; }
+    var r=0,g=0,b=0,w=0, R=0,G=0,B=0,n=0;
+    for(var i=0;i<d.length;i+=4){ var pr=d[i],pg=d[i+1],pb=d[i+2], mx=Math.max(pr,pg,pb), mn=Math.min(pr,pg,pb), sat=mx?(mx-mn)/mx:0, k=sat*sat*(mx/255)+0.002;
+      r+=pr*k; g+=pg*k; b+=pb*k; w+=k; R+=pr; G+=pg; B+=pb; n++; }
+    tgt=hsl(r/w,g/w,b/w); var avg=hsl(R/n,G/n,B/n); tgt.l=avg.l;          // hue/saturation from the vivid pixels, brightness from the whole frame
+    if(!cur) cur={h:tgt.h,s:tgt.s,l:tgt.l};
+  }
+  function hsl(r,g,b){ r/=255; g/=255; b/=255; var mx=Math.max(r,g,b), mn=Math.min(r,g,b), h=0, s=0, l=(mx+mn)/2, d=mx-mn;
+    if(d){ s=d/(1-Math.abs(2*l-1)); h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4; h*=60; if(h<0) h+=360; } return {h:h,s:s,l:l}; }
+  function blend(){
+    if(!on() || !cur || !tgt) return;
+    var dh=((tgt.h-cur.h+540)%360)-180;           // shortest way round the colour wheel
+    cur.h=(cur.h+dh*0.06+360)%360; cur.s+=(tgt.s-cur.s)*0.06; cur.l+=(tgt.l-cur.l)*0.06;
+    var h=cur.h.toFixed(1), s=Math.min(1,cur.s), lb=Math.min(0.06,0.025+cur.l*0.05);
+    function c(sat,l){ return "hsl("+h+","+Math.round(sat*100)+"%,"+(l*100).toFixed(1)+"%)"; }
+    var vars={"--bg":c(s*.55,lb), "--grad":c(s*.6,.13+cur.l*.08), "--surface":c(s*.35,lb+.035), "--surface2":c(s*.35,lb+.065), "--line":c(s*.3,lb+.12),
+      "--accent":c(Math.max(.55,s),.64), "--spot":c(Math.max(.5,s),.68)}, key=JSON.stringify(vars);
+    if(key===last) return; last=key;
+    var st=document.documentElement.style; for(var k in vars) st.setProperty(k,vars[k]); VIZ_ACCENT=vars["--accent"];
+  }
+  function noCors(){ if(blocked) return; blocked=true; stop(); var n=$("swNote"); if(n) n.innerHTML="Couldn't read colours from these videos, so your theme is used"; }
+  function stop(){ clearInterval(sT); clearInterval(lT); sT=lT=0; cur=tgt=null; last=""; }
+  function toggle(){
+    if(on()){ document.documentElement.setAttribute("data-th","vsync"); if(!sT){ sT=setInterval(sample,350); lT=setInterval(blend,60); } }
+    else if(sT || document.documentElement.getAttribute("data-th")==="vsync"){ stop(); applyTheme(prefs.theme); }
+  }
+  setTimeout(toggle,0);
+  return {toggle:toggle, noCors:noCors, cors:function(){ return vsyncOn() && !blocked; }};
 })();
