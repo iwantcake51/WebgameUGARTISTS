@@ -113,7 +113,7 @@ function initBgPick(){
 function ladderSelect(sel){
   var w=document.createElement("div"); w.className="ddwrap"; sel.parentNode.insertBefore(w,sel); w.appendChild(sel);
   var b=document.createElement("button"); b.type="button"; b.className="dsel ddbtn"; w.appendChild(b);
-  var l=document.createElement("div"); l.className="bgplist"; w.appendChild(l);
+  var l=document.createElement("div"); l.className="bgplist"+(sel.options.length<=6?" fit":""); w.appendChild(l);      // short lists never scroll
   function label(){ var o=sel.options[sel.selectedIndex]; b.textContent=o?o.textContent:""; }
   function close(){ l.classList.remove("open"); w.classList.remove("open"); }
   function open(){ l.innerHTML=[].map.call(sel.options,function(o,i){ return "<button type='button' style='--i:"+i+"' class='bgpo"+(i===sel.selectedIndex?" sel":"")+"' data-i='"+i+"'>"+escapeHtml(o.textContent)+"</button>"; }).join("");
