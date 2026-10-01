@@ -10,7 +10,7 @@ function unpackArt(a){ a=String(a||"");
 function shareData(){
   var m = mode==="artist" ? pickArtist : mode==="multi" ? includedArtists().length+" artists" : "All artists";
   var tt = runTotal(), gm=gmode(), ab=artistBonus();
-  var d={v:1, s:score, tt:tt||undefined, gm:gm!=="classic"?gm:undefined, lk:diffLocked()?1:undefined, ab:ab>1?+ab.toFixed(2):undefined, na:includedArtists().length, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(), tz:new Date().getTimezoneOffset(), mo:activeMods().map(function(m){return m.k;}), n:(prefs.name||"").trim(), sk:modActive("skip")?(skipUsed||0):undefined,
+  var d={v:1, s:score, tt:tt||undefined, gm:gm!=="classic"?gm:undefined, lk:diffLocked()?1:undefined, ab:ab>1?+ab.toFixed(2):undefined, na:includedArtists().length, d:curDiff(), m:m, w:wonAll?1:0, at:Date.now(), tz:new Date().getTimezoneOffset(), mo:activeMods().map(function(m){return m.k;}), n:(prefs.name||"").trim(), u:(function(){ try{ var x=+localStorage.getItem("drop_uid"); return x>0?x:undefined; }catch(e){} })(), sk:modActive("skip")?(skipUsed||0):undefined,
     r:runLog.map(function(x,i){ return [x.t.id, x.t.title, x.t.credit||x.t.artist, x.win?1:0, Math.round(x.secs*100), x.clip, x.pts, packArt(x.t.art)]; })};
   return b64u(JSON.stringify(d));
 }
@@ -88,7 +88,7 @@ function showShared(q0,own){
   $("svSub").innerHTML = "<b>"+E(String(d.m||"All artists"))+"</b> on "+(d.lk ? "<b>"+E(gmn)+"</b>" : "<b>"+DIFFS[dk].label+"</b>"+(gmn?" \u00b7 <b>"+E(gmn)+"</b>":""))+
     (+d.ab>1?"<div class='modtags'><span class='modtag'>\uD83D\uDC65 "+(+d.na||"")+" artists \u00d7"+(+d.ab)+"</span></div>":"")+(d.at?"<br>"+(own?"played ":"shared ")+E(whenTxt(+d.at)):"")+
     (miss?"<br>went out on <b>"+E(miss.t)+"</b>":"")+(Array.isArray(d.mo)?modTags(d.mo.map(String)):"")+(d.sk?skipTxt(d.sk):d.sk===0?"<div class='skipnote'>\u23ED\uFE0F skip not used</div>":"");
-  $("svKick").textContent = own ? "your game" : d.n ? String(d.n).slice(0,20)+" sent you a score" : "a friend sent you a score";
+  $("svKick").textContent = own ? "your game" : d.n ? String(d.n).slice(0,20)+(+d.u>0?"@"+(+d.u):"")+" sent you a score" : "a friend sent you a score";
   $("svScore").innerHTML=(+d.s||0)+"<small>points</small>";
   $("svSolved").textContent = d.gm==="endless" ? String(wins.length) : wins.length+"/"+(+d.tt>0?+d.tt:n); $("svStreak").textContent=best; $("svAvg").textContent=times.length?avg.toFixed(1)+"s":"-";
   $("svAccBar").style.width=(n?wins.length/n*100:0)+"%";
@@ -173,7 +173,7 @@ $("setBtn").onclick=openSettings; $("setBtn2").onclick=openSettings; $("settings
 $("settings").onclick=function(e){ if(e.target===$("settings")) closeSettings(); };
 $("vol").oninput=function(){ setVolume(parseFloat(this.value)); };
 $("nameInput").value=prefs.name||"";
-$("nameInput").oninput=function(){ prefs.name=this.value.replace(/\s+/g," ").slice(0,20); savePrefs(); greet(); };
+$("nameInput").oninput=function(){ prefs.name=this.value.replace(/\s+/g," ").slice(0,20); savePrefs(); greet(); placeUid(); };
 // top-left greeting: first visit / back without a name / "Hello, NAME" in a random language
 var GREETS=["Hello","Hola","Bonjour","Ciao","Hallo","Ol\u00e1","Hej","Konnichiwa","Annyeong","Ni hao","Namaste","Merhaba","Salut","Aloha","Privet","Jambo","Shalom","Marhaba","Sawubona","Kamusta"];
 var firstVisit=false; try{ firstVisit=!localStorage.getItem("drop_seen"); localStorage.setItem("drop_seen","1"); }catch(e){}

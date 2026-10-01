@@ -630,6 +630,8 @@ body.bgv-on.gv-on.playing #bgv{opacity:.55}
 html.vb-off #bgv video{filter:saturate(1.2) brightness(.58) !important} html.lowfx #bgv video{will-change:opacity}
 html.nofrost .modal, html.nofrost [style*="backdrop-filter"], html.nofrost .chip{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
 html.nofrost .modal{--mbg:rgba(5,3,10,.82); --mblur:0px}
+/* quality blur still dims as much as basic, the blur is on top of that */
+html:not(.nofrost) .modal{--mbg:rgba(5,3,10,.78)} html:not(.nofrost) body.nodim .modal{--mbg:rgba(5,3,10,0)}
 @keyframes bgZoom{from{transform:translate(-50%,-50%) scale(2.8)} to{transform:translate(-50%,-50%) scale(3.1)}}
 .bgvshade{position:absolute; inset:0; background:
   radial-gradient(ellipse at 50% 42%, rgba(10,7,17,.15) 0%, rgba(10,7,17,.72) 70%, rgba(10,7,17,.92) 100%),
@@ -964,7 +966,7 @@ html:not(.bsd) .modeopt b{font-size:18px}
 @media (min-width:900px){
   #startScreen.modes-open .menu{transform:none; opacity:.4; filter:saturate(.4); cursor:pointer}
   /* dim + blur everything behind the panel, like the other menus (off with "Dim & blur behind menus") */
-  body::before{content:""; position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; background:rgba(5,3,10,.55);
+  body::before{content:""; position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; background:rgba(5,3,10,.75);
     -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); transition:opacity .45s ease}
   body.modes-open:not(.playing):not(.nodim)::before{opacity:1}
   html.nofrost body::before{-webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(5,3,10,.75)}
@@ -1203,3 +1205,8 @@ html.hc :is(.btn,.opt,.modcard,.dbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.ch
 html.hc :is(button,a,input,select,[tabindex]):focus-visible{outline:3px solid #fff !important; outline-offset:2px}
 html.hc .tdesc, html.hc .sslabel, html.hc .pgs, html.hc .pgw, html.hc .sta, html.hc .cc{color:var(--muted) !important; opacity:1 !important}
 html.hc #nowVid, html.hc .ver{color:#fff !important; opacity:1}
+/* username with the @id right after it */
+.namewrap{position:relative; margin-bottom:22px}
+.uidtag{position:absolute; top:50%; transform:translateY(-50%); pointer-events:none; font-family:var(--f-mono); font-size:13px; font-weight:700; color:var(--accent); white-space:nowrap; transition:left .08s ease}
+.uidtag.empty{opacity:.55}
+.namewrap .catsearch{padding-right:70px}

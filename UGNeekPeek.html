@@ -37,7 +37,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.14.9</div>
+  <div class="ver" title="version">v1.14.10</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -164,8 +164,7 @@
     <div class="sheetbody">
       <div class="setcat">Account</div>
       <div class="setlabel">Username</div>
-      <input id="nameInput" class="catsearch" type="text" maxlength="20" placeholder="Shown when you share a score" autocomplete="off" style="margin-bottom:8px">
-      <div class="uidline">User ID <span id="uidVal">&hellip;</span></div>
+      <div class="namewrap"><input id="nameInput" class="catsearch" type="text" maxlength="20" placeholder="Shown when you share a score" autocomplete="off"><span id="uidVal" class="uidtag" title="Your user ID: names can repeat, IDs never do">@&hellip;</span></div>
       <div class="setcat">Sound</div>
       <div class="setlabel" style="display:flex;justify-content:space-between">Volume <span class="volpct" id="volPct2"></span></div>
       <input id="vol2" class="vol" type="range" min="0" max="1" step="0.01" style="width:100%;margin-bottom:10px">

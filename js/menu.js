@@ -157,12 +157,18 @@ function renderNet(){
   $("netlog").textContent=L.join("\n"); try{ $("devlog").textContent=DEV.text(); }catch(e){}
 }
 function showUid(){ var u=null; try{ u=localStorage.getItem("drop_uid"); }catch(e){}
-  if(u){ $("uidVal").textContent="#"+u; return; }
-  $("uidVal").textContent="\u2026";
+  function set(t){ $("uidVal").textContent=t; placeUid(); }
+  if(u){ set("@"+u); return; }
+  set("@\u2026");
   fetch("/api/uid",{method:"POST"}).then(function(r){ return r.ok?r.json():null; }).then(function(j){
-    if(j&&j.id){ try{ localStorage.setItem("drop_uid",String(j.id)); }catch(e){} $("uidVal").textContent="#"+j.id; } else $("uidVal").textContent="unavailable";
-  }).catch(function(){ $("uidVal").textContent="unavailable"; }); }
-function openSettings(){ showUid(); renderNet(); openModal($("settings")); }
+    if(j&&j.id){ try{ localStorage.setItem("drop_uid",String(j.id)); }catch(e){} set("@"+j.id); } else set("@?");
+  }).catch(function(){ set("@?"); }); }
+// the @id sits right after the typed name (names can repeat, ids can't)
+function placeUid(){ var inp=$("nameInput"), tag=$("uidVal"); if(!inp||!tag) return;
+  var cs=getComputedStyle(inp), c=placeUid.c||(placeUid.c=document.createElement("canvas").getContext("2d")); c.font=cs.fontSize+" "+cs.fontFamily;
+  var pl=parseFloat(cs.paddingLeft)||0, w=inp.value?c.measureText(inp.value).width:0, max=inp.clientWidth-tag.offsetWidth-pl;
+  tag.style.left=(inp.value ? inp.offsetLeft+pl+Math.min(w,Math.max(0,max))+1 : inp.offsetLeft+inp.clientWidth-tag.offsetWidth-12)+"px"; tag.classList.toggle("empty",!inp.value); }
+function openSettings(){ showUid(); renderNet(); openModal($("settings")); requestAnimationFrame(placeUid); }
 function closeSettings(){ closeModal($("settings")); }
 
 // ---- wiring ----
