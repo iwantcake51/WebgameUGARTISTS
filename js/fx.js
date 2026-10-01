@@ -362,12 +362,13 @@ var VSYNC=(function(){
   function hsl(r,g,b){ r/=255; g/=255; b/=255; var mx=Math.max(r,g,b), mn=Math.min(r,g,b), h=0, s=0, l=(mx+mn)/2, d=mx-mn;
     if(d){ s=d/(1-Math.abs(2*l-1)); h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4; h*=60; if(h<0) h+=360; } return {h:h,s:s,l:l}; }
   function blend(){
-    if(!on() || !cur || !tgt) return;
+    if(!on() || !cur || !tgt || document.hidden || document.body.classList.contains("launching")) return;
     var dh=((tgt.h-cur.h+540)%360)-180;           // shortest way round the colour wheel
-    cur.h=(cur.h+dh*0.06+360)%360; cur.s+=(tgt.s-cur.s)*0.06; cur.l+=(tgt.l-cur.l)*0.06;
-    var h=cur.h.toFixed(1), s=Math.min(1,cur.s), lb=Math.min(0.06,0.025+cur.l*0.05);
+    cur.h=(cur.h+dh*0.16+360)%360; cur.s+=(tgt.s-cur.s)*0.16; cur.l+=(tgt.l-cur.l)*0.16;
+    // rounded steps: every restyle repaints the whole page, so only change when the difference is visible
+    var h=Math.round(cur.h/3)*3, s=Math.round(Math.min(1,cur.s)*25)/25, lb=Math.round(Math.min(0.06,0.025+cur.l*0.05)*200)/200, gl=Math.round((.13+cur.l*.08)*100)/100;
     function c(sat,l){ return "hsl("+h+","+Math.round(sat*100)+"%,"+(l*100).toFixed(1)+"%)"; }
-    var vars={"--bg":c(s*.55,lb), "--grad":c(s*.6,.13+cur.l*.08), "--surface":c(s*.35,lb+.035), "--surface2":c(s*.35,lb+.065), "--line":c(s*.3,lb+.12),
+    var vars={"--bg":c(s*.55,lb), "--grad":c(s*.6,gl), "--surface":c(s*.35,lb+.035), "--surface2":c(s*.35,lb+.065), "--line":c(s*.3,lb+.12),
       "--accent":c(Math.max(.55,s),.64), "--spot":c(Math.max(.5,s),.68)}, key=JSON.stringify(vars);
     if(key===last) return; last=key;
     var st=document.documentElement.style; for(var k in vars) st.setProperty(k,vars[k]); VIZ_ACCENT=vars["--accent"];
@@ -375,7 +376,7 @@ var VSYNC=(function(){
   function noCors(){ if(blocked) return; blocked=true; stop(); var n=$("swNote"); if(n) n.innerHTML="Couldn't read colours from these videos, so your theme is used"; }
   function stop(){ clearInterval(sT); clearInterval(lT); sT=lT=0; cur=tgt=null; last=""; }
   function toggle(){
-    if(on()){ document.documentElement.setAttribute("data-th","vsync"); if(!sT){ sT=setInterval(sample,350); lT=setInterval(blend,60); } }
+    if(on()){ document.documentElement.setAttribute("data-th","vsync"); if(!sT){ sT=setInterval(sample,900); lT=setInterval(blend,450); } }
     else if(sT || document.documentElement.getAttribute("data-th")==="vsync"){ stop(); applyTheme(prefs.theme); }
   }
   setTimeout(toggle,0);
