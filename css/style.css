@@ -631,7 +631,9 @@ html.vb-off #bgv video{filter:saturate(1.2) brightness(.58) !important} html.low
 html.nofrost .modal, html.nofrost [style*="backdrop-filter"], html.nofrost .chip{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
 html.nofrost .modal{--mbg:rgba(5,3,10,.82); --mblur:0px}
 /* quality blur still dims as much as basic, the blur is on top of that */
-html:not(.nofrost) .modal{--mbg:rgba(5,3,10,.78)} html:not(.nofrost) body.nodim .modal{--mbg:rgba(5,3,10,0)}
+html:not(.nofrost) .modal{--mbg:rgba(5,3,10,.78)}
+/* "Dim & blur behind menus" off wins over every blur mode and the results screen */
+html body.nodim .modal, html body.nodim #failModal, html body.nodim #shareView{--mbg:rgba(5,3,10,0) !important; --mblur:0px !important}
 @keyframes bgZoom{from{transform:translate(-50%,-50%) scale(2.8)} to{transform:translate(-50%,-50%) scale(3.1)}}
 .bgvshade{position:absolute; inset:0; background:
   radial-gradient(ellipse at 50% 42%, rgba(10,7,17,.15) 0%, rgba(10,7,17,.72) 70%, rgba(10,7,17,.92) 100%),
