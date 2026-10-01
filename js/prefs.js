@@ -56,7 +56,7 @@ function renderToggles(){
   $("vbSel").onchange=function(){ prefs.vblur=this.value; savePrefs(); applyPrefs(); };
   ladderSelect($("vbSel")); syncFrost(); syncNeeds();
   var dm=document.createElement("div"); dm.id="dimRow"; dm.className="bgpick";
-  dm.innerHTML="<div class='tlabel'>Dim &amp; blur behind menus<span class='ttag mid'>Resource Intensive</span></div><div class='tdesc'>Darken and/or blur the page behind menus, the side panel and the results screen. Blur costs the most.</div>"+
+  dm.innerHTML="<div class='tlabel'>Dim &amp; blur behind menus<span class='ttag mid'>Resource Intensive</span></div><div class='tdesc'>Dims and/or blurs the background behind menus</div>"+
     "<select id='dimSel' class='dsel'><option value='off'>Off</option><option value='dim'>Dim</option><option value='blur'>Blur</option><option value='both'>Both</option></select>";
   document.querySelector("#settings .tg[data-cat='fx']").appendChild(dm); $("dimSel").value=dimMode();
   $("dimSel").onchange=function(){ prefs.dimmode=this.value; savePrefs(); applyPrefs(); };
