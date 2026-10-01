@@ -228,11 +228,11 @@ var CLICK=(function(){
     var max = el.classList.contains("lu") ? 9 : (r.width>220 ? 5 : 11);   // artist names tilt gently
     el.classList.add("tilt"); el.style.setProperty("--ry",(px*max).toFixed(2)+"deg"); el.style.setProperty("--rx",(-py*max).toFixed(2)+"deg");
   }
-  function halftone(el,e){           // halftone dots ripple out from the press across the screen
+  function halftone(el,e){           // halftone dots ripple out from the press, inside the button
     if(prefs.ring===false) return;
-    var h=document.createElement("div"); h.className="ht-fx"; h.style.setProperty("--x",e.clientX+"px"); h.style.setProperty("--y",e.clientY+"px");
+    var h=document.createElement("div"); var r=el.getBoundingClientRect(), z=(r.width/el.offsetWidth)||1; h.className="ht-fx"; h.style.setProperty("--x",(e.clientX-r.left)/z+"px"); h.style.setProperty("--y",(e.clientY-r.top)/z+"px");
     var c=getComputedStyle(el).getPropertyValue("--dc").trim(); if(c) h.style.setProperty("--htcol",c);
-    document.body.appendChild(h); h.addEventListener("animationend",function(){ h.remove(); });
+    el.appendChild(h); h.addEventListener("animationend",function(){ h.remove(); });
   }
   function reset(el){ if(!el) return; el.style.setProperty("--rx","0deg"); el.style.setProperty("--ry","0deg"); el.classList.remove("pressed"); }
   document.addEventListener("pointermove",function(e){
