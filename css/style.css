@@ -18,11 +18,14 @@ body{
 .mono{font-family:var(--f-mono)}
 .wrap{width:100%; max-width:440px; padding:20px;}
 html{scroll-behavior:smooth}
-*{scrollbar-width:thin; scrollbar-color:var(--surface2) transparent}
-::-webkit-scrollbar{width:9px; height:9px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--surface2); border-radius:5px; border:2px solid transparent; background-clip:padding-box}
-::-webkit-scrollbar-thumb:hover{background:var(--line)}
+*{scrollbar-width:thin; scrollbar-color:color-mix(in srgb,var(--accent) 45%,var(--surface2)) transparent}
+::-webkit-scrollbar{width:8px; height:8px}
+::-webkit-scrollbar-track{background:transparent; margin:6px}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--accent) 35%,var(--surface2)); border-radius:8px; border:2px solid transparent; background-clip:padding-box; transition:background-color .2s}
+::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--accent) 70%,var(--surface2)); background-clip:padding-box}
+::-webkit-scrollbar-thumb:active{background:var(--accent); background-clip:padding-box}
+::-webkit-scrollbar-corner{background:transparent}
+.sheetbody,.recent,.catfilter,.lineup{scroll-behavior:smooth; -webkit-overflow-scrolling:touch}
 .wrap{position:relative; z-index:1}
 .spot{position:fixed; top:0; left:50%; transform:translateX(-50%); width:min(92vw,900px); height:78vh;
   pointer-events:none; z-index:0; filter:blur(30px); opacity:.5}
@@ -284,7 +287,6 @@ body.playing #gameScreen .play{margin-bottom:12px}
                   to{background-color:rgba(5,3,10,0); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px)}}
 @keyframes mUp{from{opacity:0; transform:translateY(70px)} 55%{opacity:1} to{opacity:1; transform:none}}
 @keyframes mDown{from{opacity:1; transform:none} to{opacity:0; transform:translateY(50px)}}
-body.nodim .modal{--mbg:rgba(5,3,10,0); --mblur:0px}
 body.noanim .modal.open, body.noanim .modal.open .sheet, body.noanim .modal.closing, body.noanim .modal.closing .sheet{animation:none}
 .modal.open{display:flex}
 .sheet{background:var(--surface);border:1px solid var(--line);border-radius:12px 12px 0 0;
@@ -627,6 +629,12 @@ body.bgv-on.gv-on.playing #bgv{opacity:.55}
 html.vb-off #bgv video{filter:saturate(1.2) brightness(.58) !important} html.lowfx #bgv video{will-change:opacity}
 html.nofrost .modal, html.nofrost [style*="backdrop-filter"], html.nofrost .chip{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
 html.nofrost .modal{--mbg:rgba(5,3,10,.82); --mblur:0px}
+/* quality blur still dims as much as basic, the blur is on top of that */
+html:not(.nofrost) .modal{--mbg:rgba(5,3,10,.78)}
+/* "Dim & blur behind menus" off wins over every blur mode and the results screen */
+html body.nodim :is(.modal,#failModal,#shareView){--mbg:rgba(5,3,10,0) !important}
+html body.noblur :is(.modal,#failModal,#shareView){--mblur:0px !important}
+html.nofrost body.yblur :is(.modal,#failModal,#shareView){--mblur:6px !important; -webkit-backdrop-filter:blur(6px) !important; backdrop-filter:blur(6px) !important}
 @keyframes bgZoom{from{transform:translate(-50%,-50%) scale(2.8)} to{transform:translate(-50%,-50%) scale(3.1)}}
 .bgvshade{position:absolute; inset:0; background:
   radial-gradient(ellipse at 50% 42%, rgba(10,7,17,.15) 0%, rgba(10,7,17,.72) 70%, rgba(10,7,17,.92) 100%),
@@ -961,9 +969,12 @@ html:not(.bsd) .modeopt b{font-size:18px}
 @media (min-width:900px){
   #startScreen.modes-open .menu{transform:none; opacity:.4; filter:saturate(.4); cursor:pointer}
   /* dim + blur everything behind the panel, like the other menus (off with "Dim & blur behind menus") */
-  body::before{content:""; position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; background:rgba(5,3,10,.55);
+  body::before{content:""; position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; background:rgba(5,3,10,.75);
     -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); transition:opacity .45s ease}
-  body.modes-open:not(.playing):not(.nodim)::before{opacity:1}
+  body.modes-open:not(.playing):not(.dimoff)::before{opacity:1}
+  body.nodim::before{background:transparent !important}
+  body.noblur::before{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
+  html.nofrost body.yblur::before{-webkit-backdrop-filter:blur(6px) !important; backdrop-filter:blur(6px) !important}
   html.nofrost body::before{-webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(5,3,10,.75)}
   body.launching .modes, body.playing .modes{opacity:0 !important; transition:opacity .35s ease !important}
   .modes{position:fixed; left:auto; right:0; top:0; bottom:0; width:400px; max-width:none; padding:40px 32px; z-index:6;
@@ -993,8 +1004,8 @@ html:not(.bsd) .modeopt b{font-size:18px}
 .modeopt:active, .modes .seg:active, .modeartists:active, #modeBack:active{transform:scale(.97); transition-duration:.12s, .3s, .3s, .3s; transition-timing-function:ease-out}
 .modego:active{transform:scale(.985)}
 #startScreen .menu #startBtn{--dc:var(--accent); --dc2:var(--accent)}      /* main Play keeps the theme colour */
-#bgv{transition:opacity 1.2s ease, filter .45s ease} body.modes-open:not(.nodim) #bgv{filter:brightness(.55) blur(3px) saturate(.45)}
-body.modes-open.nodim #bgv{filter:saturate(.45)}      /* side panel open: some desaturation behind it, eased in and out */
+#bgv{transition:opacity 1.2s ease, filter .45s ease} body.modes-open:not(.dimoff) #bgv{filter:brightness(.55) blur(3px) saturate(.45)} body.modes-open.nodim:not(.dimoff) #bgv{filter:blur(3px) saturate(.45)} body.modes-open.noblur:not(.dimoff) #bgv{filter:brightness(.55) saturate(.45)}
+body.modes-open.dimoff #bgv{filter:saturate(.45)}      /* side panel open: some desaturation behind it, eased in and out */
 .modeartist{font-family:var(--f-display); font-weight:800; font-size:26px; line-height:1.05; text-transform:uppercase; letter-spacing:.01em; color:var(--ink); margin:2px 0 -4px}
 html:not(.bsd) .modeartist{font-size:21px}
 .modeopt.off{opacity:.35; cursor:not-allowed; filter:grayscale(1)}
@@ -1144,3 +1155,65 @@ body.playing.gv-on.bgv-on #nowVid{opacity:1}
     background:radial-gradient(circle, color-mix(in srgb,var(--accent) 70%,#fff) 0 1.1px, transparent 1.6px) 0 0/7px 7px; opacity:.22;
     -webkit-mask-image:linear-gradient(to top,#000,transparent); mask-image:linear-gradient(to top,#000,transparent)}
 }
+
+/* ===== v1.14: halftone press ripple, letterbox bars, readable song catalog ===== */
+.ht-fx{position:absolute; inset:2px; z-index:-1; border-radius:inherit; mix-blend-mode:difference; pointer-events:none; --htcol:var(--accent); --x:50%; --y:50%;
+  background:radial-gradient(circle, var(--htcol) 0 .8px, transparent 1.2px) 0 0/4px 4px;
+  -webkit-mask:radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) * .3), #000 calc(var(--hr) * .7), #000 var(--hr), transparent calc(var(--hr) + 12px));
+  mask:radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) * .3), #000 calc(var(--hr) * .7), #000 var(--hr), transparent calc(var(--hr) + 12px));
+  animation:htRip 1.1s cubic-bezier(.2,.65,.3,1) forwards}
+@property --hr{syntax:"<length>"; inherits:false; initial-value:0px}
+@keyframes htRip{0%{--hr:0px; opacity:1} 60%{opacity:.85} 100%{--hr:340px; opacity:0}}
+/* main play button stays dark while the mode panel or any sheet is open */
+body.modes-open #startScreen #startBtn, body:has(.modal.open) #startScreen #startBtn{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 0 0/280% 100% no-repeat !important;
+  color:var(--dc); --htc:var(--dc); box-shadow:inset 0 0 0 1px var(--dc) !important}
+body.modes-open #startBtn .arr{transform:translateX(4px)}
+/* letterbox (under the CRT curve/glare; grain and scanlines stay under the black and the UI) */
+#lbox{position:fixed; inset:0; z-index:9990; pointer-events:none; --shut:900ms}
+#lbox i{position:absolute; left:0; right:0; height:51vh; background:#000; will-change:transform;
+  transition:transform .95s cubic-bezier(.45,0,.2,1)}
+#lbox .lt{top:0; transform:translateY(-100%)} #lbox .lb{bottom:0; transform:translateY(100%)}
+#lbox.shut i{transition:transform var(--shut) cubic-bezier(.4,0,.2,1)}
+#lbox.shut .lt, #lbox.shut .lb{transform:none}
+body.noanim #lbox{display:none}
+/* song catalog */
+#ssBody .ssr{gap:12px; padding:10px 6px; margin:0 -6px; border-radius:6px; border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent);
+  transition:background-color .2s}
+#ssBody.fresh .ssr{animation:ssIn .35s cubic-bezier(.2,.8,.2,1) var(--d,0ms) both}
+#ssBody .ssr:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+#ssBody .ssr .snum{width:20px; font-size:11px; opacity:.7}
+#ssBody .ssr img{width:46px; height:46px; border-radius:4px}
+#ssBody .ssr .stt{font-size:15px; font-weight:600; line-height:1.25; color:var(--ink)}
+#ssBody .ssr .sta{font-size:12.5px; line-height:1.4; margin-top:1px}
+#ssBody .ssr .why{font-size:12px; opacity:.85}
+.sstags{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px}
+.sstag{font-style:normal; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; padding:2px 7px; border-radius:3px;
+  color:var(--muted); background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.sstag.t-easy{color:#7ff2b3; background:rgba(57,224,139,.13)} .sstag.t-normal{color:#9fd0ff; background:rgba(80,160,255,.13)}
+.sstag.t-hard{color:#ffc27a; background:rgba(255,160,60,.13)} .sstag.t-extreme{color:#ff8fa6; background:rgba(255,70,107,.14)}
+#ssBody.fresh .pickrow{animation:ssIn .3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ssIn{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+body.noanim #ssBody .ssr, body.noanim #ssBody.fresh .pickrow{animation:none}
+/* colour sync + greyed-out settings */
+.toggle.needs .tneed{display:none; font-size:11.5px; color:#ffc93c; margin-top:4px} .toggle.needs .tneed b{font-weight:700}
+.toggle.needs.blocked .tlabel, .toggle.needs.blocked .tdesc, .toggle.needs.blocked .sw{opacity:.45; filter:grayscale(1)} .toggle.needs.blocked .tneed{display:block}
+.toggle.needs.blocked .sw{pointer-events:none}
+.swatches.off{opacity:.35; filter:grayscale(1); pointer-events:none; transition:opacity .3s, filter .3s}
+.swnote{font-size:12px; color:var(--muted); margin:-2px 0 8px}
+.ttag.exp{color:#fff; border-color:#ffc93c; text-shadow:0 1px 1px #000, 0 0 3px #000;
+  background:repeating-linear-gradient(-45deg, #ffc93c 0 5px, #1a1a1a 5px 10px)}
+/* high contrast: overrides the theme's inline colours */
+html.hc{--ink:#fff !important; --muted:#e2ddef !important; --line:#a49cc0 !important; --bg:#000 !important; --grad:#000 !important;
+  --surface:#000 !important; --surface2:#111 !important; --good:#3dff9a !important; --bad:#ff5c7c !important}
+html.hc .sheet, html.hc .modes{background:#000 !important; border-color:#fff !important}
+html.hc .bgvshade{background:rgba(0,0,0,.55) !important}
+html.hc :is(.btn,.opt,.modcard,.dbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.chip,.htab,.seg,.catsec,.catsearch,.dsel,.toggle){border-color:var(--line) !important}
+html.hc :is(button,a,input,select,[tabindex]):focus-visible{outline:3px solid #fff !important; outline-offset:2px}
+html.hc .tdesc, html.hc .sslabel, html.hc .pgs, html.hc .pgw, html.hc .sta, html.hc .cc{color:var(--muted) !important; opacity:1 !important}
+html.hc #nowVid, html.hc .ver{color:#fff !important; opacity:1}
+/* username with the @id right after it */
+.namewrap{position:relative; margin-bottom:22px}
+.uidtag{position:absolute; top:50%; transform:translateY(-50%); pointer-events:none; font-family:var(--f-mono); font-size:13px; font-weight:700; color:var(--accent); white-space:nowrap; transition:left .08s ease}
+.uidtag.empty{opacity:.55}
+.namewrap .catsearch{padding-right:70px}
+.bgplist.fit{max-height:none; overflow:hidden; scrollbar-width:none} .bgplist.fit::-webkit-scrollbar{display:none}

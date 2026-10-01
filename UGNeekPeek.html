@@ -37,7 +37,7 @@
 <div id="bgv" aria-hidden="true"><video id="bgA" muted playsinline preload="auto"></video><video id="bgB" muted playsinline preload="auto"></video><div class="bgvshade"></div><div class="bgvfx"></div></div>
 <div class="wrap">
 
-  <div class="ver" title="version">v1.13.23</div>
+  <div class="ver" title="version">v1.14.14</div>
   <div class="screen active" id="startScreen">
     <div class="menu" id="menu" data-d="normal">
       <div class="meta" style="--i:0"><span id="greet">Welcome, Enjoy your stay</span><span id="metaCount">60 artists</span></div>
@@ -164,8 +164,7 @@
     <div class="sheetbody">
       <div class="setcat">Account</div>
       <div class="setlabel">Username</div>
-      <input id="nameInput" class="catsearch" type="text" maxlength="20" placeholder="Shown when you share a score" autocomplete="off" style="margin-bottom:8px">
-      <div class="uidline">User ID <span id="uidVal">&hellip;</span></div>
+      <div class="namewrap"><input id="nameInput" class="catsearch" type="text" maxlength="20" placeholder="Shown when you share a score" autocomplete="off"><span id="uidVal" class="uidtag" title="Your user ID: names can repeat, IDs never do">@&hellip;</span></div>
       <div class="setcat">Sound</div>
       <div class="setlabel" style="display:flex;justify-content:space-between">Volume <span class="volpct" id="volPct2"></span></div>
       <input id="vol2" class="vol" type="range" min="0" max="1" step="0.01" style="width:100%;margin-bottom:10px">
@@ -184,7 +183,9 @@
         <label class="setfield"><span class="setlabel">Text size</span><select id="sizeSel" class="dsel">
           <option value="s">Small</option><option value="m">Default</option><option value="l">Large</option><option value="xl">Extra large</option></select></label>
       </div>
+      <div class="tg" data-cat="vsync"></div>
       <div class="setlabel">Background theme</div>
+      <div id="swNote" class="swnote" style="display:none">Themes are off while <b>Sync colours to video</b> is on</div>
       <div id="swatches" class="swatches" style="margin-bottom:14px"></div>
       <div class="tg" data-cat="ui"></div>
       <div class="setcat">Advanced</div>
@@ -243,6 +244,7 @@
 <div id="tvcurve" aria-hidden="true"></div>
 <div id="tvfx" aria-hidden="true"><div id="tvgrain"></div><div class="tvlines"></div><div class="tvroll"></div><div class="tvtears"></div></div>
 <div id="blackout" aria-hidden="true"><div class="ld">loading</div></div>
+<div id="lbox" aria-hidden="true"><i class="lt"></i><i class="lb"></i></div>
 <div id="flash" class="flash"></div>
 <audio id="audio" preload="auto"></audio>
 

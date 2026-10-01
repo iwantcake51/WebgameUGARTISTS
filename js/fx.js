@@ -108,6 +108,7 @@ var BGV=(function(){
     clearTimeout(timer); if(!want()) return;
     var clip=pickClip(); if(!clip) return; var src=clip.u, solo=!!prefs.bgArtist; $("bgv").classList.toggle("solo",solo);
     var v=vids[1-cur], old=vids[cur];
+    if(window.VSYNC && VSYNC.cors()) v.crossOrigin="anonymous"; else v.removeAttribute("crossorigin");      // colour sync needs to read the frames
     v.src=src; v.muted=true;
     var shown=false;
     function show(){ if(shown) return; shown=true; v.classList.remove("on"); void v.offsetWidth; v.classList.add("on"); old.classList.remove("on"); cur=1-cur; nowPlaying(clip);
@@ -115,7 +116,8 @@ var BGV=(function(){
       timer=setTimeout(next, solo?CUT*1.8:CUT); }
     v.onloadedmetadata=function(){ try{ v.currentTime=Math.min(Math.max(0,(v.duration||30)-(solo?CUT*1.8:CUT)/1000-1), 3+Math.random()*14); }catch(e){} };
     v.oncanplay=function(){ var p=v.play(); if(p&&p.then) p.then(show,function(){ timer=setTimeout(next,1500); }); else show(); };
-    v.onerror=function(){ if(v===vids[cur]&&shown){ clearTimeout(timer); timer=setTimeout(next,300); } else if(!shown){ clearTimeout(timer); timer=setTimeout(next,300); } };
+    v.onerror=function(){ if(v.crossOrigin && window.VSYNC){ VSYNC.noCors(); v.removeAttribute("crossorigin"); v.src=src; return; }      // CDN refused CORS: play without colour sync
+      if(v===vids[cur]&&shown){ clearTimeout(timer); timer=setTimeout(next,300); } else if(!shown){ clearTimeout(timer); timer=setTimeout(next,300); } };
     // freeze guard: if the visible clip ends, stalls or stops advancing, cut to the next one
     v.onended=function(){ if(shown && v===vids[cur]) next(); };
     var lastT=-1; clearInterval(v._wd); v._wd=setInterval(function(){
@@ -217,16 +219,22 @@ var CLICK=(function(){
 // scroll ticks: a soft detent every ~36px scrolled in any list
 (function(){ var acc=new WeakMap();
   document.addEventListener("scroll",function(e){ var el=e.target===document?document.scrollingElement:e.target; if(!el||el.scrollTop==null) return;
-    var a=acc.get(el)||{y:el.scrollTop,d:0}; a.d+=Math.abs(el.scrollTop-a.y); a.y=el.scrollTop;
+    var a=acc.get(el)||{y:el.scrollTop,x:el.scrollLeft,d:0}; a.d+=Math.abs(el.scrollTop-a.y)+Math.abs(el.scrollLeft-a.x); a.y=el.scrollTop; a.x=el.scrollLeft;
     if(a.d>=36){ a.d=0; CLICK.tick(); } acc.set(el,a); },{capture:true,passive:true});
 })();
 // ---- button tilt + ripple ----
 (function(){
-  var SEL=".btn,.opt,.modcard,.sw,.dbtn,.iconbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.chip,.swatch,.vlink,.linkbtn,.lu,.seg,.flink,.modeopt,.bgpo,.fgroup", cur=null;
+  var SEL=".btn,.opt,.modcard,.sw,.dbtn,.iconbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.chip,.swatch,.vlink,.linkbtn,.lu,.seg,.flink,.modeopt,.bgpo,.fgroup,.htab,.pgame,.cathdr,.rimg,.rt,.ra,.sres,a.catrow", cur=null;
   function tilt(el,e){
     var r=el.getBoundingClientRect(), px=(e.clientX-r.left)/r.width-0.5, py=(e.clientY-r.top)/r.height-0.5;
     var max = el.classList.contains("lu") ? 9 : (r.width>220 ? 5 : 11);   // artist names tilt gently
     el.classList.add("tilt"); el.style.setProperty("--ry",(px*max).toFixed(2)+"deg"); el.style.setProperty("--rx",(-py*max).toFixed(2)+"deg");
+  }
+  function halftone(el,e){           // halftone dots ripple out from the press, inside the button
+    if(prefs.ring===false) return;
+    var h=document.createElement("div"); var r=el.getBoundingClientRect(), z=(r.width/el.offsetWidth)||1; h.className="ht-fx"; h.style.setProperty("--x",(e.clientX-r.left)/z-2+"px"); h.style.setProperty("--y",(e.clientY-r.top)/z-2+"px");
+    var c=getComputedStyle(el).getPropertyValue("--dc").trim(); if(c) h.style.setProperty("--htcol",c);
+    el.appendChild(h); h.addEventListener("animationend",function(){ h.remove(); });
   }
   function reset(el){ if(!el) return; el.style.setProperty("--rx","0deg"); el.style.setProperty("--ry","0deg"); el.classList.remove("pressed"); }
   document.addEventListener("pointermove",function(e){
@@ -238,7 +246,9 @@ var CLICK=(function(){
     if(prefs.ring!==false){ var ring=document.createElement("div"); ring.className="ring-fx"; ring.style.left=e.clientX+"px"; ring.style.top=e.clientY+"px";
     document.body.appendChild(ring); ring.addEventListener("animationend",function(){ ring.remove(); }); }
     var el=e.target.closest&&e.target.closest(SEL);
-    if(el && !el.disabled){ cur=el; tilt(el,e); el.classList.add("pressed"); CLICK.play(false); if(e.pointerType==="touch" && navigator.vibrate){ try{navigator.vibrate(8);}catch(x){} } }
+    if(!el && e.target.classList && (e.target.classList.contains("modal") || (document.body.classList.contains("modes-open") && !document.body.classList.contains("playing") && !document.querySelector(".modal.open") && !e.target.closest("#modePanel")))){ CLICK.play(false); setTimeout(function(){ CLICK.play(true); },70); }   // backdrop / outside clicks that close a sheet or the side panel
+    if(el && !el.disabled){ cur=el; tilt(el,e); el.classList.add("pressed"); CLICK.play(false);
+      if(el.id==="startBtn"||el.id==="modeGo") halftone(el,e); if(e.pointerType==="touch" && navigator.vibrate){ try{navigator.vibrate(8);}catch(x){} } }
   },{passive:true});
   function up(e){ if(cur){ if(cur.classList.contains("pressed")) CLICK.play(true); cur.classList.remove("pressed"); if(e.pointerType!=="mouse"){ reset(cur); cur=null; } } }
   document.addEventListener("pointerup",up,{passive:true}); document.addEventListener("pointercancel",up,{passive:true});
@@ -308,4 +318,68 @@ var BULGE=(function(){
   new MutationObserver(q).observe(document.body,{attributes:true,attributeFilter:["class"]});
   setTimeout(q,300);
   return {update:q};
+})();
+// ---- smooth wheel scrolling: mouse-wheel notches glide (eased) in any scrollable box; trackpads keep their native feel ----
+(function(){
+  var st=new WeakMap();
+  function box(el,dy){ for(;el&&el!==document.body&&el.nodeType===1;el=el.parentElement){
+      var cs=getComputedStyle(el), oy=cs.overflowY;
+      if((oy==="auto"||oy==="scroll") && el.scrollHeight>el.clientHeight+1){
+        if((dy>0 && el.scrollTop<el.scrollHeight-el.clientHeight-1) || (dy<0 && el.scrollTop>0)) return el; } }
+    return null; }
+  document.addEventListener("wheel",function(e){
+    if(e.ctrlKey || e.shiftKey || !prefs.anim || Math.abs(e.deltaX)>Math.abs(e.deltaY)) return;
+    var dy=e.deltaY*(e.deltaMode===1?36:e.deltaMode===2?window.innerHeight:1);
+    if(e.deltaMode===0 && Math.abs(dy)<40) return;        // fine pixel deltas = trackpad, already smooth
+    var el=box(e.target,dy); if(!el) return;
+    e.preventDefault();
+    var s=st.get(el); if(!s){ s={t:el.scrollTop,raf:0}; st.set(el,s); }
+    if(!s.raf) s.t=el.scrollTop;
+    s.t=Math.max(0,Math.min(el.scrollHeight-el.clientHeight,s.t+dy));
+    if(!s.raf){ el.style.scrollBehavior="auto";
+      (function step(){ var d=s.t-el.scrollTop;
+        if(Math.abs(d)<0.6){ el.scrollTop=s.t; s.raf=0; el.style.scrollBehavior=""; return; }
+        var before=el.scrollTop; el.scrollTop+=d*0.16;
+        if(el.scrollTop===before){ s.raf=0; el.style.scrollBehavior=""; return; }       // hit an edge
+        s.raf=requestAnimationFrame(step); })(); }
+  },{passive:false});
+})();
+// ---- colour sync: the theme follows the background video's average colour, blended smoothly in real time ----
+var VSYNC=(function(){
+  var cv=document.createElement("canvas"), cx=null, sT=0, lT=0, cur=null, tgt=null, blocked=false, last="";
+  cv.width=32; cv.height=18;
+  function on(){ return vsyncOn() && !blocked; }
+  function sample(){
+    if(!on() || document.hidden) return;
+    var v=document.querySelector("#bgv video.on"); if(!v || v.readyState<2 || !v.crossOrigin) return;
+    try{ cx=cx||cv.getContext("2d",{willReadFrequently:true}); cx.drawImage(v,0,0,32,18); var d=cx.getImageData(0,0,32,18).data; }catch(e){ noCors(); return; }
+    var r=0,g=0,b=0,w=0, R=0,G=0,B=0,n=0;
+    for(var i=0;i<d.length;i+=4){ var pr=d[i],pg=d[i+1],pb=d[i+2], mx=Math.max(pr,pg,pb), mn=Math.min(pr,pg,pb), sat=mx?(mx-mn)/mx:0, k=sat*sat*(mx/255)+0.002;
+      r+=pr*k; g+=pg*k; b+=pb*k; w+=k; R+=pr; G+=pg; B+=pb; n++; }
+    tgt={r:r/w, g:g/w, b:b/w, l:hsl(R/n,G/n,B/n).l};          // colour from the vivid pixels, brightness from the whole frame
+    if(!cur) cur={r:tgt.r, g:tgt.g, b:tgt.b, l:tgt.l};
+  }
+  function hsl(r,g,b){ r/=255; g/=255; b/=255; var mx=Math.max(r,g,b), mn=Math.min(r,g,b), h=0, s=0, l=(mx+mn)/2, d=mx-mn;
+    if(d){ s=d/(1-Math.abs(2*l-1)); h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4; h*=60; if(h<0) h+=360; } return {h:h,s:s,l:l}; }
+  function blend(){
+    if(!on() || !cur || !tgt || document.hidden || document.body.classList.contains("launching")) return;
+    // blend straight across in RGB (not round the hue wheel), so red -> blue doesn't pass through every colour in between
+    var K=0.42; cur.r+=(tgt.r-cur.r)*K; cur.g+=(tgt.g-cur.g)*K; cur.b+=(tgt.b-cur.b)*K; cur.l+=(tgt.l-cur.l)*K;
+    var hc=hsl(cur.r,cur.g,cur.b); hc.l=cur.l;
+    // rounded steps: every restyle repaints the whole page, so only change when the difference is visible
+    var h=Math.round(hc.h/3)*3, s=Math.round(Math.min(1,hc.s)*25)/25, lb=Math.round(Math.min(0.06,0.025+hc.l*0.05)*200)/200, gl=Math.round((.13+hc.l*.08)*100)/100;
+    function c(sat,l){ return "hsl("+h+","+Math.round(sat*100)+"%,"+(l*100).toFixed(1)+"%)"; }
+    var vars={"--bg":c(s*.55,lb), "--grad":c(s*.6,gl), "--surface":c(s*.35,lb+.035), "--surface2":c(s*.35,lb+.065), "--line":c(s*.3,lb+.12),
+      "--accent":c(Math.max(.55,s),.64), "--spot":c(Math.max(.5,s),.68)}, key=JSON.stringify(vars);
+    if(key===last) return; last=key;
+    var st=document.documentElement.style; for(var k in vars) st.setProperty(k,vars[k]); VIZ_ACCENT=vars["--accent"];
+  }
+  function noCors(){ if(blocked) return; blocked=true; stop(); var n=$("swNote"); if(n) n.innerHTML="Couldn't read colours from these videos, so your theme is used"; }
+  function stop(){ clearInterval(sT); clearInterval(lT); sT=lT=0; cur=tgt=null; last=""; }
+  function toggle(){
+    if(on()){ document.documentElement.setAttribute("data-th","vsync"); if(!sT){ sT=setInterval(sample,600); lT=setInterval(blend,300); } }
+    else if(sT || document.documentElement.getAttribute("data-th")==="vsync"){ stop(); applyTheme(prefs.theme); }
+  }
+  setTimeout(toggle,0);
+  return {toggle:toggle, noCors:noCors, cors:function(){ return vsyncOn() && !blocked; }};
 })();
