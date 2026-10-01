@@ -1,0 +1,1146 @@
+:root{
+  --f-display:"Anton",Impact,sans-serif; --f-body:"Archivo",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --bg:#0a0711; --grad:#241640; --surface:#16101f; --surface2:#1f1730;
+  --ink:#f3eefb; --muted:#8b81a3; --line:#2c2340;
+  --accent:#8c5cff; --accent-ink:#0a0711; --good:#39e08b; --bad:#ff466b;
+  --pad-top:env(safe-area-inset-top,0px); --pad-bot:env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:radial-gradient(130% 90% at 50% -12%, var(--grad) 0%, transparent 58%), var(--bg);
+  color:var(--ink); font-family:var(--f-body);
+  padding-top:var(--pad-top); padding-bottom:var(--pad-bot);
+  display:flex; align-items:center; justify-content:center; min-height:100%;
+  -webkit-font-smoothing:antialiased; transition:background .5s ease;
+}
+.mono{font-family:var(--f-mono)}
+.wrap{width:100%; max-width:440px; padding:20px;}
+html{scroll-behavior:smooth}
+*{scrollbar-width:thin; scrollbar-color:var(--surface2) transparent}
+::-webkit-scrollbar{width:9px; height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface2); border-radius:5px; border:2px solid transparent; background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--line)}
+.wrap{position:relative; z-index:1}
+.spot{position:fixed; top:0; left:50%; transform:translateX(-50%); width:min(92vw,900px); height:78vh;
+  pointer-events:none; z-index:0; filter:blur(30px); opacity:.5}
+.spot::before{content:''; position:absolute; inset:0;
+  background:linear-gradient(to bottom, rgba(255,255,255,.28), rgba(255,255,255,0) 32%),
+             linear-gradient(to bottom, var(--spot,var(--accent)) 0%, var(--spot,var(--accent)) 18%, transparent 86%);
+  clip-path:polygon(43% 0, 57% 0, 86% 100%, 14% 100%); opacity:.85}
+.spot::after{content:''; position:absolute; left:50%; top:-60px; transform:translateX(-50%); width:44%; height:150px;
+  border-radius:50%; background:radial-gradient(closest-side, rgba(255,255,255,.55), var(--spot,var(--accent)) 50%, transparent)}
+.bgfx{position:fixed; inset:-24px; z-index:0; pointer-events:none; overflow:hidden; will-change:transform}
+.bgfx .ht{position:absolute; inset:0; opacity:.18;
+  background-image:radial-gradient(circle, var(--spot,var(--accent)) 0 1.15px, transparent 1.7px); background-size:7px 7px;
+  -webkit-mask-image:radial-gradient(130% 75% at 0% 100%, #000 0%, rgba(0,0,0,.35) 35%, transparent 62%);
+          mask-image:radial-gradient(130% 75% at 0% 100%, #000 0%, rgba(0,0,0,.35) 35%, transparent 62%)}
+.bgfx .ht2{opacity:.09; background-image:radial-gradient(circle, #fff 0 .8px, transparent 1.3px); background-size:5px 5px;
+  -webkit-mask-image:radial-gradient(110% 60% at 100% 0%, #000 0%, rgba(0,0,0,.3) 40%, transparent 70%);
+          mask-image:radial-gradient(110% 60% at 100% 0%, #000 0%, rgba(0,0,0,.3) 40%, transparent 70%)}
+.bgfx .sl{position:absolute; top:0; bottom:0; left:-70px; right:-70px; will-change:transform;
+  background:repeating-linear-gradient(to bottom, rgba(255,255,255,.045) 0 1px, transparent 1px 3px);
+  -webkit-mask-image:repeating-linear-gradient(90deg, #000 0, rgba(0,0,0,.25) 180px, #000 360px);
+          mask-image:repeating-linear-gradient(90deg, #000 0, rgba(0,0,0,.25) 180px, #000 360px);
+  animation:slsway 12s ease-in-out infinite alternate, slroll 10s linear infinite}
+.bgfx .sl.r{background:repeating-linear-gradient(to bottom, rgba(255,50,90,.06) 0 1px, transparent 1px 3px); mix-blend-mode:screen;
+  animation:slswayR 12s ease-in-out infinite alternate, slrollR 10s linear infinite}
+.bgfx .sl.c{background:repeating-linear-gradient(to bottom, rgba(40,220,255,.06) 0 1px, transparent 1px 3px); mix-blend-mode:screen;
+  animation:slswayC 12s ease-in-out infinite alternate, slrollC 10s linear infinite}
+@keyframes slsway {from{transform:translateX(-40px)} to{transform:translateX(40px)}}
+@keyframes slswayR{from{transform:translateX(-46px)} to{transform:translateX(34px)}}
+@keyframes slswayC{from{transform:translateX(-34px)} to{transform:translateX(46px)}}
+@keyframes slroll {from{background-position:0 0}   to{background-position:0 30px}}
+@keyframes slrollR{from{background-position:0 1px} to{background-position:0 31px}}
+@keyframes slrollC{from{background-position:0 -1px}to{background-position:0 29px}}
+.bgfx .nz{position:absolute; inset:-120px; opacity:.05; background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size:180px 180px;
+  background-size:120px 120px; animation:nz .3s steps(1) infinite}      /* finer and faster so it reads as smooth film grain */
+@keyframes nz{0%{transform:translate(0,0)} 20%{transform:translate(-47px,23px)} 40%{transform:translate(41px,-37px)} 60%{transform:translate(-23px,-53px)} 80%{transform:translate(59px,31px)}}
+.tilt{transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--ps,1)) !important;
+  transition:transform .3s cubic-bezier(.2,.8,.2,1), background .15s, border-color .15s, color .2s, opacity .2s, box-shadow .3s, filter .2s !important; will-change:transform}
+.tilt.pressed{--ps:.95}
+.lu.tilt.pressed{--ps:1.05}
+.ring-fx{position:fixed; z-index:90; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%; pointer-events:none;
+  border:2px solid var(--accent); box-shadow:0 0 12px var(--accent); animation:ringfx .5s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes ringfx{from{transform:scale(1); opacity:.9} to{transform:scale(5.5); opacity:0}}
+.confetti{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:70}
+.spotfloor{position:fixed; left:50%; bottom:-14vh; transform:translateX(-50%); width:min(110vw,1000px); height:34vh;
+  pointer-events:none; z-index:0; border-radius:50%; opacity:.2; filter:blur(40px);
+  background:radial-gradient(closest-side, var(--spot,var(--accent)), transparent)}
+body.nospot .spot, body.nospot .spotfloor{display:none}
+
+.top{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:10px}
+.logo{font-weight:700; font-size:24px; letter-spacing:-1px}
+.brand{display:inline-block; font-weight:800; letter-spacing:-.045em; padding:0 .06em; color:transparent;
+  background-image:radial-gradient(circle, rgba(255,255,255,.32) 0 .85px, transparent 1.3px),
+                   linear-gradient(100deg, var(--accent) 0%, var(--spot,var(--accent)) 40%, #d9d2ea 72%, var(--accent) 100%);
+  background-size:6px 6px, 260% 100%; -webkit-background-clip:text; background-clip:text;
+  filter:drop-shadow(var(--ca) calc(var(--ca) * .15) rgba(255,45,110,.6)) drop-shadow(calc(var(--ca) * -1) calc(var(--ca) * -.15) rgba(40,220,255,.55));
+  animation:brandMove 7s linear infinite, brandSplit 5s ease-in-out infinite}
+.brand b{color:transparent;
+  background-image:radial-gradient(circle, rgba(0,0,0,.22) 0 .85px, transparent 1.3px),
+                   linear-gradient(100deg, #fff 0%, var(--spot,var(--accent)) 60%, #fff 100%);
+  background-size:6px 6px, 220% 100%; -webkit-background-clip:text; background-clip:text;
+  animation:brandMove 5s linear infinite reverse}
+html.bw{filter:grayscale(1)}
+.brand.sm, .brand.sm b{background-size:4px 4px, 260% 100%}
+.brand, .brand b{-webkit-text-stroke:1px rgba(255,255,255,.22)} .brand.sm, .brand.sm b{-webkit-text-stroke:.6px rgba(255,255,255,.22)}
+@keyframes brandMove{0%{background-position:0 0, 0% 0} 50%{background-position:18px 18px, 100% 0} 100%{background-position:36px 36px, 0% 0}}
+@property --ca{syntax:"<length>"; inherits:true; initial-value:0px}
+@keyframes brandSplit{0%,12%,100%{--ca:0px} 50%{--ca:2.6px}}
+.center h1 .brand b{color:transparent}
+.logo b{color:var(--accent)}
+.tools{display:flex; align-items:center; gap:6px; flex:none}
+.top .logo{flex:none; font-size:20px; line-height:34px}
+.iconbtn{background:var(--surface2); border:none; color:var(--ink); width:34px; height:34px;
+  border-radius:6px; cursor:pointer; font-size:15px; display:grid; place-items:center; line-height:1}
+.iconbtn:active{transform:translateY(1px)}
+.fire{display:inline-block; transform-origin:center bottom; animation:flicker .85s ease-in-out infinite}
+@keyframes flicker{
+  0%,100%{transform:scale(var(--fs,1)) rotate(-3deg); filter:brightness(1)}
+  25%{transform:scale(calc(var(--fs,1)*1.09)) rotate(2deg); filter:brightness(1.18) saturate(1.2)}
+  50%{transform:scale(calc(var(--fs,1)*0.95)) rotate(-1deg); filter:brightness(.95)}
+  75%{transform:scale(calc(var(--fs,1)*1.05)) rotate(3deg); filter:brightness(1.12)}
+}
+.modeline{font-family:var(--f-mono); font-size:11px; color:var(--accent); margin-bottom:12px}
+
+.stage{transform:perspective(900px) rotateX(var(--trx,0deg)) rotateY(var(--try,0deg)); transition:box-shadow .5s}
+.stage.revealed{box-shadow:0 22px 44px -14px rgba(0,0,0,.65)}
+.stage.revealed .stageInner{box-shadow:inset 0 0 0 2px rgba(255,255,255,.28)}
+.holo{position:absolute; inset:0; z-index:1; pointer-events:none; opacity:0; transition:opacity .7s ease .3s; mix-blend-mode:screen;
+  background:radial-gradient(ellipse 75% 55% at var(--gx,50%) calc(var(--gy,50%) - 38%), var(--spot,var(--accent)), transparent 70%),
+             linear-gradient(to bottom, rgba(255,255,255,.10), transparent 35%)}
+.stage.revealed .holo{opacity:.3}
+body.noholo .holo{display:none}
+.stage{position:relative; aspect-ratio:1; border-radius:12px; overflow:visible;
+  background:var(--surface); border:1px solid var(--line); display:grid; place-items:center}
+.stageInner{position:absolute; inset:0; border-radius:12px; overflow:hidden; display:grid; place-items:center}
+.cover{position:absolute; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; display:none}
+.stage.revealed .cover{display:block}
+.cvfx{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; opacity:0;
+  pointer-events:none; mix-blend-mode:screen; display:none}
+.stage.revealed .cvfx{display:block}
+.stage.chroma.revealed #coverA{filter:url(#chR); animation:chromaA .7s ease-out}
+.stage.chroma.revealed #coverB{filter:url(#chC); animation:chromaB .7s ease-out}
+@keyframes chromaA{0%{opacity:.85; transform:translateX(-8px)}100%{opacity:0; transform:translateX(0)}}
+@keyframes chromaB{0%{opacity:.85; transform:translateX(8px)}100%{opacity:0; transform:translateX(0)}}
+.viz{position:absolute; left:0; bottom:0; width:100%; height:96px; z-index:1; pointer-events:none;
+  opacity:.95; transition:opacity .3s}
+.stage.revealed .viz{opacity:0}
+.placeholder{position:relative; z-index:1; text-align:center; color:var(--muted)}
+.placeholder .disc{font-size:52px; opacity:.5; transition:opacity .3s}
+.stage.spinning .placeholder .disc{animation:vinyl 5s linear infinite; opacity:.7}
+.placeholder .hint{font-size:12px; margin-top:8px; font-family:var(--f-mono)}
+.stage.revealed .placeholder{display:none}
+.verdict{position:absolute; z-index:2; inset:0; display:none; flex-direction:column;
+  justify-content:flex-end; align-items:center; text-align:center; padding:22px 20px 24px;
+  background:linear-gradient(0deg, rgba(10,7,17,.88), rgba(10,7,17,.15) 55%, transparent)}
+.stage.revealed .verdict{display:flex}
+.verdict .tag{font-family:var(--f-mono); font-size:12px; letter-spacing:1px; margin-bottom:8px}
+.verdict .title{font-size:22px; font-weight:700; line-height:1.15}
+.verdict .artist{color:#d9d1ef; margin-top:2px}
+.verdict .date{color:#c9c1dd; font-family:var(--f-mono); font-size:11px; margin-top:6px}
+.verdict .title, .verdict .artist, .verdict .date, .verdict .tag{
+  text-shadow:-1px -1px 0 rgba(0,0,0,.85), 1px -1px 0 rgba(0,0,0,.85), -1px 1px 0 rgba(0,0,0,.85), 1px 1px 0 rgba(0,0,0,.85), 0 2px 14px rgba(0,0,0,.9)}
+.vlinks{display:flex; gap:8px; justify-content:center; margin-top:11px}
+.vlink{font-family:var(--f-mono); font-size:11px; text-decoration:none;
+  background:rgba(255,255,255,.13); color:var(--ink); padding:7px 11px; border-radius:5px;
+  display:inline-flex; align-items:center; gap:5px; backdrop-filter:blur(4px)}
+.vlink:active{transform:translateY(1px)}
+.ring{position:absolute; inset:0; border-radius:12px; padding:4px; pointer-events:none; z-index:4;
+  background:linear-gradient(135deg,var(--accent),transparent);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude; opacity:0; transition:opacity .3s}
+.stage.right .ring{opacity:1; background:conic-gradient(from 210deg,#39e08b,#a9ffcf,#1f8f5a,#39e08b)}
+.stage.wrong .ring{opacity:1; background:conic-gradient(from 210deg,#ff466b,#ffb3c2,#c01f3f,#ff466b)}
+.stage.right{animation:pop .5s ease; box-shadow:0 0 36px -6px rgba(57,224,139,.5)}
+.stage.wrong{animation:shake .5s ease; box-shadow:0 0 36px -6px rgba(255,70,107,.5)}
+@keyframes pop{0%{scale:1}40%{scale:1.025}100%{scale:1}}
+@keyframes shake{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:7px 0}60%{translate:-4px 0}80%{translate:4px 0}}
+@keyframes vinyl{to{transform:rotate(360deg)}}
+
+.bar{position:relative; height:10px; border-radius:999px; background:var(--surface2); margin:16px 0 6px;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.55), 0 0 0 1px color-mix(in srgb,var(--accent) 18%,transparent)}
+.bar-avail{position:absolute; inset:0; border-radius:inherit; transition:filter .3s}
+.bar-play{position:absolute; top:0; bottom:0; left:0; width:0; border-radius:inherit;
+  background:linear-gradient(90deg, color-mix(in srgb,#fff 40%,var(--accent)), #fff);
+  box-shadow:0 0 10px color-mix(in srgb,var(--accent) 80%,#fff), 0 0 22px color-mix(in srgb,var(--accent) 55%,transparent)}
+.bar-play::after{content:""; position:absolute; right:-6px; top:50%; width:14px; height:14px; margin-top:-7px; border-radius:50%; background:#fff;
+  box-shadow:0 0 8px #fff, 0 0 18px var(--accent), 0 0 34px var(--accent); opacity:0; transform:scale(.4); transition:opacity .25s, transform .25s}
+.bar-play.live::after{opacity:1; transform:scale(1); animation:barPulse 1.1s ease-in-out infinite}
+@keyframes barPulse{50%{box-shadow:0 0 10px #fff, 0 0 24px var(--accent), 0 0 46px var(--accent)}}
+.tick{position:absolute; top:1px; bottom:1px; width:2px; border-radius:2px; background:rgba(243,238,251,.55)}
+.barmeta{display:flex; justify-content:space-between; margin-bottom:16px;
+  font-family:var(--f-mono); font-size:11px; color:var(--muted)}
+.barmeta b{color:var(--accent); font-weight:700}
+
+.play{display:flex; gap:10px; margin-bottom:16px}
+.btn{border:none; border-radius:8px; font-family:inherit; cursor:pointer; font-weight:500}
+.play-btn{flex:1; background:var(--accent); color:var(--accent-ink); font-size:16px; font-weight:700;
+  padding:15px; display:flex; align-items:center; justify-content:center; gap:9px}
+.play-btn:active{transform:translateY(1px)}
+.play-btn:disabled{opacity:.4; cursor:default; transform:none}
+.skip-btn{display:none} body.m-skip .skip-btn{display:block}
+.more-btn{background:var(--surface2); color:var(--ink); padding:0 16px; font-size:13px; white-space:nowrap}
+.more-btn:disabled{opacity:.35; cursor:default}
+
+.opts{display:grid; grid-template-columns:minmax(0,1fr); gap:10px}
+.opt{background:var(--surface); border:1px solid var(--line); color:var(--ink); text-align:left;
+  padding:9px 11px; border-radius:8px; display:flex; align-items:center; gap:11px; cursor:pointer;
+  min-width:0; overflow:hidden; transition:border-color .15s, background .15s}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.optart{flex:none; width:44px; height:44px; border-radius:5px; object-fit:cover; background:var(--surface2)}
+.opttext{display:flex; flex-direction:column; gap:2px; min-width:0; flex:1}
+.optt{font-size:15px; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.opta{color:var(--muted); font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.opt:disabled{cursor:default}
+.opt.dim{opacity:.4}
+.opt.wrong{border-color:var(--bad); background:color-mix(in srgb,var(--bad) 16%,transparent)}
+.opt.wrong .optt,.opt.wrong .opta{color:#ffd7df}
+.opt.correct{border-color:var(--good); background:color-mix(in srgb,var(--good) 12%,transparent)}
+/* colorblind modes: swap the right/wrong colors for pairs each type can tell apart */
+html[data-cb="protan"], html[data-cb="deutan"]{--good:#3fa7ff !important; --bad:#ff9d1c !important}
+html[data-cb="tritan"]{--good:#2fd6c8 !important; --bad:#ff4f8b !important}
+html[data-cb="mono"]{--good:#ffffff !important; --bad:#7a7a86 !important}
+/* the whole page (UI, covers, video, confetti) goes through a daltonize filter so reds/greens separate */
+html[data-cb="protan"]{filter:url(#cb-protan)} html[data-cb="deutan"]{filter:url(#cb-deutan)} html[data-cb="tritan"]{filter:url(#cb-tritan)}
+html[data-cb="mono"]{filter:grayscale(1) contrast(1.08)}
+html.bw{filter:grayscale(1) !important}
+.cbrow{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:22px}
+.opt.correct .optt,.opt.correct .opta{color:var(--ink)}
+
+.next{width:100%; margin-top:16px; background:var(--ink); color:var(--bg); padding:15px;
+  font-size:16px; font-weight:700; border-radius:8px; display:none}
+.next.show{display:block}
+
+.screen{display:none} .screen.active{display:block}
+body.playing{align-items:stretch}
+body.playing .wrap{display:flex; flex-direction:column; min-height:0; padding-top:12px; padding-bottom:12px}
+body.playing #gameScreen{flex:1 1 auto; display:flex; flex-direction:column; min-height:0}
+body.playing #gameScreen .stage{aspect-ratio:auto; flex:1 1 auto; min-height:72px}
+body.playing #gameScreen .bar{margin:12px 0 6px}
+body.playing #gameScreen .barmeta{margin-bottom:12px}
+body.playing #gameScreen .play{margin-bottom:12px}
+.center{text-align:center; padding:34px 6px}
+.center h1{font-size:40px; letter-spacing:-2px; margin:0 0 6px}
+.center p{color:var(--muted); font-size:15px; line-height:1.5; margin:0 auto 24px; max-width:330px}
+.big{background:var(--accent); color:var(--accent-ink); font-weight:700; font-size:17px; padding:15px 40px;
+  border-radius:8px; width:100%; max-width:280px}
+.ghost{background:var(--surface); color:var(--ink); border:1px solid var(--line); font-weight:600;
+  font-size:15px; padding:13px 30px; border-radius:8px; width:100%; max-width:280px; margin-top:10px; cursor:pointer}
+.roster{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:0 auto 20px; max-width:360px; max-height:168px; overflow:auto}
+.chip{font-family:var(--f-mono); font-size:11px; background:var(--surface);
+  border:1px solid var(--line); color:var(--muted); padding:4px 9px; border-radius:12px; transition:.2s}
+.diff{display:flex; gap:6px; justify-content:center; margin:0 auto 8px; max-width:330px}
+.dbtn{flex:1; border-radius:7px; padding:10px 0; font-family:inherit; font-weight:600; font-size:13px; cursor:pointer;
+  background:var(--surface2); border:1px solid var(--line); color:var(--muted); transition:background .15s,border-color .15s,color .15s}
+.dbtn.on.easy{background:rgba(57,224,139,.15); border-color:#39e08b; color:#7ff2b3}
+.dbtn.on.normal{background:color-mix(in srgb, var(--accent) 15%, transparent); border-color:var(--accent); color:var(--ink)}
+.dbtn.on.hard{background:rgba(255,70,107,.15); border-color:#ff466b; color:#ff8fa6}
+.dbtn.on.extreme{background:linear-gradient(135deg,rgba(168,85,247,.28),rgba(236,72,153,.28)); border-color:#e14bd0; color:#f7b4ff;
+  box-shadow:0 0 16px -4px rgba(225,75,208,.6)}
+.diffnote{font-size:11px; color:var(--muted); margin:0 auto 16px; min-height:14px}
+.dlabel.easy{color:#39e08b} .dlabel.normal{color:var(--accent)} .dlabel.hard{color:#ff466b}
+.dlabel.extreme{background:linear-gradient(90deg,#a855f7,#ec4899); -webkit-background-clip:text; background-clip:text; color:transparent}
+.sres{display:flex; align-items:center; gap:11px; padding:8px 0; border-bottom:1px solid rgba(120,110,150,.09)}
+.sres img{width:42px; height:42px; border-radius:5px; object-fit:cover; background:var(--surface2); flex:none}
+.sres .st{min-width:0; flex:1}
+.sres .stt{font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.sres .sta{font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.badge{flex:none; font-family:var(--f-mono); font-size:10.5px; padding:4px 9px; border-radius:12px; max-width:46%; text-align:right; line-height:1.35}
+.badge.in{color:#7ff2b3; background:rgba(57,224,139,.13); font-weight:700}
+.sres .why{color:var(--muted); opacity:.75; font-size:11px}
+.sslabel{font-family:var(--f-mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin:14px 0 4px}
+.artistlist .chip{cursor:pointer; color:var(--ink)} .artistlist .chip:hover{border-color:var(--accent); color:var(--accent)}
+.roundwait{text-align:center; color:var(--muted); font-family:var(--f-mono); font-size:12px; padding:18px 0}
+.miss{color:var(--bad)}
+.retryhint{font-family:var(--f-mono); font-size:11px; color:var(--muted); margin:-12px 0 16px; display:none}
+.retryhint.show{display:block}
+.err{color:var(--bad); font-size:13px; margin-top:12px; line-height:1.5}
+.linkbtn{background:none;border:none;color:var(--accent);font-family:var(--f-mono);
+  font-size:12px;cursor:pointer;padding:6px 2px;display:inline-block}
+
+.vol{-webkit-appearance:none; appearance:none; width:110px; height:5px; border-radius:4px; margin:0;
+  background:linear-gradient(90deg,var(--accent) var(--v,90%),var(--line) var(--v,90%)); outline:none; cursor:pointer}
+.vol::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+  background:var(--accent); cursor:pointer; box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)}
+.vol::-moz-range-thumb{width:16px; height:16px; border:none; border-radius:50%; background:var(--accent); cursor:pointer}
+.volwrap{display:flex; align-items:center; gap:6px; background:var(--surface2); height:34px; box-sizing:border-box; padding:0 9px; border-radius:6px}
+.volwrap .ic{font-size:13px; line-height:1}
+.volwrap .vol{width:50px}
+.volwrap .volpct{min-width:28px; font-size:10.5px}
+
+.modal{position:fixed;inset:0;z-index:50;display:none;align-items:flex-end;justify-content:center;
+  --mbg:rgba(5,3,10,.6); --mblur:6px; background:var(--mbg); -webkit-backdrop-filter:blur(var(--mblur)); backdrop-filter:blur(var(--mblur))}
+.modal.open{animation:mBgIn .38s ease-out both}
+.modal.open .sheet{animation:mUp .55s cubic-bezier(.3,1.4,.5,1) both}
+.modal.closing{animation:mBgOut .22s ease-in both}
+.modal.closing .sheet{animation:mDown .22s cubic-bezier(.5,0,.8,.4) both}
+@keyframes mBgIn{from{background-color:rgba(5,3,10,0); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px)}
+                 to{background-color:var(--mbg); -webkit-backdrop-filter:blur(var(--mblur)); backdrop-filter:blur(var(--mblur))}}
+@keyframes mBgOut{from{background-color:var(--mbg); -webkit-backdrop-filter:blur(var(--mblur)); backdrop-filter:blur(var(--mblur))}
+                  to{background-color:rgba(5,3,10,0); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px)}}
+@keyframes mUp{from{opacity:0; transform:translateY(70px)} 55%{opacity:1} to{opacity:1; transform:none}}
+@keyframes mDown{from{opacity:1; transform:none} to{opacity:0; transform:translateY(50px)}}
+body.nodim .modal{--mbg:rgba(5,3,10,0); --mblur:0px}
+body.noanim .modal.open, body.noanim .modal.open .sheet, body.noanim .modal.closing, body.noanim .modal.closing .sheet{animation:none}
+.modal.open{display:flex}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:12px 12px 0 0;
+  width:100%;max-width:440px;max-height:84vh;max-height:84dvh;display:flex;flex-direction:column;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheethead{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line);font-weight:700}
+.sheethead,.catsearchwrap,.catfilter,.catsliderwrap,.filfoot{flex:none}
+.catsliderwrap{padding:0 16px 12px;border-bottom:1px solid var(--line)}
+/* artist-chip scrollbar: thin plain track with a pill thumb (not the volume slider's filled track) */
+.vol.catslider{width:100%;display:block;height:4px;background:var(--line);opacity:.9}
+.vol.catslider::-webkit-slider-thumb{width:46px;height:8px;border-radius:4px;background:color-mix(in srgb,var(--accent) 80%,#fff);box-shadow:none}
+.vol.catslider::-moz-range-thumb{width:46px;height:8px;border-radius:4px;background:color-mix(in srgb,var(--accent) 80%,#fff)}
+.sheetbody{overflow-y:auto;padding:10px 18px 20px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-height:0}
+.catsearchwrap{padding:12px 16px 6px}
+.catsearch{width:100%;background:var(--surface2);border:1px solid var(--line);color:var(--ink);
+  border-radius:7px;padding:10px 12px;font-family:inherit;font-size:14px;outline:none}
+.catsearch::placeholder{color:var(--muted)}
+.catsearch:focus{border-color:var(--accent)}
+.catfilter{display:flex;gap:6px;overflow-x:auto;padding:8px 16px 11px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
+.catfilter::-webkit-scrollbar{display:none}
+.cchip{flex:none;font-family:var(--f-mono);font-size:11px;background:var(--surface2);
+  border:1px solid var(--line);color:var(--muted);padding:6px 12px;border-radius:12px;cursor:pointer;white-space:nowrap}
+.cchip.on{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
+.catsec{margin-bottom:8px; background:var(--surface2); border:1px solid var(--line); border-radius:8px; padding:0 12px; transition:border-color .2s}
+.catsec.open{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.cathdr{display:flex;align-items:center;gap:10px;width:100%;padding:12px 0 8px;background:none;border:0;color:var(--ink);cursor:pointer;font-family:inherit;text-align:left}
+.cathdr .cname{flex:1}
+.cathdr .chev{color:var(--muted);transition:transform .25s;font-size:12px}
+.catsec.open .chev{transform:rotate(180deg)}
+.catsec .catbarwrap{margin-bottom:12px}
+.catrow img,.catrow .noart{width:34px;height:34px;border-radius:4px;object-fit:cover;flex:none;background:var(--surface)}
+.catstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 4px}
+.catstats div{background:var(--surface2);border:1px solid var(--line);border-radius:7px;padding:10px 4px;text-align:center}
+.catstats b{display:block;font-size:19px} .catstats span{font-family:var(--f-mono);font-size:9.5px;color:var(--muted)}
+.recent{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:66px;gap:10px 8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:thin}
+.rcard{display:block;width:66px;color:inherit}
+.rimg{padding:0;cursor:pointer;display:block}
+.rt{display:block;width:100%;background:none;border:0;padding:0;cursor:pointer;text-align:left;font-family:inherit;color:inherit} .rt:hover{color:var(--accent)}
+.ra{display:block;width:100%;background:none;border:0;padding:0;cursor:pointer;text-align:left;font-family:inherit} .ra:hover{color:var(--ink)}
+a.catrow{color:inherit;text-decoration:none;cursor:pointer} a.catrow:hover .ct{color:var(--accent)}
+.catrow.hit,.catsec.hit{animation:hitFlash 1.6s ease}
+@keyframes hitFlash{0%,35%{background:color-mix(in srgb,var(--accent) 28%,transparent)} 100%{background:transparent}}
+.catsec.hit{animation-name:hitRing} @keyframes hitRing{0%,35%{box-shadow:0 0 0 2px var(--accent)} 100%{box-shadow:0 0 0 0 transparent}}
+.mk.shake{animation:logoShake .55s cubic-bezier(.36,.07,.19,.97) both !important; cursor:pointer}
+.mk{cursor:default}
+@keyframes logoShake{10%,90%{transform:translateX(-2px) rotate(-1deg)} 20%,80%{transform:translateX(4px) rotate(1.5deg)} 30%,50%,70%{transform:translateX(-7px) rotate(-2deg)} 40%,60%{transform:translateX(7px) rotate(2deg)}}
+.rimg{position:relative;width:66px;height:66px;border-radius:6px;overflow:hidden;background:var(--surface2);border:2px solid var(--good)}
+.rcard.lost .rimg{border-color:var(--bad)}
+.rimg img{width:100%;height:100%;object-fit:cover;display:block}
+.rbadge{position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--good);color:#0a0711}
+.rcard.lost .rbadge{background:var(--bad);color:#fff}
+.rt{font-size:11px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ra{font-size:9.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cname{font-weight:700;font-size:16px;letter-spacing:-.3px}
+.cprog{font-family:var(--f-mono);font-size:11px;color:var(--muted);white-space:nowrap;flex:none}
+.catbarwrap{height:5px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-bottom:14px}
+.catbar{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
+.catsongs{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;margin:2px 0 6px}
+@media (max-width:420px){.catsongs{grid-template-columns:1fr}}
+.catrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(120,110,150,.09);font-size:13px}
+.catrow .ct{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.catrow.got .ct{color:var(--ink)}
+.catrow .cc{font-family:var(--f-mono);font-size:11px;color:var(--muted);white-space:nowrap;flex:none}
+.catrow.got .cc{color:var(--good)}
+.filchips{display:flex;flex-wrap:wrap;gap:8px}
+.filchip{font-size:13px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);
+  padding:9px 12px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:inherit}
+.filchip.on{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 14%, transparent);color:var(--ink)}
+.ghost2{background:var(--surface2);color:var(--ink);border:1px solid var(--line);font-weight:600;
+  font-size:13px;padding:8px 16px;border-radius:7px;cursor:pointer;font-family:inherit}
+.filfoot{padding:14px 18px;border-top:1px solid var(--line)}
+.filfoot .big{max-width:none}
+.filnote{color:var(--bad);font-size:12px;text-align:center;margin-top:12px;min-height:14px}
+.pickrow{display:flex;justify-content:space-between;align-items:center;width:100%;background:var(--surface2);
+  border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:13px 15px;margin-bottom:8px;
+  font-family:inherit;font-size:15px;cursor:pointer;text-align:left}
+.pickrow:hover:not(:disabled){border-color:var(--accent)}
+.pickrow span{color:var(--muted);font-family:var(--f-mono);font-size:12px}
+.setcat{font-family:var(--f-display,inherit); font-weight:800; font-size:17px; color:var(--ink); margin:28px 0 4px; padding-bottom:6px; border-bottom:1px solid var(--line)}
+.setcat:first-child{margin-top:4px}
+.setlabel{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin:16px 0 8px;text-transform:uppercase;letter-spacing:1px}
+.swatches{display:flex;gap:12px;flex-wrap:wrap}
+.swatch{width:44px;height:44px;border-radius:7px;border:2px solid transparent;cursor:pointer;position:relative;margin-bottom:18px}
+.swatch.sel{border-color:var(--ink)}
+.swatch span{position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;color:var(--muted);font-family:var(--f-mono)}
+.netlog{font-family:var(--f-mono);font-size:10.5px;line-height:1.55;color:var(--muted);background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;margin:0}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid rgba(120,110,150,.1)}
+.toggle .tlabel{font-size:14px}
+.ttag{display:inline-block; margin-left:8px; padding:1px 6px; border-radius:4px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; vertical-align:2px; color:#ffb347; border:1px solid rgba(255,179,71,.5)}
+.ttag.lo{color:#4cd97b; border-color:rgba(76,217,123,.5)} .ttag.mid{color:#ffc93c; border-color:rgba(255,201,60,.5)} .ttag.hi{color:#ff4d5e; border-color:rgba(255,77,94,.55)}
+.toggle .tdesc{font-size:11px;color:var(--muted);margin-top:2px}
+.bgpick{padding:12px 0;border-bottom:1px solid var(--line);transition:opacity .2s}
+.bgpick .tlabel{font-size:14px} .bgpick .tdesc{font-size:11px;color:var(--muted);margin:2px 0 8px}
+.bgpick.off{opacity:.4;pointer-events:none;filter:grayscale(1)}
+.bgpwrap{position:relative}
+.bgpwrap .dsel{padding-right:58px; cursor:text}
+.bgpwrap .dsel, .ddwrap .dsel{background-image:none}
+/* chevron that flips smoothly to point up while the list is open */
+.bgpwrap::after, .ddwrap::after{content:"";position:absolute;right:14px;top:50%;width:6px;height:6px;margin-top:-5px;pointer-events:none;
+  border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);transition:transform .38s cubic-bezier(.34,1.56,.64,1), margin-top .38s, border-color .2s}
+.bgpwrap.open::after, .ddwrap.open::after{transform:rotate(225deg);margin-top:-1px;border-color:var(--accent)}
+.bgpwrap.open .dsel{border-color:var(--accent)}
+.bgpo.gone{display:none}
+.bgplist .bgpnone{display:none} .bgplist.empty .bgpnone{display:block}
+.bgpwrap .dsel{transition:border-color .2s, box-shadow .2s} .bgpwrap .dsel:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.bgpx{position:absolute;right:30px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px}
+.bgpx:hover{color:var(--ink)}
+.bgplist{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;max-height:220px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:3px;box-shadow:0 10px 30px rgba(0,0,0,.45);
+  visibility:hidden;clip-path:inset(0 0 100% 0);opacity:.6;transition:clip-path .42s cubic-bezier(.22,1,.36,1), opacity .3s, visibility 0s .42s}
+.bgplist.open{visibility:visible;clip-path:inset(0 0 0 0);opacity:1;transition:clip-path .42s cubic-bezier(.22,1,.36,1), opacity .3s, visibility 0s}
+/* "ladder" drop: rungs slide down one after another */
+.bgplist .bgpo{opacity:0;transform:translateY(-10px);transition:opacity .25s, transform .35s cubic-bezier(.22,1,.36,1), background .15s}
+.bgplist.open .bgpo{opacity:1;transform:none;transition-delay:calc(min(var(--i,0),12) * 28ms), calc(min(var(--i,0),12) * 28ms), 0s}
+.ddwrap{position:relative} .ddwrap select{display:none}
+.ddbtn{text-align:left;cursor:pointer;display:block}
+.ddwrap.open .ddbtn{border-color:var(--accent)}
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:#fff}
+:focus-visible{outline-color:var(--accent)}
+.bgpo{display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink);font:inherit;font-size:13.5px;padding:8px 12px;cursor:pointer}
+.bgpo.hi,.bgpo:hover{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.bgpo.sel{color:var(--accent);font-weight:600}
+.bgpnone{padding:10px 12px;font-size:13px;color:var(--muted)}
+.sw{position:relative;width:44px;height:26px;border-radius:12px;background:var(--surface2);
+  border:1px solid var(--line);cursor:pointer;flex:none;transition:background .2s,border-color .2s}
+.sw::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;
+  background:var(--muted);transition:transform .2s,background .2s}
+.sw.on{background:var(--accent);border-color:var(--accent)}
+.sw.on::after{transform:translateX(18px);background:var(--accent-ink)}
+.flash{position:fixed; inset:0; z-index:60; pointer-events:none; opacity:0}
+.flash.win{background:radial-gradient(120% 80% at 50% 118%, rgba(57,224,139,.55), transparent 62%); animation:flashfx .6s ease-out}
+.flash.lose{background:radial-gradient(120% 80% at 50% 118%, rgba(255,70,107,.5), transparent 62%); animation:flashfx .6s ease-out}
+@keyframes flashfx{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+
+/* fail screen */
+.modal.mid{align-items:center; padding:14px}
+#failModal,#shareView{--mbg:rgba(3,2,7,.86); --mblur:7px}
+#failModal .sheet,#shareView .sheet{border-radius:12px; max-height:92vh; max-height:92dvh; padding-bottom:0}
+@keyframes failFade{from{opacity:0} to{opacity:1}}
+@keyframes failRise{from{opacity:0; transform:translateY(14px) scale(.97)} to{opacity:1; transform:none}}
+.failtop{text-align:center; padding:20px 18px 12px; border-bottom:1px solid var(--line); flex:none}
+.failtop h2{margin:0; font-size:30px; letter-spacing:-1px; color:var(--bad)}
+#failModal.won .failtop h2{color:var(--good)}
+#shareView .failtop h2{color:var(--accent); text-shadow:0 0 18px color-mix(in srgb,var(--accent) 45%,transparent)}
+#shareView.won .failtop h2{color:var(--good); text-shadow:0 0 18px color-mix(in srgb,var(--good) 45%,transparent)}
+.skipnote{font-family:var(--f-mono); font-size:11px; color:var(--muted); margin-top:6px} .skipnote b{color:var(--ink)}
+.svkick{font-family:var(--f-mono); font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:4px}
+.svhero{font-size:54px; font-weight:800; letter-spacing:-2px; line-height:1; margin:8px 0 2px; color:var(--ink)}
+.svhero small{display:block; font-family:var(--f-mono); font-size:10px; letter-spacing:1px; font-weight:400; color:var(--muted); margin-top:4px}
+.svacc{height:6px; border-radius:4px; background:color-mix(in srgb,var(--bad) 45%,transparent); margin:12px auto 0; max-width:260px; display:flex;
+  box-shadow:0 0 10px color-mix(in srgb,var(--bad) 35%,transparent)}
+.svacc u{display:block; height:100%; background:var(--good); border-radius:4px; box-shadow:0 0 10px color-mix(in srgb,var(--good) 60%,transparent)}
+.sres .snum{font-family:var(--f-mono); font-size:10px; color:var(--muted); width:16px; text-align:right; flex:none}
+.failsub{font-size:13px; color:var(--muted); margin-top:4px; line-height:1.45}
+.failsub b{color:var(--ink)}
+.failscores{display:flex; gap:8px; justify-content:center; margin-top:14px}
+.fbox{flex:1; max-width:120px; background:var(--surface2); border:1px solid var(--line); border-radius:7px; padding:8px 6px}
+.fbox .fl{font-family:var(--f-mono); font-size:9.5px; color:var(--muted)}
+.fbox .fv{font-size:21px; font-weight:700; margin-top:2px}
+.fbox.new{border-color:var(--good)} .fbox.new .fv{color:var(--good)}
+.fbox.new .fl::after{content:" \2605 new"; color:var(--good)}
+.fstat{flex:none; text-align:right; display:flex; flex-direction:column; gap:1px; font-family:var(--f-mono); font-size:10.5px; color:var(--muted)}
+.fstat b{font-size:14px; color:var(--ink)}
+.svgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:6px 0 4px}
+.svgrid div{background:var(--surface2); border:1px solid var(--line); border-radius:6px; padding:8px 6px; text-align:center}
+.svgrid b{display:block; font-size:15px; color:var(--ink)} .svgrid span{font-family:var(--f-mono); font-size:10px; color:var(--muted)}
+.svbar{display:flex; align-items:center; gap:8px; font-family:var(--f-mono); font-size:11px; color:var(--muted); margin:4px 0}
+.svbar i{flex:1; height:6px; border-radius:4px; background:var(--surface2); overflow:hidden} .svbar i u{display:block; height:100%; background:var(--accent)}
+.svbar em{font-style:normal; width:44px} .svbar s{text-decoration:none; width:22px; text-align:right; color:var(--ink)}
+.sres.lost{background:rgba(255,70,107,.08); border-radius:6px; padding-left:6px; padding-right:6px}
+.sres.lost .fstat b{color:var(--bad)}
+.failbtns{display:flex; gap:8px; padding:14px 18px calc(14px + var(--pad-bot)); border-top:1px solid var(--line); flex:none}
+.failbtns .big,.failbtns .ghost{flex:1; max-width:none; margin:0; padding:14px 10px; font-size:15px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+html,body{height:100%; overflow:hidden; overscroll-behavior:none}
+@media (min-width:601px){ html,body{overflow:auto} }
+body{height:100vh; height:100dvh; min-height:0}
+.wrap{height:100%; max-height:100%; display:flex; flex-direction:column; justify-content:center}
+button{touch-action:manipulation; -webkit-tap-highlight-color:transparent}
+#startScreen.active{display:flex; flex-direction:column; min-height:0; flex:0 1 auto}
+#startScreen .center{display:flex; flex-direction:column; align-items:center; min-height:0; padding:clamp(6px,3vh,34px) 4px}
+#startScreen .center > *{flex:none}
+#startScreen .artistlist{flex:0 1 auto; min-height:34px; max-height:168px; overflow:auto; margin-bottom:14px}
+#startScreen .artistlist{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent); mask-image:linear-gradient(to bottom,#000 calc(100% - 18px),transparent); padding-bottom:10px}
+.ghostrow{display:flex; flex-direction:column; align-items:center; width:100%}
+@media (max-width:600px){
+  .ghostrow{flex-direction:row; gap:8px; max-width:280px; margin-top:10px}
+  .ghostrow .ghost{margin-top:0; padding:12px 6px; font-size:14px}
+}
+.links{margin-top:12px; display:flex; flex-wrap:wrap; justify-content:center; gap:2px 10px}
+#startScreen .diff, #startScreen .links{width:100%}
+#startScreen .diff{max-width:330px}
+@media (max-width:600px) and (max-height:780px){
+  .center h1{font-size:34px}
+  .center p{font-size:13.5px; line-height:1.45; margin-bottom:12px}
+  #poolInfo{margin-bottom:10px!important}
+  #startScreen .artistlist{max-height:120px; margin-bottom:10px}
+  .diffnote{margin-bottom:10px}
+  .big{padding:13px 30px; font-size:16px}
+}
+@media (max-width:600px) and (max-height:660px){
+  .center h1{font-size:28px; margin-bottom:2px}
+  .center p{font-size:12.5px; line-height:1.4; margin-bottom:8px}
+  #startScreen .artistlist{max-height:76px}
+  .retryhint{display:none!important}
+  .dbtn{padding:8px 0}
+  .big{padding:11px 30px}
+  .ghostrow .ghost{padding:9px 6px}
+  .links{margin-top:6px}
+}
+@media (max-width:480px){
+  .wrap{padding-left:14px; padding-right:14px}
+  .volwrap{display:none}
+  .top{margin-bottom:8px}
+  .modeline{margin-bottom:8px; line-height:1.5}
+}
+@media (max-width:600px) and (max-height:780px){
+  body.playing .wrap{padding-top:8px; padding-bottom:8px}
+  body.playing #gameScreen .bar{margin:10px 0 4px}
+  body.playing #gameScreen .barmeta{margin-bottom:8px}
+  body.playing #gameScreen .play{margin-bottom:8px}
+  .play-btn{padding:12px}
+  .opts{gap:7px}
+  .opt{padding:7px 10px}
+  .optart{width:38px; height:38px}
+  .next{margin-top:8px; padding:12px}
+}
+@media (max-width:600px) and (max-height:640px){
+  .optart{width:32px; height:32px}
+  .optt{font-size:14px}
+  .opta{font-size:11.5px}
+  body.playing #gameScreen .stage{min-height:90px}
+}
+/* ===== main menu ===== */
+#startScreen .menu{--dc:var(--accent); --dc2:var(--accent); display:flex; flex-direction:column; align-items:center; text-align:center;
+  min-height:0; max-height:100%; padding:clamp(8px,3vh,30px) 0}
+#startScreen .menu[data-d="easy"]{--dc:#39e08b; --dc2:#39e08b}
+#startScreen .menu[data-d="hard"]{--dc:#ff466b; --dc2:#ff466b}
+#startScreen .menu[data-d="extreme"]{--dc:#a855f7; --dc2:#ec4899}
+.menu > *{flex:none; animation:menuIn .7s cubic-bezier(.2,.8,.2,1) both; animation-delay:calc(var(--i,0) * 70ms)}
+@keyframes menuIn{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+.menu .mk{margin:0; font-size:clamp(44px,12.5vw,60px); line-height:.95}
+.menu .tag{color:var(--muted); font-size:14.5px; line-height:1.55; max-width:34ch; margin:14px auto 24px}
+.segs{position:relative; display:grid; grid-template-columns:repeat(4,1fr); width:100%; max-width:390px; padding:4px;
+  border-radius:11px; background:var(--surface); border:1px solid var(--line)}
+.segind{position:absolute; top:4px; bottom:4px; left:4px; width:calc((100% - 8px) / 4); border-radius:8px;
+  background:linear-gradient(120deg,var(--dc),var(--dc2)); box-shadow:0 8px 24px -8px var(--dc2);
+  transform:translateX(calc(var(--idx,1) * 100%)); transition:transform .5s cubic-bezier(.34,1.3,.5,1), background .35s, box-shadow .35s}
+.seg{position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 0 8px;
+  background:none; border:0; border-radius:8px; cursor:pointer; color:var(--muted); font-family:inherit; transition:transform .28s cubic-bezier(.2,.8,.2,1), color .3s}
+.seg:hover{color:var(--ink)}
+.seg .sn{font-family:var(--f-body); font-weight:700; font-size:15px; line-height:1.1; letter-spacing:-.02em; white-space:nowrap}
+html.bsd .seg .sn{font-family:var(--f-display); font-weight:800; font-size:22px; line-height:1; letter-spacing:.01em}
+.seg .sx{font-size:12px; font-weight:700; font-variant-numeric:tabular-nums; opacity:.75}
+.seg.on{color:#0a0711} .seg.on .sx{opacity:.85}
+.seg:focus-visible,.playall:focus-visible,.sec:focus-visible,.lu:focus-visible,.flink:focus-visible{outline:2px solid var(--ink); outline-offset:3px}
+.menu .dnote{font-size:13px; color:var(--muted); min-height:18px; margin:11px 0 18px}
+:is(#startScreen,#modePanel) .playall{width:100%; max-width:390px; padding:15px 16px 14px; border:0; border-radius:10px; cursor:pointer; color:#0a0711;
+  font-family:var(--f-body); font-weight:700; font-size:20px; line-height:1.1; letter-spacing:-.01em;
+  background:linear-gradient(120deg,var(--dc),var(--dc2)); box-shadow:0 12px 30px -12px var(--dc2), inset 0 1px 0 rgba(255,255,255,.35);
+  transition:box-shadow .35s, filter .2s}
+:is(#startScreen,#modePanel) .playall:hover{filter:brightness(1.07)}
+html.bsd :is(#startScreen,#modePanel) .playall{font-family:var(--f-display); font-weight:900; font-size:28px; line-height:1; letter-spacing:.01em}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; max-width:390px; margin-top:8px}
+:is(#startScreen,#modePanel) .sec{padding:13px 8px; border-radius:8px; background:var(--surface); border:1px solid var(--line); color:var(--ink);
+  font-family:inherit; font-weight:600; font-size:14.5px; cursor:pointer; transition:border-color .25s, background .25s}
+:is(#startScreen,#modePanel) .sec:hover{border-color:var(--dc)}
+.lineup{flex:0 1 auto; min-height:58px; max-height:250px; width:100%; max-width:400px; margin-top:26px; padding:6px 0 10px; overflow:auto; line-height:1.18;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 10px,#000 calc(100% - 16px),transparent);
+          mask-image:linear-gradient(to bottom,transparent,#000 10px,#000 calc(100% - 16px),transparent); scrollbar-width:none}
+.lineup::-webkit-scrollbar{display:none}
+.luw{white-space:nowrap}
+.lu{display:inline-block; position:relative; background:none; border:0; padding:0; margin:0; cursor:pointer; color:var(--ink); text-transform:uppercase;
+  font-family:var(--f-body); font-weight:700; letter-spacing:-.01em; transition:transform .28s cubic-bezier(.2,.8,.2,1), color .2s, opacity .2s}
+.lu.t1{font-size:15px; opacity:.92} .lu.t2{font-size:13px; opacity:.72} .lu.t3{font-size:12px; opacity:.55}
+html.bsd .lu{font-family:var(--f-display); font-weight:800; letter-spacing:.02em}
+html.bsd .lu.t1{font-size:20px} html.bsd .lu.t2{font-size:16.5px} html.bsd .lu.t3{font-size:14.5px}
+.lu:hover{color:var(--accent); opacity:1; z-index:2}
+.lu.tilt{--ps:1}
+.lu.tilt:hover{--ps:1.12}
+.lsep{display:inline-block; margin:0 .2em 0 .35em; font-size:9px; color:var(--muted); opacity:.6; vertical-align:.25em}
+.menu .cap{font-size:12.5px; color:var(--muted); margin-top:6px}
+.tally{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:5px; font-family:var(--f-mono); font-size:11px; color:var(--ink)}
+.tally .tall{color:var(--muted)}
+/* rolling-loud style headliners */
+.hlrow{display:block; white-space:normal; margin-bottom:6px; line-height:1.05}
+.lu.hl{font-size:22px; font-weight:700; opacity:1; color:var(--ink); text-shadow:0 0 22px color-mix(in srgb,var(--accent) 55%,transparent)}
+html.bsd .lu.hl{font-size:31px; font-weight:900; letter-spacing:.015em}
+.lu.t1{font-weight:700} html.bsd .lu.t1{font-weight:900}
+/* menu background: blurred, crossfading music video previews */
+/* perf: the video is drawn small and blurred, then scaled up (blur on a small texture is cheap);
+   overlays are static and only the scan bar moves, via transform, so nothing repaints per frame */
+/* TV / broadcast artifacts: grain, scanlines, rolling bar, vignette, and random signal glitches */
+#tvfx{position:fixed; inset:0; z-index:0; pointer-events:none; display:none}     /* behind the UI (.wrap is z 1), above the menu video */
+body.tv-on #tvfx{display:block}
+/* CRT curvature: rounded screen corners, dark bulging edges and a faint glass highlight, above the UI */
+#tvcurve{position:fixed; inset:0; z-index:9998; pointer-events:none; display:none; border-radius:4.5vmin / 6vmin;
+  box-shadow:0 0 0 60px #000, inset 0 0 9vmin 2vmin rgba(0,0,0,.62), inset 0 0 2px 1px rgba(0,0,0,.9);
+  background:radial-gradient(120% 90% at 30% 18%, rgba(255,255,255,.045), transparent 45%), radial-gradient(ellipse at 50% 50%, transparent 62%, rgba(0,0,0,.28) 100%)}
+body.tv-on #tvcurve{display:block}
+#tvgrain{position:absolute; inset:0; opacity:.06; background-size:110px 110px; mix-blend-mode:screen}
+.tvlines{position:absolute; inset:0; background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+  box-shadow:inset 0 0 140px rgba(0,0,0,.55), inset 0 0 40px rgba(0,0,0,.35)}
+.tvroll{position:absolute; left:0; right:0; top:0; height:18vh; will-change:transform; opacity:.5;
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,.035) 45%,rgba(255,255,255,.06) 50%,rgba(255,255,255,.035) 55%,transparent);
+  animation:tvRoll 9s linear infinite}
+@keyframes tvRoll{from{transform:translateY(-20vh)} to{transform:translateY(120vh)}}
+.tvtears i{position:absolute; left:-2%; width:104%; display:block; opacity:.0;
+  background:linear-gradient(90deg,rgba(255,40,90,.0),rgba(255,40,90,.35) 20%,rgba(255,255,255,.28) 50%,rgba(40,220,255,.35) 80%,rgba(40,220,255,0));
+  mix-blend-mode:screen; animation:tear .22s steps(3) forwards}
+@keyframes tear{0%{opacity:.9; transform:translateX(-6px)} 50%{opacity:.6; transform:translateX(9px)} 100%{opacity:0; transform:translateX(-3px)}}
+body.tv-glitch #bgv{animation:tvJit .24s steps(4) 1}
+@keyframes tvJit{0%{transform:translate(0,0) skewX(0)} 25%{transform:translate(-4px,1px) skewX(-1.5deg)} 50%{transform:translate(5px,-1px) skewX(1deg)} 75%{transform:translate(-2px,0) skewX(0)} 100%{transform:none}}
+/* play transition */
+#blackout{position:fixed; inset:0; z-index:95; background:#000; opacity:0; pointer-events:none; transition:opacity .5s ease}
+#blackout.on{opacity:1; pointer-events:auto; transition:opacity .5s cubic-bezier(.4,0,.6,1) .1s}
+#blackout .ld{position:absolute; left:0; right:0; top:50%; text-align:center; font-family:var(--f-mono); font-size:11px; letter-spacing:4px;
+  text-transform:uppercase; color:rgba(255,255,255,.55); opacity:0}
+#blackout.on .ld{animation:ldIn .6s ease 1.2s forwards, ldPulse 1.4s ease-in-out 1.8s infinite}
+@keyframes ldIn{to{opacity:1}} @keyframes ldPulse{0%,100%{opacity:.35} 50%{opacity:.9}}
+/* zoom uses only transform + opacity on layers promoted ahead of time, and scrolling is locked,
+   so nothing re-rasterizes or reflows (no jump) when it starts */
+html.launching, html.launching body{overflow:hidden !important}
+#blackout.quick.on{transition:opacity .4s cubic-bezier(.4,0,.6,1)} #blackout.quick .ld{display:none}
+body.leaving #gameScreen{transform:scale(.96); opacity:.4; transition:transform .45s cubic-bezier(.4,0,.6,1), opacity .45s ease}
+body.arriving #startScreen .menu{transform:scale(1.04); opacity:0}
+#startScreen .menu{transition:transform .6s cubic-bezier(.2,.8,.2,1), opacity .5s ease}
+body.prelaunch .wrap{will-change:transform,opacity}
+/* the zoom keeps going at a steady pace until the screen is fully black (the swap happens under the black) */
+body.launching .wrap, body.launching #bgv{transform:scale(1.28); opacity:.2;
+  transition:transform 1.2s cubic-bezier(.3,0,.75,.9), opacity .7s cubic-bezier(.4,0,.6,1)}
+#bgv{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; opacity:0; transition:opacity 1.2s ease; contain:strict}
+body.bgv-on:not(.playing) #bgv{opacity:1}
+body.bgv-on.gv-on.playing #bgv{opacity:.55}
+#bgv video{position:absolute; left:50%; top:50%; width:40vw; height:40vh; object-fit:cover; opacity:0; transition:opacity 1.4s ease;
+  filter:blur(5px) saturate(1.25) brightness(.62); transform:translate(-50%,-50%) scale(2.8); will-change:transform,opacity}
+#bgv video.on{opacity:1; animation:bgZoom 7s ease-out forwards}
+#bgv.solo video{transition:opacity 3s ease}      /* one artist picked: slower, longer crossfades */
+html.vb-off #bgv video{filter:saturate(1.2) brightness(.58) !important} html.lowfx #bgv video{will-change:opacity}
+html.nofrost .modal, html.nofrost [style*="backdrop-filter"], html.nofrost .chip{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
+html.nofrost .modal{--mbg:rgba(5,3,10,.82); --mblur:0px}
+@keyframes bgZoom{from{transform:translate(-50%,-50%) scale(2.8)} to{transform:translate(-50%,-50%) scale(3.1)}}
+.bgvshade{position:absolute; inset:0; background:
+  radial-gradient(ellipse at 50% 42%, rgba(10,7,17,.15) 0%, rgba(10,7,17,.72) 70%, rgba(10,7,17,.92) 100%),
+  linear-gradient(180deg, rgba(10,7,17,.35), rgba(10,7,17,.55))}
+.bgvfx{position:absolute; inset:0; pointer-events:none;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,.07) 0 .9px, transparent 1.4px);
+  background-size:100% 3px, 5px 5px}
+.bgvfx::after{content:""; position:absolute; left:0; right:0; top:0; height:220px; will-change:transform;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,.05) 50%,transparent 100%); animation:scanBar 6s linear infinite}
+@keyframes scanBar{from{transform:translateY(-220px)} to{transform:translateY(110vh)}}
+.lu.diamond{color:transparent !important; opacity:1 !important; text-shadow:none !important;
+  background-image:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.95) 47%,transparent 59%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='24' viewBox='0 0 28 24'%3E%3Cpath d='M0 0L14 0L7 12Z' fill='%23ffffff' fill-opacity='.55'/%3E%3Cpath d='M14 0L28 0L21 12Z' fill='%23bfe9ff' fill-opacity='.35'/%3E%3Cpath d='M7 12L14 0L21 12Z' fill='%238fd3ff' fill-opacity='.25'/%3E%3Cpath d='M0 24L7 12L14 24Z' fill='%23e6f7ff' fill-opacity='.45'/%3E%3Cpath d='M14 24L21 12L28 24Z' fill='%23ffffff' fill-opacity='.3'/%3E%3Cpath d='M7 12L21 12L14 24Z' fill='%23a7c7ff' fill-opacity='.4'/%3E%3C/svg%3E"),
+    linear-gradient(135deg,#dff6ff 0%,#8fd8ff 28%,#ffffff 48%,#b7a8ff 70%,#9eeaff 100%);
+  background-size:300% 100%, 14px 12px, 100% 100%; background-position:120% 0, 0 0, 0 0;
+  -webkit-background-clip:text; background-clip:text; animation:diamondShine 5s ease-in-out infinite;
+  filter:drop-shadow(0 0 7px rgba(150,220,255,.55)) drop-shadow(0 0 1px rgba(255,255,255,.8))}
+@keyframes diamondShine{0%,62%{background-position:120% 0, 0 0, 0 0} 82%,100%{background-position:-20% 0, 14px 12px, 0 0}}
+.lu.silver, .lu.bronze{color:transparent !important; opacity:1 !important; text-shadow:none !important;
+  background-size:300% 100%; background-position:150% 0; -webkit-background-clip:text; background-clip:text; animation:tierSweep 8s linear infinite}
+.lu.silver{background-image:linear-gradient(100deg,#9aa2ae 0%,#c3c9d3 22%,#e8ecf1 30%,#ffffff 33%,#e8ecf1 36%,#c3c9d3 46%,#9aa2ae 72%,#9aa2ae 100%); filter:drop-shadow(0 0 5px rgba(210,220,235,.3))}
+.lu.bronze{background-image:linear-gradient(100deg,#9a5a2c 0%,#c98247 22%,#eab383 30%,#f8d6b3 33%,#eab383 36%,#c98247 46%,#9a5a2c 72%,#9a5a2c 100%); filter:drop-shadow(0 0 5px rgba(205,127,50,.3))}
+.lu.gold{color:transparent !important; opacity:1 !important; background:linear-gradient(100deg,#c28f2a 0%,#f2c14e 22%,#f7d27a 30%,#fff3c4 33%,#f7d27a 36%,#f2c14e 46%,#c28f2a 72%,#c28f2a 100%);
+  background-size:300% 100%; background-position:150% 0; -webkit-background-clip:text; background-clip:text; animation:tierSweep 7s linear infinite; text-shadow:none !important;
+  filter:drop-shadow(0 0 6px rgba(242,193,78,.35))}
+.lu.gold:nth-child(3n){animation-delay:-2.3s} .lu.gold:nth-child(3n+1){animation-delay:-4.6s}
+@keyframes goldShine{0%,62%{background-position:100% 0} 88%,100%{background-position:-20% 0}}
+@keyframes tierSweep{from{background-position:150% 0} to{background-position:0% 0}}      /* one full tile per loop = seamless */
+.lineup{text-align:center}
+.lurow{margin:0 auto 5px; line-height:1.12}
+.lurow.hl{margin-bottom:2px}
+.lu.hl1{font-size:32px; letter-spacing:.01em} html.bsd .lu.hl1{font-size:45px}
+.lu.hl2{font-size:19px} html.bsd .lu.hl2{font-size:26px}
+.lurow.t3 .lu{font-weight:600}
+.ludiv{height:1px; width:62%; margin:7px auto 8px; background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 70%,transparent),transparent); opacity:.7}
+.lineup .lhead{display:block; font-family:var(--f-mono); font-size:9.5px; letter-spacing:3px; color:var(--accent); opacity:.85; margin:2px 0 4px}
+.menu .mk{filter:drop-shadow(0 8px 34px color-mix(in srgb,var(--dc) 45%,transparent))}
+:is(#startScreen,#modePanel) .sec .si{margin-right:6px; opacity:.85}
+.mcount{display:inline-block; margin-left:6px; font-family:var(--f-mono); font-size:10.5px; padding:2px 7px; border-radius:6px; background:var(--dc); color:#0a0711; vertical-align:1px}
+/* modifiers */
+.modcard{display:flex; gap:12px; align-items:flex-start; width:100%; padding:14px; margin-bottom:10px; text-align:left; cursor:pointer; font-family:inherit;
+  color:var(--ink); background:var(--surface2); border:1px solid var(--line); border-radius:8px; transition:border-color .2s, background .2s}
+.modcard.on{border-color:var(--accent); background:color-mix(in srgb,var(--accent) 14%,var(--surface2))}
+.modcard .mi{font-size:22px; flex:none; line-height:1.1}
+.modcard .mt{font-weight:700; font-size:15px} .modcard .md{font-size:12.5px; color:var(--muted); margin-top:3px; line-height:1.4}
+.modcard .mx{margin-left:auto; flex:none; font-family:var(--f-mono); font-size:12px; padding:3px 8px; border-radius:5px}
+.mx.up{color:var(--good); background:rgba(57,224,139,.12)} .mx.down{color:var(--bad); background:rgba(255,70,107,.12)}
+.modsum{text-align:center; font-family:var(--f-mono); font-size:12px; color:var(--muted); margin:6px 0 4px}
+.modsum b{color:var(--ink)}
+.modtags{display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:8px}
+.modtag{font-family:var(--f-mono); font-size:10.5px; padding:3px 9px; border-radius:12px; border:1px solid var(--line); background:var(--surface2); color:var(--ink)}
+body.m-blind .opta, body.m-blind #artistHint, body.m-blind .optart{display:none}
+/* "I want Minecraft": pixel font for all game text, pixelated cover/vinyl/visualizer, blocky corners */
+body.m-mc #gameScreen, body.m-mc #gameScreen *{font-family:"Pixelify Sans",monospace !important; border-radius:0 !important; letter-spacing:0 !important}
+body.m-mc #gameScreen .brand{-webkit-text-stroke:0}
+body.m-mc #gameScreen{filter:url(#pixelSm)}
+body.m-mc .optt{font-size:16px !important} body.m-mc .opta{font-size:13.5px !important} body.m-mc .modeline{font-size:12.5px !important}
+body.m-mc .stage{filter:url(#pixelate)} body.m-mc #gameScreen img{image-rendering:pixelated}
+body.m-mc .optart{filter:url(#pixelate)}
+/* shine sweep: gold theme and "my ears are trained" */
+@keyframes shineSweep{0%{transform:translateX(-120%) skewX(-18deg)} 55%,100%{transform:translateX(220%) skewX(-18deg)}}
+.shiny{position:relative; overflow:hidden}
+.shiny::after{content:""; position:absolute; top:0; bottom:0; left:0; width:45%; pointer-events:none; border-radius:inherit;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent); animation:shineSweep 3.2s ease-in-out infinite}
+html[data-th="gold"] :is(#startScreen,#modePanel) .playall, html[data-th="gold"] .play-btn{position:relative; overflow:hidden}
+html[data-th="gold"] :is(#startScreen,#modePanel) .playall::after, html[data-th="gold"] .play-btn::after{content:""; position:absolute; top:0; bottom:0; left:0; width:45%; pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent); animation:shineSweep 3.2s ease-in-out infinite}
+html[data-th="gold"] .brand{filter:drop-shadow(var(--ca) calc(var(--ca) * .15) rgba(255,45,110,.6)) drop-shadow(calc(var(--ca) * -1) calc(var(--ca) * -.15) rgba(40,220,255,.55)) drop-shadow(0 0 10px rgba(247,210,122,.45))}
+body.m-blind #modeLabel{background:linear-gradient(100deg,var(--muted) 40%,#fff 50%,var(--muted) 60%); background-size:300% 100%;
+  -webkit-background-clip:text; background-clip:text; color:transparent; animation:textShine 3.5s linear infinite}
+@keyframes textShine{0%{background-position:100% 0} 100%{background-position:0 0}}
+body.m-peek .optart{display:none}
+.stage.peek .cover{display:block}
+.stage.peek .placeholder{position:absolute; left:0; right:0; bottom:18px}
+.stage.peek .placeholder .disc{display:none}
+.stage.peek .placeholder .hint{display:inline-block; background:rgba(10,7,17,.72); color:#fff; font-size:14px; padding:6px 12px; border-radius:6px}
+.opt.tried{opacity:.38; filter:grayscale(1)} .opt.tried .optt{text-decoration:line-through}
+#lives{letter-spacing:1px}
+#vignette{position:fixed; inset:0; z-index:45; pointer-events:none; opacity:0; transition:opacity .4s;
+  box-shadow:inset 0 0 90px 20px rgba(255,30,60,.55), inset 0 0 220px 40px rgba(255,30,60,.25)}
+body.lastlife #vignette{opacity:.75; animation:vpulse 1.1s ease-in-out infinite}
+@keyframes vpulse{0%,100%{opacity:.35} 50%{opacity:1}}
+.uidline{font-family:var(--f-mono); font-size:12px; color:var(--muted); margin-bottom:22px}
+.uidline span{color:var(--text,inherit); font-weight:700}
+.volwrap .vol{width:72px; height:7px}
+.volwrap .vol::-webkit-slider-thumb{width:18px; height:18px}
+.volwrap .vol::-moz-range-thumb{width:18px; height:18px}
+.volpct{font-family:var(--f-mono); font-size:11px; color:var(--muted); min-width:34px; text-align:right}
+.foot{display:flex; flex-wrap:wrap; justify-content:center; gap:4px 20px; margin-top:18px}
+.flink{background:none; border:0; padding:4px 1px; cursor:pointer; color:var(--muted); font-family:inherit; font-size:13.5px; font-weight:500;
+  border-bottom:1px solid transparent; transition:transform .28s cubic-bezier(.2,.8,.2,1), color .2s, border-color .2s}
+.flink:hover{color:var(--ink); border-bottom-color:var(--dc)}
+@media (max-width:600px){
+  .menu .tag{font-size:13.5px; margin:10px auto 18px}
+  .lineup{margin-top:18px}
+}
+@media (max-width:600px) and (max-height:700px){
+  .menu .mk{font-size:40px}
+  .menu .tag{font-size:12.5px; line-height:1.45; margin:8px auto 14px}
+  .seg{padding:7px 0 6px} html.bsd .seg .sn{font-size:19px}
+  .menu .dnote{margin:8px 0 12px}
+  :is(#startScreen,#modePanel) .playall{padding:12px 16px 11px} html.bsd :is(#startScreen,#modePanel) .playall{font-size:25px}
+  :is(#startScreen,#modePanel) .sec{padding:11px 8px}
+  .lineup{margin-top:14px}
+  .foot{margin-top:12px}
+}
+@media (prefers-reduced-motion:reduce){ .menu > *{animation:none} .segind{transition:none} }
+
+/* ================= v2 design: flat, hard-edged, flyer/broadcast look ================= */
+html{font-synthesis:none}
+body{font-family:var(--f-body); letter-spacing:0}
+.wrap, .modal .sheet{zoom:var(--ui-zoom,1)}
+/* brand: original halftone gradient lettering, in the chosen display font */
+.brand{font-family:var(--f-display); font-weight:400; text-transform:uppercase; letter-spacing:.005em}
+html:not(.bsd) .brand{font-weight:800; letter-spacing:-.02em}
+/* NEEK: solid accent box with black letters (UG/PEEK keep the halftone gradient) */
+.brand b{background:var(--accent) !important; -webkit-background-clip:border-box !important; background-clip:border-box !important;
+  color:#0a0711 !important; -webkit-text-fill-color:#0a0711; -webkit-text-stroke:0 !important; animation:none !important;
+  padding:0 .08em; margin:0 .04em; display:inline-block; line-height:1.02; position:relative; isolation:isolate}
+.brand b::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:radial-gradient(circle, color-mix(in srgb,var(--accent) 40%,#000) 0 .9px, transparent 1.35px) 0 0/4px 4px;
+  -webkit-mask:radial-gradient(ellipse at center, transparent 35%, #000 100%); mask:radial-gradient(ellipse at center, transparent 35%, #000 100%)}
+html[data-font="editorial"] .brand{text-transform:none; font-style:italic}
+/* the logo and difficulty tabs are sized to the screen, so the text-size setting doesn't push them off it */
+.menu .mk{filter:none !important; font-size:calc(clamp(46px,14vw,74px) / var(--ui-zoom,1)); line-height:.9; margin:4px 0 0; white-space:nowrap}
+html:not(.bsd) .menu .mk{font-size:calc(clamp(34px,9.5vw,52px) / var(--ui-zoom,1))}
+.seg .sn{font-size:calc(15px / var(--ui-zoom,1)) !important} html.bsd .seg .sn{font-size:calc(21px / var(--ui-zoom,1)) !important}
+.seg .sn{white-space:nowrap; overflow:hidden; max-width:100%}
+.fbox, .failbtns .btn, .failbtns .ghost, .modcard, .catsec, .catstats div, .svgrid div{border-radius:3px !important}
+.top .logo{font-size:20px}
+html.bsd .top .logo{font-size:26px}
+
+/* menu: left aligned column with rules, like a show flyer */
+#startScreen .menu{align-items:stretch; text-align:left}
+.menu .meta{display:flex; justify-content:space-between; font-family:var(--f-mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--muted); border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:12px}
+.menu .tag{margin:12px 0 20px; max-width:44ch; font-size:13.5px; line-height:1.55; text-align:left}
+.segs{max-width:none; padding:0; border-radius:0; background:none; border:0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); box-shadow:none}
+.segind{top:auto; bottom:-1px; left:0; height:3px; width:25%; border-radius:0; background:var(--dc) !important; box-shadow:none !important}
+.seg{padding:11px 0 10px; color:var(--muted); border-radius:0}
+.seg.on, .seg.on .sx{color:var(--ink)}
+.seg .sn{text-transform:uppercase; letter-spacing:.02em}
+.seg .sx{font-family:var(--f-mono); font-size:10.5px; font-weight:500; opacity:.8}
+/* each difficulty's text in its own colour (dim until picked) */
+.seg[data-d="easy"]{--sc:#39e08b} .seg[data-d="normal"]{--sc:var(--accent)} .seg[data-d="hard"]{--sc:#ff466b} .seg[data-d="extreme"]{--sc:#c563f3}
+.seg, .seg .sx{color:color-mix(in srgb,var(--sc) 60%,var(--muted)); transition:color .25s}
+.seg:hover, .seg:hover .sx{color:var(--sc)}
+.seg.on, .seg.on .sx{color:var(--sc)}
+.seg[data-d="extreme"].on .sn{background:linear-gradient(90deg,#a855f7,#ec4899); -webkit-background-clip:text; background-clip:text; color:transparent}
+#diffNote{color:color-mix(in srgb,var(--dc) 75%,var(--ink)); transition:color .3s}
+.menu .dnote{font-family:var(--f-mono); font-size:11px; letter-spacing:.02em; margin:10px 0 16px; text-align:left}
+:is(#startScreen,#modePanel) .playall{max-width:none; border-radius:3px; background:var(--dc) !important; box-shadow:none !important; color:#0a0711;
+  display:flex; justify-content:space-between; align-items:center; text-align:left; text-transform:uppercase; padding:14px 16px 13px}
+:is(#startScreen,#modePanel) .playall::after{content:"\2192"; font-family:var(--f-body); font-weight:600; font-size:.8em}
+:is(#startScreen,#modePanel) .playall:hover{filter:brightness(1.08)}
+.row2{max-width:none; gap:6px; margin-top:6px}
+:is(#startScreen,#modePanel) .sec{border-radius:3px; background:transparent; text-align:left; padding:12px 12px; font-size:13.5px; font-weight:600;
+  display:flex; align-items:center; gap:10px; text-transform:uppercase; letter-spacing:.04em}
+:is(#startScreen,#modePanel) .sec::before{font-family:var(--f-mono); font-size:10px; color:var(--muted); font-weight:500}
+#filterBtn::before{content:"01"} #modBtn::before{content:"02"}
+:is(#startScreen,#modePanel) .sec:hover{border-color:var(--ink); background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.mcount{border-radius:2px; background:var(--ink); color:var(--bg); margin-left:auto}
+.playall .gox{font-family:var(--f-mono); font-weight:800; font-size:.5em; letter-spacing:0; margin-left:.55em; vertical-align:.45em; opacity:.8}
+.lineup{max-width:none; text-align:center}
+.lineup .lhead{display:flex; align-items:center; gap:10px; font-family:var(--f-mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); opacity:1; margin:4px 0 8px}
+.lineup .lhead::before, .lineup .lhead::after{content:""; flex:1; height:1px; background:var(--line)}
+html:not(.bsd) .lu{font-family:var(--f-display)}
+.lu.hl{text-shadow:none}
+.menu .cap{font-family:var(--f-mono); font-size:10.5px; letter-spacing:.04em; text-align:center}
+.foot{justify-content:space-between; gap:4px 12px; border-top:1px solid var(--line); padding-top:10px; margin-top:14px}
+.flink{font-family:var(--f-mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; border-bottom:0; padding:4px 0}
+.flink:hover{color:var(--ink)}
+
+/* game: scoreboard strip, flat controls, lettered answer rows */
+.iconbtn{background:transparent; border:1px solid var(--line); border-radius:3px; color:var(--ink)}
+.iconbtn:hover{border-color:var(--ink)}
+.volwrap{background:transparent; border:1px solid var(--line); border-radius:3px}
+.volwrap .ic{display:flex; color:var(--muted)}
+.modeline{display:flex; flex-wrap:wrap; border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-bottom:12px;
+  font-family:var(--f-mono); color:var(--ink); font-size:12px; line-height:1.2}
+.ml{display:flex; flex-direction:column; gap:2px; padding:6px 12px 6px 0; margin-right:12px; border-right:1px solid var(--line); min-width:0}
+.ml:last-child, .ml:empty{border-right:0} .ml:empty{display:none}
+.ml i{font-style:normal; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+.ml-mode{flex:1 1 100%; flex-direction:row; align-items:baseline; gap:8px; border-right:0; border-bottom:1px solid var(--line); margin-right:0; padding:6px 0}
+.ml-mode span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.dlabel.extreme{background:none; color:#e070c8; -webkit-background-clip:border-box; background-clip:border-box}
+.stage{border-radius:4px}
+.stageInner{border-radius:4px}
+.bar{height:9px; border-radius:999px}
+.play-btn, .more-btn, .next{border-radius:3px}
+.play-btn{text-transform:uppercase; letter-spacing:.06em; font-weight:700}
+.more-btn{background:transparent; border:1px solid var(--line); font-family:var(--f-mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.06em}
+.more-btn:hover:not(:disabled){border-color:var(--ink)}
+.opts{gap:6px}
+.opt{border-radius:3px; background:transparent; padding:8px 12px 8px 10px; gap:10px}
+.opt:hover:not(:disabled){background:color-mix(in srgb,var(--ink) 5%,transparent); border-color:var(--ink)}
+.optk{flex:none; width:20px; height:20px; display:grid; place-items:center; font-family:var(--f-mono); font-size:11px; color:var(--muted);
+  border:1px solid var(--line); border-radius:2px}
+.opt.correct .optk{background:var(--good); color:#0a0711; border-color:var(--good)}
+.opt.wrong .optk{background:var(--bad); color:#fff; border-color:var(--bad)}
+.optart{border-radius:2px}
+.next{text-transform:uppercase; letter-spacing:.06em; font-weight:700}
+body.m-mc .optk{font-family:"Pixelify Sans",monospace !important}
+
+/* settings selects */
+.setrow2{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px}
+.setfield{display:flex; flex-direction:column; gap:0}
+.setfield .setlabel{margin-bottom:8px}
+.dsel{appearance:none; -webkit-appearance:none; width:100%; background:var(--surface2); color:var(--ink); border:1px solid var(--line); border-radius:3px;
+  padding:10px 30px 10px 10px; font-family:var(--f-body); font-size:13.5px; cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 50%, calc(100% - 10px) 50%; background-size:5px 5px; background-repeat:no-repeat}
+.dsel:focus{outline:none; border-color:var(--accent)}
+.dsel option{background:var(--surface); color:var(--ink)}
+@media (max-width:420px){ .setrow2{grid-template-columns:1fr} }
+
+/* ===== v2.1: halftone logo, halftone play button that inverts on hover, restyled menus ===== */
+@property --htc{syntax:"<color>"; inherits:true; initial-value:rgba(0,0,0,.35)}
+/* play button: halftone vignette in the theme colour; hover inverts (dark button, coloured text and dots), all eased */
+:is(#startScreen,#modePanel) .playall{position:relative; overflow:hidden; isolation:isolate; --htc:#000;
+  background:var(--dc) !important; color:#0a0711; filter:none !important;
+  transition:background-color .35s ease, color .35s ease, box-shadow .35s ease, --htc .35s ease}
+:is(#startScreen,#modePanel) .playall::after{content:none !important}
+:is(#startScreen,#modePanel) .playall::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:radial-gradient(circle, var(--htc) 0 1.1px, transparent 1.6px) 0 0/5px 5px;
+  -webkit-mask:radial-gradient(ellipse 80% 120% at center, transparent 45%, #000 100%); mask:radial-gradient(ellipse 80% 120% at center, transparent 45%, #000 100%);
+  opacity:.6; animation:htPulse 2.6s ease-in-out infinite}
+@keyframes htPulse{0%,100%{opacity:.2} 50%{opacity:.9}}
+:is(#startScreen,#modePanel) .playall .arr{font-family:var(--f-body); font-weight:600; font-size:.8em; transition:transform .35s ease}
+:is(#startScreen,#modePanel) .playall:hover, :is(#startScreen,#modePanel) .playall:focus-visible, :is(#startScreen,#modePanel) .playall.held{background:#0a0711 !important; color:var(--dc); --htc:var(--dc);
+  box-shadow:inset 0 0 0 1px var(--dc) !important}
+:is(#startScreen,#modePanel) .playall:hover .arr, :is(#startScreen,#modePanel) .playall.held .arr{transform:translateX(4px)}
+/* hover/press: the dark side swipes in from the left on a slanted, soft edge instead of fading */
+:is(#startScreen,#modePanel) .playall{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 100% 0/280% 100% no-repeat !important;
+  transition:background-position .85s cubic-bezier(.65,0,.35,1), color .4s ease .2s, box-shadow .35s ease, --htc .35s ease .12s}
+:is(#startScreen,#modePanel) .playall:hover, :is(#startScreen,#modePanel) .playall:focus-visible, :is(#startScreen,#modePanel) .playall.held{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 0 0/280% 100% no-repeat !important}
+
+/* now playing (menu video) */
+#nowVid{position:fixed; left:14px; bottom:10px; z-index:2; max-width:calc(100% - 28px); pointer-events:none;
+  font-family:var(--f-mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.5);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0; transition:opacity .6s ease}
+#nowVid.on{opacity:1}
+body.playing #nowVid, body:not(.bgv-on) #nowVid{opacity:0}
+
+/* all other menus: same flat, ruled, square look */
+.sheet{border-radius:6px 6px 0 0}
+.modal.mid .sheet, #failModal .sheet, #shareView .sheet{border-radius:6px}
+.sheethead{font-family:var(--f-display); font-weight:400; text-transform:uppercase; letter-spacing:.03em; font-size:20px; padding:14px 18px 12px}
+html:not(.bsd) .sheethead{font-weight:700; font-size:17px; letter-spacing:.01em}
+.linkbtn{text-transform:uppercase; letter-spacing:.1em; font-size:11px; color:var(--muted)} .linkbtn:hover{color:var(--ink)}
+.setlabel{letter-spacing:.14em; font-size:10px}
+.catsearch, .dsel{border-radius:3px}
+.cchip, .filchip{border-radius:2px !important; text-transform:uppercase; letter-spacing:.06em; font-family:var(--f-mono); font-size:10.5px}
+.cchip.on, .filchip.on{background:var(--ink) !important; color:var(--bg) !important; border-color:var(--ink) !important}
+/* choose-artists chips: theme colour when picked, faint halftone (black on / grey off) that crossfades */
+.filchip{position:relative; overflow:hidden; isolation:isolate; transition:background-color .35s ease, color .35s ease, border-color .35s ease}
+.filchip::before, .filchip::after{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background-size:4px 4px; transition:opacity .35s ease;
+  -webkit-mask:radial-gradient(ellipse 75% 110% at center, transparent 30%, #000 100%); mask:radial-gradient(ellipse 75% 110% at center, transparent 30%, #000 100%)}
+.filchip::before{background-image:radial-gradient(circle, rgba(0,0,0,.75) 0 .9px, transparent 1.2px); opacity:0}
+.filchip::after{background-image:radial-gradient(circle, rgba(170,170,180,.45) 0 .9px, transparent 1.2px); opacity:1}
+.filchip.on{background:var(--accent) !important; border-color:var(--accent) !important; color:#0a0711 !important}
+.filchip.on::before{opacity:1} .filchip.on::after{opacity:0}
+.toggle{border-bottom:1px solid var(--line)}
+.tlabel{font-weight:600}
+.sw{width:40px; height:22px; border-radius:2px; background:transparent; border:1px solid var(--line)}
+.sw::after{top:3px; left:3px; width:14px; height:14px; border-radius:1px; background:var(--muted)}
+.sw.on{background:var(--accent); border-color:var(--accent)}
+.sw.on::after{transform:translateX(18px); background:var(--accent-ink)}
+.swatch{border-radius:3px}
+.pickrow{border-radius:3px; background:transparent} .pickrow:hover:not(:disabled){background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.ghost, .ghost2, .dbtn{border-radius:3px !important; background:transparent; text-transform:uppercase; letter-spacing:.06em; font-size:12.5px}
+.ghost:hover, .ghost2:hover{border-color:var(--ink)}
+.failtop{text-align:left}
+.failtop h2{font-family:var(--f-display); font-weight:400; text-transform:uppercase; letter-spacing:.01em; font-size:34px; line-height:1}
+html:not(.bsd) .failtop h2{font-weight:800; font-size:28px}
+.failscores{justify-content:flex-start}
+.fbox{max-width:none; background:transparent; text-align:left; padding:8px 10px}
+.fbox .fl, .sslabel{text-transform:uppercase; letter-spacing:.12em; font-size:9.5px}
+.failbtns .big{text-transform:uppercase; letter-spacing:.06em}
+.modtags, .svacc{justify-content:flex-start; margin-left:0}
+.modtag{border-radius:2px}
+.svhero{text-align:left; font-family:var(--f-display); font-weight:400}
+html:not(.bsd) .svhero{font-weight:800}
+.modcard{background:transparent} .modcard.on{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.modcard .mx{border-radius:2px}
+.catstats div{background:transparent; text-align:left; padding:8px 10px}
+.catsec{background:transparent}
+.rimg{border-radius:2px}
+/* big text sizes: sheets are zoomed, so shrink their box by the same amount to keep the header/close on screen */
+.modal .sheet{max-height:calc(84dvh / var(--ui-zoom,1)); max-width:min(440px, calc(100vw / var(--ui-zoom,1)))}
+#failModal .sheet, #shareView .sheet{max-height:calc(92dvh / var(--ui-zoom,1))}
+.sheethead{flex:none; position:sticky; top:0; z-index:5; background:var(--surface)}
+/* phones: roomier, more readable lineup; difficulty + buttons sit a bit lower */
+@media (max-width:600px){
+  .lineup{max-height:38vh; max-height:38dvh; margin-top:22px}
+  .lu.t1{opacity:1} .lu.t2{opacity:.88; font-size:14px} .lu.t3{opacity:.75; font-size:13px}
+  html.bsd .lu.t2{font-size:18px} html.bsd .lu.t3{font-size:16px}
+  #diffRow{margin-top:10px} :is(#startScreen,#modePanel) .playall{margin-top:4px}
+}
+/* plainer menus: no springy pop, flat edges, quieter headers, no glows */
+.modal.open .sheet{animation:mUpFlat .32s cubic-bezier(.2,.7,.2,1) both}
+@keyframes mUpFlat{from{opacity:0; transform:translateY(24px)} to{opacity:1; transform:none}}
+.modal.closing .sheet, .modal.open.closing .sheet{animation:mDownFlat .22s cubic-bezier(.5,0,.75,.3) both}
+@keyframes mDownFlat{from{opacity:1; transform:none} to{opacity:0; transform:translateY(40px)}}
+.sheet, .modal.mid .sheet, #failModal .sheet, #shareView .sheet{border-radius:2px !important; box-shadow:none}
+.sheet{border-top:2px solid var(--ink)}
+#shareView .failtop h2, #shareView.won .failtop h2{text-shadow:none}
+.toggle .tdesc, .bgpick .tdesc{font-size:11.5px; line-height:1.4}
+.dsel, .bgpo, .filchip, .modcard{border-radius:2px !important}
+/* game mode panel */
+#startScreen{position:relative}
+#startScreen .menu{transition:transform .55s cubic-bezier(.65,0,.35,1), opacity .45s ease, filter .45s ease}
+.modes{position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; gap:14px; padding:20px 0; width:100%; max-width:420px; margin:0 auto;
+  transform:translateX(110%); opacity:0; visibility:hidden; transition:transform .55s cubic-bezier(.65,0,.35,1), opacity .4s ease, visibility 0s .55s}
+#startScreen.modes-open .menu{transform:translateX(-110%); opacity:0}
+#startScreen.modes-open .menu *{pointer-events:none}
+body.modes-open .modes{transform:none; opacity:1; visibility:visible; transition:transform .55s cubic-bezier(.65,0,.35,1), opacity .4s ease .1s, visibility 0s}
+.modeshead{display:flex; align-items:center; justify-content:space-between; font-family:var(--f-mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:10px; border-bottom:1px solid var(--line)}
+.modelist{display:flex; flex-direction:column; gap:10px}
+.modeopt{display:flex; flex-direction:column; gap:4px; text-align:left; padding:16px; cursor:pointer; font:inherit; color:var(--ink);
+  background:var(--surface2); border:1px solid var(--line); border-radius:2px; transition:border-color .25s, background-color .25s}
+.modeopt b{font-family:var(--f-display); font-size:22px; font-weight:800; text-transform:uppercase; letter-spacing:.01em; line-height:1}
+html:not(.bsd) .modeopt b{font-size:18px}
+.modeopt span{font-size:12.5px; color:var(--muted)}
+.modeopt:hover{border-color:color-mix(in srgb,var(--dc) 60%,var(--line))}
+.modeopt.on{border-color:var(--dc); background:color-mix(in srgb,var(--dc) 14%,var(--surface2))}
+.modeopt.on b{color:var(--dc)}
+.modego{margin-top:auto}
+/* desktop: the menu stays put and greys out; modes slide in beside it */
+@media (min-width:900px){
+  #startScreen.modes-open .menu{transform:none; opacity:.4; filter:saturate(.4); cursor:pointer}
+  /* dim + blur everything behind the panel, like the other menus (off with "Dim & blur behind menus") */
+  body::before{content:""; position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; background:rgba(5,3,10,.55);
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); transition:opacity .45s ease}
+  body.modes-open:not(.playing):not(.nodim)::before{opacity:1}
+  html.nofrost body::before{-webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(5,3,10,.75)}
+  body.launching .modes, body.playing .modes{opacity:0 !important; transition:opacity .35s ease !important}
+  .modes{position:fixed; left:auto; right:0; top:0; bottom:0; width:400px; max-width:none; padding:40px 32px; z-index:6;
+    background:var(--surface); border-left:1px solid var(--line)}
+  .modego{margin-top:12px}
+}
+/* difficulty now lives on the mode screen; 5 options incl. Random (styled like Extreme, cyan to lime) */
+.modes{--dc:var(--accent); --dc2:var(--accent)}
+.modes[data-d="easy"]{--dc:#39e08b; --dc2:#39e08b} .modes[data-d="hard"]{--dc:#ff466b; --dc2:#ff466b}
+.modes[data-d="extreme"]{--dc:#a855f7; --dc2:#ec4899} .modes[data-d="random"]{--dc:#22d3ee; --dc2:#a3e635}
+#startScreen .menu[data-d="random"]{--dc:#22d3ee; --dc2:#a3e635}
+.segs{grid-template-columns:repeat(5,1fr) !important; max-width:none}
+.segind{width:20% !important}
+.modes .segind{background:linear-gradient(90deg,var(--dc),var(--dc2)) !important}
+.seg[data-d="random"]{--sc:#4fd8c4}
+.seg[data-d="random"].on .sn{background:linear-gradient(90deg,#22d3ee,#a3e635); -webkit-background-clip:text; background-clip:text; color:transparent}
+.dlabel.random{color:#5fe0b0}
+.modes .dnote{font-size:12.5px; color:color-mix(in srgb,var(--dc) 75%,var(--ink)); min-height:2.6em; margin:0}
+.modesub{font-family:var(--f-mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); margin-top:6px}
+.modes .seg .sn{font-size:13px !important} html.bsd .modes .seg .sn{font-size:17px !important}
+.modeartists{width:100%}
+.modes{overflow-y:auto; scrollbar-width:none; justify-content:flex-start}
+.row2.one{grid-template-columns:1fr}
+/* press feedback on the mode screen */
+.modeopt, .modes .seg, .modeartists, #modeBack{transition:transform .45s cubic-bezier(.34,1.56,.64,1), border-color .3s ease, background-color .3s ease, color .3s ease}
+.modeopt b{transition:color .3s ease}
+.modeopt:active, .modes .seg:active, .modeartists:active, #modeBack:active{transform:scale(.97); transition-duration:.12s, .3s, .3s, .3s; transition-timing-function:ease-out}
+.modego:active{transform:scale(.985)}
+#startScreen .menu #startBtn{--dc:var(--accent); --dc2:var(--accent)}      /* main Play keeps the theme colour */
+#bgv{transition:opacity 1.2s ease, filter .45s ease} body.modes-open:not(.nodim) #bgv{filter:brightness(.55) blur(3px) saturate(.45)}
+body.modes-open.nodim #bgv{filter:saturate(.45)}      /* side panel open: some desaturation behind it, eased in and out */
+.modeartist{font-family:var(--f-display); font-weight:800; font-size:26px; line-height:1.05; text-transform:uppercase; letter-spacing:.01em; color:var(--ink); margin:2px 0 -4px}
+html:not(.bsd) .modeartist{font-size:21px}
+.modeopt.off{opacity:.35; cursor:not-allowed; filter:grayscale(1)}
+#goalTag{font-family:var(--f-mono); font-size:11px; color:var(--muted); margin-left:8px; letter-spacing:.06em}
+.modeartist i{font-style:normal; color:var(--accent); margin:0 .28em; font-weight:400}
+.modeartist small{font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; white-space:nowrap; vertical-align:.3em}
+.modeopt{--dc:var(--accent)}         /* mode cards keep the theme colour whatever the difficulty */
+@media (min-width:900px){ .modes{background:linear-gradient(180deg, var(--surface) 0%, var(--surface) 35%, color-mix(in srgb, var(--accent) 14%, #050308) 100%)} }
+.toggle.off{opacity:.4; filter:grayscale(1); pointer-events:none; transition:opacity .2s}
+.modego.dead{opacity:.35 !important; filter:grayscale(1) !important; pointer-events:none; transition:opacity .3s, filter .3s}
+.modeartist em{display:block; font-style:normal; font-family:var(--f-body); font-weight:800; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:4px}
+.modeartist .lu.mnm{font:inherit; letter-spacing:inherit; text-transform:inherit; cursor:default; opacity:1; color:var(--ink); padding:0; transform:none}
+.lu.picked:is(.diamond,.gold,.silver,.bronze){}
+.lu.picked:not(.diamond):not(.gold):not(.silver):not(.bronze){color:var(--accent) !important; opacity:1 !important; background:none !important; -webkit-background-clip:border-box !important; background-clip:border-box !important;
+  filter:none !important; animation:none !important; text-shadow:none !important; transition:color .3s ease}
+.brand{filter:none !important; --ca:0px !important}      /* no chromatic aberration on the logo */
+html[data-th="gold"] .brand{filter:drop-shadow(0 0 10px rgba(247,210,122,.45)) !important}
+.ring{border-radius:4px}      /* match the cover box so its corners stay inside the green/red frame */
+.stageInner, .holo{border-radius:inherit} .holo{overflow:hidden; clip-path:inset(0 round 4px)}
+.stage.revealed .stageInner{clip-path:inset(0 round 4px)}
+.dgoal{font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:-6px}
+.dgoal b{font-weight:700; color:var(--dc); background:linear-gradient(90deg,var(--dc),var(--dc2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; transition:color .3s}
+.modeartist .lu{pointer-events:none; transform:none !important; --ps:1 !important}      /* panel names are labels, not buttons: no tap-zoom */
+.filgroups{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:-4px 0 14px}
+.fglab{font-family:var(--f-mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-right:4px}
+.fgroup{font-family:var(--f-display); font-weight:800; font-size:14px; letter-spacing:.04em; text-transform:uppercase; padding:6px 11px; cursor:pointer;
+  color:var(--ink); background:var(--surface2); border:1px solid var(--line); border-radius:2px; transition:border-color .2s, color .2s, transform .35s cubic-bezier(.34,1.56,.64,1)}
+.fgroup:hover{border-color:var(--accent); color:var(--accent)} .fgroup:active{transform:scale(.95); transition-duration:.1s}
+.modeartist .mgrp{color:transparent; background:linear-gradient(100deg,transparent 0%,transparent 38%,color-mix(in srgb,var(--accent) 45%,#fff) 46%,#fff 50%,color-mix(in srgb,var(--accent) 45%,#fff) 54%,transparent 62%,transparent 100%) no-repeat, var(--accent);
+  background-size:60% 100%, auto; -webkit-background-clip:text; background-clip:text; animation:grpShine 5s linear infinite}
+@keyframes grpShine{0%{background-position:-200% 0, 0 0} 60%,100%{background-position:300% 0, 0 0}}      /* resets while the glare is off-screen */
+.abonus{display:block; margin-top:4px; color:var(--accent); opacity:.85}
+.seg.blocked{opacity:.28; filter:grayscale(1); cursor:not-allowed; text-decoration:line-through; text-decoration-thickness:1px}
+/* picked mastery names keep their effect; an accent underline marks them instead */
+.lu.picked::after, .lu.unpick::after{content:""; position:absolute; left:8%; right:8%; bottom:-2px; height:2px; border-radius:2px; background:var(--accent);
+  box-shadow:0 0 8px var(--accent); animation:pickLine .35s cubic-bezier(.2,.8,.2,1) both}
+.lu.unpick::after{animation:pickOut .35s ease both}
+@keyframes pickOut{from{opacity:1; transform:none} to{opacity:0; transform:scaleX(.6)}}
+@keyframes pickLine{from{transform:scaleX(0); opacity:0} to{transform:none; opacity:1}}
+/* diamond: iridescent ice with a breathing glow */
+.lu.diamond{background-image:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.95) 47%,transparent 59%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='24' viewBox='0 0 28 24'%3E%3Cpath d='M0 0L14 0L7 12Z' fill='%23ffffff' fill-opacity='.55'/%3E%3Cpath d='M14 0L28 0L21 12Z' fill='%23bfe9ff' fill-opacity='.35'/%3E%3Cpath d='M7 12L14 0L21 12Z' fill='%238fd3ff' fill-opacity='.25'/%3E%3Cpath d='M0 24L7 12L14 24Z' fill='%23e6f7ff' fill-opacity='.45'/%3E%3Cpath d='M14 24L21 12L28 24Z' fill='%23ffffff' fill-opacity='.3'/%3E%3Cpath d='M7 12L21 12L14 24Z' fill='%23a7c7ff' fill-opacity='.4'/%3E%3C/svg%3E"),
+    linear-gradient(120deg,#e9fbff 0%,#8fd8ff 18%,#ffffff 34%,#c9b6ff 52%,#8ff0ff 68%,#ffd9f5 84%,#e9fbff 100%) !important;
+  background-size:300% 100%, 14px 12px, 300% 100% !important;
+  animation:diamondShine 5s ease-in-out infinite, diaIri 9s linear infinite, diaGlow 3.4s ease-in-out infinite !important}
+@keyframes diaIri{from{background-position:120% 0, 0 0, 150% 0} to{background-position:120% 0, 0 0, 0% 0}}
+@keyframes diaGlow{0%,100%{filter:drop-shadow(0 0 3px rgba(150,220,255,.45)) drop-shadow(0 0 .5px rgba(255,255,255,.9))}
+  50%{filter:drop-shadow(0 0 6px rgba(190,170,255,.6)) drop-shadow(0 0 .5px #fff)}}
+/* sparkles drifting off diamond names */
+.dspark{position:absolute; pointer-events:none; z-index:3; width:var(--sz,6px); height:var(--sz,6px); left:var(--x); top:var(--y); opacity:0;
+  background:radial-gradient(circle,#fff 0 18%,transparent 60%), conic-gradient(from 45deg,transparent 0 10%,#fff 12%,transparent 14% 35%,#fff 37%,transparent 39% 60%,#fff 62%,transparent 64% 85%,#fff 87%,transparent 89%);
+  filter:drop-shadow(0 0 3px rgba(170,220,255,.95)); animation:dspark var(--d,2.2s) cubic-bezier(.25,.6,.35,1) forwards}
+@keyframes dspark{0%{opacity:0; transform:translate(0,0) scale(.2) rotate(0)} 18%{opacity:1; transform:translate(calc(var(--dx)*.2),-4px) scale(1) rotate(40deg)}
+  100%{opacity:0; transform:translate(var(--dx),-22px) scale(.35) rotate(160deg)}}
+.opt.ghostslot{opacity:.22; filter:grayscale(1); pointer-events:none; border-style:dashed}
+.segs.locked{opacity:.35; filter:grayscale(1); pointer-events:none} .segs.locked .segind{opacity:0}
+.segs.locked .seg.on, .segs.locked .seg.on .sx{color:color-mix(in srgb,var(--sc) 60%,var(--muted))} .segs.locked .seg.on .sn{-webkit-text-fill-color:currentColor; background:none}
+.swatch{box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); transition:transform .25s cubic-bezier(.34,1.56,.64,1), border-color .2s}
+.swatch:hover{transform:translateY(-2px)}
+.ver{position:fixed; right:10px; bottom:8px; z-index:3; font-family:var(--f-mono); font-size:10px; letter-spacing:.08em; color:var(--muted); opacity:.55; pointer-events:none}
+body.playing .ver{display:none}
+/* keep corner labels clear of the CRT curvature */
+body.tv-on .ver{right:calc(10px + 3.5vmin); bottom:calc(8px + 2.5vmin)}
+body.tv-on #nowVid{left:calc(14px + 3.5vmin); bottom:calc(10px + 2.5vmin); max-width:calc(100% - 28px - 7vmin)}
+/* version sits just above the now-playing line; CRT only nudges both in from the side */
+.ver{left:14px; right:auto; bottom:30px}
+body.tv-on .ver{left:calc(14px + 3.5vmin); right:auto; bottom:30px}
+body.tv-on #nowVid{bottom:10px}
+
+/* ===== lineup v3: festival poster. Big condensed names, colour and size step down per tier, plain dot separators ===== */
+.lineup{max-height:340px; margin-top:30px; line-height:1.02; padding:8px 0 14px}
+.lineup .lhead{margin:0 0 12px; color:var(--muted)}
+.lurow{margin:0 auto 7px; line-height:1.02}
+.lu, html.bsd .lu{letter-spacing:-.005em; text-shadow:none}
+.lu.hl1, html.bsd .lu.hl1{font-size:clamp(38px,9vw,58px); color:var(--accent); letter-spacing:-.015em; line-height:.95}
+.lu.hl, html.bsd .lu.hl{font-weight:900}
+.lurow.hl:not(.hl1):not(.hl2) .lu, html.bsd .lurow.hl:not(.hl1):not(.hl2) .lu{font-size:clamp(26px,6vw,38px)}
+.lurow.hl2 .lu, html.bsd .lurow.hl2 .lu{font-size:clamp(21px,4.8vw,30px); opacity:.92}
+.lu.t1, html.bsd .lu.t1{font-size:clamp(17px,3.6vw,22px); opacity:.9}
+.lu.t2, html.bsd .lu.t2{font-size:clamp(14px,2.9vw,17px); opacity:.72}
+.lu.t3, html.bsd .lu.t3{font-size:clamp(12.5px,2.5vw,14.5px); opacity:.55}
+.lsep{font-size:1em; margin:0 .18em 0 .22em; vertical-align:0; color:var(--accent); opacity:.55}
+.lurow.hl .lsep{opacity:.35}
+.ludiv{width:100%; height:0; margin:12px auto 12px; background:none; border-top:1px solid var(--line); opacity:1}
+.lu:hover{opacity:1}
+.menu .tag{max-width:40ch}
+@media (max-width:600px){ .lineup{max-height:46vh; max-height:46dvh} }
+
+/* ===== background texture v2: calmer. Static fine scanlines, soft corner halftone, no RGB drift ===== */
+.bgfx .sl{left:0; right:0; animation:none; -webkit-mask-image:none; mask-image:none;
+  background:repeating-linear-gradient(to bottom, rgba(255,255,255,.028) 0 1px, transparent 1px 4px)}
+.bgfx .sl.r, .bgfx .sl.c{display:none}
+.bgfx .ht{opacity:.14; background-size:8px 8px;
+  background-image:radial-gradient(circle, var(--spot,var(--accent)) 0 1.3px, transparent 1.9px);
+  -webkit-mask-image:radial-gradient(90% 70% at 0% 100%, #000 0%, rgba(0,0,0,.4) 40%, transparent 72%);
+          mask-image:radial-gradient(90% 70% at 0% 100%, #000 0%, rgba(0,0,0,.4) 40%, transparent 72%)}
+.bgfx .ht2{opacity:.06; background-size:6px 6px;
+  -webkit-mask-image:radial-gradient(80% 60% at 100% 0%, #000 0%, transparent 70%);
+          mask-image:radial-gradient(80% 60% at 100% 0%, #000 0%, transparent 70%)}
+/* desktop: a wider menu so the poster lineup has room to breathe */
+@media (min-width:900px){
+  body:not(.playing) .wrap{max-width:600px}
+  #startScreen .segs, :is(#startScreen) .playall, #startScreen .row2{max-width:none}
+  .lineup{max-height:max(300px, calc(100dvh - 430px))}
+  .menu .tag{font-size:15px}
+}
+.luw{display:inline-block; transform-origin:50% 50%}
+
+/* ===== menu polish: poster card for the lineup, quieter chrome, clearer hover states ===== */
+.menu .tag{color:color-mix(in srgb,var(--ink) 72%,transparent)}
+.menu .meta #greet::before{content:""; display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:8px; vertical-align:1px;
+  background:var(--accent); box-shadow:0 0 8px var(--accent); animation:livePulse 2.4s ease-in-out infinite}
+@keyframes livePulse{50%{opacity:.35}}
+.lineup{position:relative; padding:14px 14px 18px; border:1px solid var(--line); border-radius:4px;
+  background:linear-gradient(180deg, color-mix(in srgb,var(--accent) 7%,transparent), transparent 40%), color-mix(in srgb,var(--surface) 55%,transparent);
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 22px),transparent); mask-image:linear-gradient(to bottom,#000 calc(100% - 22px),transparent)}
+.lineup .lhead{color:var(--accent); opacity:.9}
+#startScreen .sec{transition:border-color .2s, background .2s, color .2s}
+#startScreen .sec:hover{border-color:var(--accent); color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.flink{position:relative; transition:color .2s}
+.flink::after{content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform .25s ease}
+.flink:hover{color:var(--ink)} .flink:hover::after{transform:scaleX(1)}
+.cap{margin-top:10px}
+.lurow.hl2 .lu, html.bsd .lurow.hl2 .lu{font-size:clamp(20px,4.4vw,26px)}
+.lineup{padding-left:6px; padding-right:6px}
+/* history tabs + past games */
+.histtabs{display:flex; gap:6px; padding:10px 16px 2px}
+.htab{flex:1; padding:8px 10px; border:1px solid var(--line); border-radius:3px; background:transparent; color:var(--muted); cursor:pointer;
+  font-family:var(--f-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; transition:color .2s, border-color .2s, background .2s}
+.htab.on{color:var(--ink); border-color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.pgame{display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line)}
+.pgame.won .pgt b{color:#39e08b}
+.pgi{flex:1; min-width:0}
+.pgt{font-size:14px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis} .pgt b{color:var(--accent); font-size:16px}
+.pgs{font-size:12px; color:var(--muted); margin-top:2px}
+.pgw{font-family:var(--f-mono); font-size:10.5px; color:var(--muted); opacity:.8; margin-top:3px}
+.pgb{display:flex; flex-direction:column; gap:5px} .pgb .ghost{padding:5px 12px; font-size:12px}
+#gamesBody .empty{color:var(--muted); font-size:13px; padding:18px 0; text-align:center}
+.lineup .lu{rotate:var(--rot,0deg)}
+/* version + now-playing label stay visible in rounds (label only when videos play in rounds) */
+body.playing .ver{display:block}
+body.playing.gv-on.bgv-on #nowVid{opacity:1}
+/* side panel: stronger theme gradient and a soft halftone fading up from the bottom */
+@media (min-width:900px){
+  .modes{background:linear-gradient(180deg, var(--surface) 0%, color-mix(in srgb,var(--accent) 10%,var(--surface)) 40%, color-mix(in srgb,var(--accent) 34%,#050308) 100%)}
+  .modes::after{content:""; position:fixed; right:0; bottom:0; width:400px; height:42%; pointer-events:none; z-index:-1;
+    background:radial-gradient(circle, color-mix(in srgb,var(--accent) 70%,#fff) 0 1.1px, transparent 1.6px) 0 0/7px 7px; opacity:.22;
+    -webkit-mask-image:linear-gradient(to top,#000,transparent); mask-image:linear-gradient(to top,#000,transparent)}
+}

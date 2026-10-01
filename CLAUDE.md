@@ -1,6 +1,17 @@
 # Repo rules
 
-- The game lives in `UGNeekPeek.html` (deployed on Netlify).
+- The game is `UGNeekPeek.html` (markup only) + `css/style.css` + `js/*.js` (deployed on Netlify).
+- Only open the file you need. JS files are classic scripts loaded in this order and share globals:
+  - `js/core.js` — constants: ARTISTS, THEMES, STAGES/PTS, helpers (escapeHtml, fmtDate)
+  - `js/prefs.js` — prefs/localStorage, settings toggles (TOGGLES), fonts
+  - `js/data.js` — stats, Apple/iTunes fetching, artist track loading, mastery, lineup render, audio graph
+  - `js/game.js` — difficulties, modifiers, rounds/scoring, menu music (MM), transitions, win/fail screens
+  - `js/menu.js` — history, filter, dev stats (DEV), settings/modal wiring, game mode side panel
+  - `js/share.js` — share links, shared-score view, song catalog
+  - `js/fx.js` — menu video background, TV effects, click sounds, tilt/ripple, confetti
+- Asset paths must be absolute (`/js/...`) because `/s/<id>` share links serve the same HTML.
+- Serverless: `netlify/functions/share.mjs` (/api/share), `uid.mjs` (/api/uid); `netlify/edge-functions/share-embed.js` adds link previews.
+- Always escape user/share data with `escapeHtml` before putting it in innerHTML.
 - After every change: commit, push, and open a pull request into `main` without asking. If the branch's previous PR is already merged, open a new one.
 
 ## Version number — ALWAYS update it

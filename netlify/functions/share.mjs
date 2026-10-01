@@ -9,6 +9,8 @@ function newId() {
 
 export default async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
+  const o = req.headers.get("origin");
+  if (o && o !== new URL(req.url).origin) return new Response("Forbidden", { status: 403 });
   const r = (await req.text()).trim();
   if (!/^[A-Za-z0-9_-]{10,16000}$/.test(r)) return new Response("Bad share", { status: 400 });
   try {
