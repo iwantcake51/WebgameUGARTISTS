@@ -1160,15 +1160,14 @@ body.playing.gv-on.bgv-on #nowVid{opacity:1}
 body.modes-open #startScreen #startBtn, body:has(.modal.open) #startScreen #startBtn{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 0 0/280% 100% no-repeat !important;
   color:var(--dc); --htc:var(--dc); box-shadow:inset 0 0 0 1px var(--dc) !important}
 body.modes-open #startBtn .arr{transform:translateX(4px)}
-/* letterbox */
-#lbox{position:fixed; inset:0; z-index:9999; pointer-events:none; --bar:11vh; --shut:900ms}
+/* letterbox (under the CRT curve; the CRT grain/lines are lifted above it while the bars are in use) */
+#lbox{position:fixed; inset:0; z-index:9990; pointer-events:none; --shut:900ms}
 #lbox i{position:absolute; left:0; right:0; height:51vh; background:#000; will-change:transform;
   transition:transform .95s cubic-bezier(.45,0,.2,1)}
 #lbox .lt{top:0; transform:translateY(-100%)} #lbox .lb{bottom:0; transform:translateY(100%)}
-#lbox.in i{transition:transform .3s cubic-bezier(.2,.9,.25,1)}
-#lbox.in .lt{transform:translateY(calc(-100% + var(--bar)))} #lbox.in .lb{transform:translateY(calc(100% - var(--bar)))}
-#lbox.in.shut i{transition:transform var(--shut) cubic-bezier(.55,0,.45,1)}
-#lbox.in.shut .lt, #lbox.in.shut .lb{transform:none}
+#lbox.shut i{transition:transform var(--shut) cubic-bezier(.4,0,.2,1)}
+#lbox.shut .lt, #lbox.shut .lb{transform:none}
+body.lbox-on #tvfx{z-index:9995}
 body.noanim #lbox{display:none}
 /* song catalog */
 #ssBody .ssr{gap:12px; padding:10px 6px; margin:0 -6px; border-radius:6px; border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent);

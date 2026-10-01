@@ -111,11 +111,10 @@ function chooseArtist(){
 function prefetchNext(){ NEXT=chooseArtist(); if(NEXT) ensureArtist(NEXT); }
 // ---- play transition: menu zooms in, screen fades to black, game fades in once the first song has loaded ----
 var waitReveal=false, revealT=0;
-// letterbox bars: snap in to a cinema frame, slowly close while the screen goes black, then open again as it fades back
+// letterbox bars: close smoothly from the edges while the screen goes black, open again as it fades back (CRT effects stay on top)
 var LBOX=(function(){ var el=null, t=0;
-  function close(shutAfter,shutMs){ el=el||$("lbox"); clearTimeout(t); el.style.setProperty("--shut",(shutMs||900)+"ms"); el.classList.remove("shut"); el.classList.add("in");
-    t=setTimeout(function(){ el.classList.add("shut"); }, shutAfter||260); }
-  function open(){ el=el||$("lbox"); clearTimeout(t); el.classList.remove("in","shut"); }
+  function close(ms){ el=el||$("lbox"); clearTimeout(t); el.style.setProperty("--shut",(ms||900)+"ms"); document.body.classList.add("lbox-on"); el.classList.add("shut"); }
+  function open(){ el=el||$("lbox"); clearTimeout(t); el.classList.remove("shut"); t=setTimeout(function(){ document.body.classList.remove("lbox-on"); }, 1000); }
   return {close:close, open:open}; })();
 // ---- menu music: muffled previews of in-game songs while hovering artists / with the game mode panel open ----
 var MM=(function(){
@@ -166,7 +165,7 @@ function menuTransition(go){
   w.style.transformOrigin="50% "+Math.round(window.innerHeight/2-r.top)+"px";     // zoom toward the middle of the screen
   document.body.classList.add("prelaunch"); void w.offsetWidth;
   requestAnimationFrame(function(){
-    document.documentElement.classList.add("launching"); document.body.classList.add("launching"); $("blackout").classList.add("on"); LBOX.close(260,1000); CLICK.whoosh();
+    document.documentElement.classList.add("launching"); document.body.classList.add("launching"); $("blackout").classList.add("on"); LBOX.close(1000); CLICK.whoosh();
   });
   setTimeout(function(){
     waitReveal=true; go(); document.body.classList.remove("launching","prelaunch"); document.documentElement.classList.remove("launching"); w.style.transformOrigin="";
@@ -204,7 +203,7 @@ function goHomeFade(){
   if(homing) return; homing=true;
   var v0=audio.volume||0, t0=performance.now();
   (function dip(){ var k=Math.min(1,(performance.now()-t0)/450); try{ audio.volume=v0*(1-k); }catch(e){} if(k<1) requestAnimationFrame(dip); })();
-  document.body.classList.add("leaving"); $("blackout").classList.add("on","quick"); LBOX.close(160,520);
+  document.body.classList.add("leaving"); $("blackout").classList.add("on","quick"); LBOX.close(520);
   setTimeout(function(){
     goHome(); document.body.classList.remove("leaving"); document.body.classList.add("arriving");
     requestAnimationFrame(function(){ requestAnimationFrame(function(){ $("blackout").classList.remove("on"); LBOX.open(); document.body.classList.remove("arriving"); }); });
