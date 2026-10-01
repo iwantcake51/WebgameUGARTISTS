@@ -1194,3 +1194,12 @@ body.noanim #ssBody .ssr, body.noanim #ssBody.fresh .pickrow{animation:none}
 .swnote{font-size:12px; color:var(--muted); margin:-2px 0 8px}
 .ttag.exp{color:#fff; border-color:#ffc93c; text-shadow:0 1px 1px #000, 0 0 3px #000;
   background:repeating-linear-gradient(-45deg, #ffc93c 0 5px, #1a1a1a 5px 10px)}
+/* high contrast: overrides the theme's inline colours */
+html.hc{--ink:#fff !important; --muted:#e2ddef !important; --line:#a49cc0 !important; --bg:#000 !important; --grad:#000 !important;
+  --surface:#000 !important; --surface2:#111 !important; --good:#3dff9a !important; --bad:#ff5c7c !important}
+html.hc .sheet, html.hc .modes{background:#000 !important; border-color:#fff !important}
+html.hc .bgvshade{background:rgba(0,0,0,.55) !important}
+html.hc :is(.btn,.opt,.modcard,.dbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.chip,.htab,.seg,.catsec,.catsearch,.dsel,.toggle){border-color:var(--line) !important}
+html.hc :is(button,a,input,select,[tabindex]):focus-visible{outline:3px solid #fff !important; outline-offset:2px}
+html.hc .tdesc, html.hc .sslabel, html.hc .pgs, html.hc .pgw, html.hc .sta, html.hc .cc{color:var(--muted) !important; opacity:1 !important}
+html.hc #nowVid, html.hc .ver{color:#fff !important; opacity:1}
