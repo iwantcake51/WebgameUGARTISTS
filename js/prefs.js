@@ -1,6 +1,6 @@
 // ---- prefs ----
-var prefs={theme:"plum", volume:0.5, plx:true, uivol:1, mmvol:1, autoplay:false, endmusic:true, menumusic:true, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, gamevid:false, vblur:"", bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, vsync:false, hc:false, diff:"normal"}, VIZ_ACCENT="#8c5cff";
-try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; ["uivol","mmvol"].forEach(function(k){ if(typeof pp[k]==="number") prefs[k]=pp[k]; }); if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.vblur==="string") prefs.vblur=pp.vblur; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","plx","endmusic","menumusic","gamevid","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring","vsync","hc"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
+var prefs={theme:"plum", volume:0.5, plx:true, uivol:1, mmvol:1, autoplay:false, endmusic:true, menumusic:true, chroma:true, holo:true, bw:false, anim:true, dim:true, confetti:true, clicks:true, mods:{}, name:"", cb:"off", bgvid:true, gamevid:false, vblur:"", bgArtist:"", gmode:"classic", tv:true, font:"flyer", fsize:"m", ring:true, vsync:false, hc:false, dimmode:"", diff:"normal"}, VIZ_ACCENT="#8c5cff";
+try{ var pp=JSON.parse(localStorage.getItem("drop_prefs")||"{}"); if(pp&&typeof pp==="object"){ if(pp.theme)prefs.theme=pp.theme; if(typeof pp.diff==="string")prefs.diff=pp.diff; if(typeof pp.volume==="number")prefs.volume=pp.volume; ["uivol","mmvol"].forEach(function(k){ if(typeof pp[k]==="number") prefs[k]=pp[k]; }); if(pp.mods&&typeof pp.mods==="object") prefs.mods=pp.mods; if(typeof pp.name==="string") prefs.name=pp.name.slice(0,20); if(typeof pp.cb==="string") prefs.cb=pp.cb; if(typeof pp.font==="string") prefs.font=pp.font; if(typeof pp.bgArtist==="string") prefs.bgArtist=pp.bgArtist; if(typeof pp.gmode==="string") prefs.gmode=pp.gmode; if(typeof pp.vblur==="string") prefs.vblur=pp.vblur; if(typeof pp.dimmode==="string") prefs.dimmode=pp.dimmode; if(typeof pp.fsize==="string") prefs.fsize=pp.fsize; ["autoplay","plx","endmusic","menumusic","gamevid","chroma","holo","bw","anim","dim","confetti","clicks","bgvid","tv","ring","vsync","hc"].forEach(function(k){ if(typeof pp[k]==="boolean") prefs[k]=pp[k]; }); } }catch(e){}
 function savePrefs(){ try{ localStorage.setItem("drop_prefs", JSON.stringify(prefs)); }catch(e){} }
 function applyTheme(id){
   var th=null; for(var i=0;i<THEMES.length;i++){ if(THEMES[i].id===id){th=THEMES[i];break;} } if(!th) th=THEMES[0];
@@ -36,7 +36,6 @@ var TOGGLES=[
   {cat:"fx", k:"gamevid",   label:"Videos in round", lag:"hi", tag:"Resource Intensive", desc:"Keep the music video clips playing behind the game during rounds"},
   {cat:"ui", k:"plx",       label:"Parallax",           desc:"The menu and game shift slightly as you move the mouse"},
   {cat:"ui", k:"anim",      label:"Menu animations",    desc:"Menus slide up with a little bounce"},
-  {cat:"fx", k:"dim",       lag:"mid", tag:"Resource Intensive", label:"Dim & blur behind menus", desc:"Darkens and blurs the page behind menus and the results screen"}
 ];
 function renderToggles(){
   var tgs=document.querySelectorAll("#settings .tg"); for(var ti=0;ti<tgs.length;ti++) tgs[ti].innerHTML="";
@@ -56,6 +55,12 @@ function renderToggles(){
   pk.parentNode.insertBefore(vb, pk.nextSibling); $("vbSel").value=vblur();
   $("vbSel").onchange=function(){ prefs.vblur=this.value; savePrefs(); applyPrefs(); };
   ladderSelect($("vbSel")); syncFrost(); syncNeeds();
+  var dm=document.createElement("div"); dm.id="dimRow"; dm.className="bgpick";
+  dm.innerHTML="<div class='tlabel'>Dim &amp; blur behind menus<span class='ttag mid'>Resource Intensive</span></div><div class='tdesc'>Darken and/or blur the page behind menus, the side panel and the results screen. Blur costs the most.</div>"+
+    "<select id='dimSel' class='dsel'><option value='off'>Off</option><option value='dim'>Dim</option><option value='blur'>Blur</option><option value='both'>Both</option></select>";
+  document.querySelector("#settings .tg[data-cat='fx']").appendChild(dm); $("dimSel").value=dimMode();
+  $("dimSel").onchange=function(){ prefs.dimmode=this.value; savePrefs(); applyPrefs(); };
+  ladderSelect($("dimSel"));
   var sw=$("settings").querySelectorAll(".tg .sw");
   for(var i=0;i<sw.length;i++){ (function(b){ b.onclick=function(){ var k=b.getAttribute("data-k"); prefs[k]=!prefs[k]; b.classList.toggle("on",prefs[k]); b.setAttribute("aria-checked",prefs[k]?"true":"false"); savePrefs(); applyPrefs(); CLICK.toggle(prefs[k]); if(k==="bgvid"){ syncBgPick(); syncFrost(); } syncNeeds(); if(k==="gamevid") try{ document.dispatchEvent(new Event("visibilitychange")); }catch(e){} }; })(sw[i]); }
 }
@@ -161,6 +166,8 @@ function renderCB(){
   for(var i=0;i<bs.length;i++){ (function(b){ b.onclick=function(){ prefs.cb=b.getAttribute("data-cb"); savePrefs(); applyPrefs(); renderCB(); }; })(bs[i]); }
 }
 // menu video blur: off (sharp video), basic (blurred video), quality (blurred video + frosted glass behind menus)
+// behind-menus effect: off / dim / blur / both (older saves had a single on/off "dim" switch)
+function dimMode(){ return ["off","dim","blur","both"].indexOf(prefs.dimmode)!==-1 ? prefs.dimmode : (prefs.dim===false ? "off" : "both"); }
 function vblur(){ return ["off","basic","quality"].indexOf(prefs.vblur)!==-1 ? prefs.vblur : "basic"; }
-function applyPrefs(){ var h=document.documentElement; h.classList.toggle("nofrost", vblur()!=="quality" || !prefs.bgvid); h.classList.toggle("vb-off", vblur()==="off"); document.body.classList.toggle("tv-on", !!prefs.tv); document.body.classList.toggle("gv-on", !!prefs.gamevid); if(window.TVFX) TVFX.toggle(); document.documentElement.setAttribute("data-cb", prefs.cb||"off"); if(window.BGV) BGV.toggle(); document.body.classList.toggle("noholo", !prefs.holo); document.documentElement.classList.toggle("bw", !!prefs.bw); document.body.classList.toggle("noanim", !prefs.anim); document.body.classList.toggle("nodim", !prefs.dim); h.classList.toggle("hc", !!prefs.hc); }
+function applyPrefs(){ var h=document.documentElement; h.classList.toggle("nofrost", vblur()!=="quality" || !prefs.bgvid); h.classList.toggle("vb-off", vblur()==="off"); document.body.classList.toggle("tv-on", !!prefs.tv); document.body.classList.toggle("gv-on", !!prefs.gamevid); if(window.TVFX) TVFX.toggle(); document.documentElement.setAttribute("data-cb", prefs.cb||"off"); if(window.BGV) BGV.toggle(); document.body.classList.toggle("noholo", !prefs.holo); document.documentElement.classList.toggle("bw", !!prefs.bw); document.body.classList.toggle("noanim", !prefs.anim); var dmm=dimMode(), bd=document.body.classList; bd.toggle("nodim", dmm==="off"||dmm==="blur"); bd.toggle("noblur", dmm==="off"||dmm==="dim"); bd.toggle("yblur", dmm==="blur"||dmm==="both"); bd.toggle("dimoff", dmm==="off"); h.classList.toggle("hc", !!prefs.hc); }
 

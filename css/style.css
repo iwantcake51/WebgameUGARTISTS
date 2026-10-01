@@ -287,7 +287,6 @@ body.playing #gameScreen .play{margin-bottom:12px}
                   to{background-color:rgba(5,3,10,0); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px)}}
 @keyframes mUp{from{opacity:0; transform:translateY(70px)} 55%{opacity:1} to{opacity:1; transform:none}}
 @keyframes mDown{from{opacity:1; transform:none} to{opacity:0; transform:translateY(50px)}}
-body.nodim .modal{--mbg:rgba(5,3,10,0); --mblur:0px}
 body.noanim .modal.open, body.noanim .modal.open .sheet, body.noanim .modal.closing, body.noanim .modal.closing .sheet{animation:none}
 .modal.open{display:flex}
 .sheet{background:var(--surface);border:1px solid var(--line);border-radius:12px 12px 0 0;
@@ -633,7 +632,9 @@ html.nofrost .modal{--mbg:rgba(5,3,10,.82); --mblur:0px}
 /* quality blur still dims as much as basic, the blur is on top of that */
 html:not(.nofrost) .modal{--mbg:rgba(5,3,10,.78)}
 /* "Dim & blur behind menus" off wins over every blur mode and the results screen */
-html body.nodim .modal, html body.nodim #failModal, html body.nodim #shareView{--mbg:rgba(5,3,10,0) !important; --mblur:0px !important}
+html body.nodim :is(.modal,#failModal,#shareView){--mbg:rgba(5,3,10,0) !important}
+html body.noblur :is(.modal,#failModal,#shareView){--mblur:0px !important}
+html.nofrost body.yblur :is(.modal,#failModal,#shareView){--mblur:6px !important; -webkit-backdrop-filter:blur(6px) !important; backdrop-filter:blur(6px) !important}
 @keyframes bgZoom{from{transform:translate(-50%,-50%) scale(2.8)} to{transform:translate(-50%,-50%) scale(3.1)}}
 .bgvshade{position:absolute; inset:0; background:
   radial-gradient(ellipse at 50% 42%, rgba(10,7,17,.15) 0%, rgba(10,7,17,.72) 70%, rgba(10,7,17,.92) 100%),
@@ -970,7 +971,10 @@ html:not(.bsd) .modeopt b{font-size:18px}
   /* dim + blur everything behind the panel, like the other menus (off with "Dim & blur behind menus") */
   body::before{content:""; position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; background:rgba(5,3,10,.75);
     -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); transition:opacity .45s ease}
-  body.modes-open:not(.playing):not(.nodim)::before{opacity:1}
+  body.modes-open:not(.playing):not(.dimoff)::before{opacity:1}
+  body.nodim::before{background:transparent !important}
+  body.noblur::before{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
+  html.nofrost body.yblur::before{-webkit-backdrop-filter:blur(6px) !important; backdrop-filter:blur(6px) !important}
   html.nofrost body::before{-webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(5,3,10,.75)}
   body.launching .modes, body.playing .modes{opacity:0 !important; transition:opacity .35s ease !important}
   .modes{position:fixed; left:auto; right:0; top:0; bottom:0; width:400px; max-width:none; padding:40px 32px; z-index:6;
@@ -1000,8 +1004,8 @@ html:not(.bsd) .modeopt b{font-size:18px}
 .modeopt:active, .modes .seg:active, .modeartists:active, #modeBack:active{transform:scale(.97); transition-duration:.12s, .3s, .3s, .3s; transition-timing-function:ease-out}
 .modego:active{transform:scale(.985)}
 #startScreen .menu #startBtn{--dc:var(--accent); --dc2:var(--accent)}      /* main Play keeps the theme colour */
-#bgv{transition:opacity 1.2s ease, filter .45s ease} body.modes-open:not(.nodim) #bgv{filter:brightness(.55) blur(3px) saturate(.45)}
-body.modes-open.nodim #bgv{filter:saturate(.45)}      /* side panel open: some desaturation behind it, eased in and out */
+#bgv{transition:opacity 1.2s ease, filter .45s ease} body.modes-open:not(.dimoff) #bgv{filter:brightness(.55) blur(3px) saturate(.45)} body.modes-open.nodim:not(.dimoff) #bgv{filter:blur(3px) saturate(.45)} body.modes-open.noblur:not(.dimoff) #bgv{filter:brightness(.55) saturate(.45)}
+body.modes-open.dimoff #bgv{filter:saturate(.45)}      /* side panel open: some desaturation behind it, eased in and out */
 .modeartist{font-family:var(--f-display); font-weight:800; font-size:26px; line-height:1.05; text-transform:uppercase; letter-spacing:.01em; color:var(--ink); margin:2px 0 -4px}
 html:not(.bsd) .modeartist{font-size:21px}
 .modeopt.off{opacity:.35; cursor:not-allowed; filter:grayscale(1)}
