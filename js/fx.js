@@ -230,7 +230,7 @@ var CLICK=(function(){
   }
   function halftone(el,e){           // halftone dots ripple out from the press, inside the button
     if(prefs.ring===false) return;
-    var h=document.createElement("div"); var r=el.getBoundingClientRect(), z=(r.width/el.offsetWidth)||1; h.className="ht-fx"; h.style.setProperty("--x",(e.clientX-r.left)/z+"px"); h.style.setProperty("--y",(e.clientY-r.top)/z+"px");
+    var h=document.createElement("div"); var r=el.getBoundingClientRect(), z=(r.width/el.offsetWidth)||1; h.className="ht-fx"; h.style.setProperty("--x",(e.clientX-r.left)/z-2+"px"); h.style.setProperty("--y",(e.clientY-r.top)/z-2+"px");
     var c=getComputedStyle(el).getPropertyValue("--dc").trim(); if(c) h.style.setProperty("--htcol",c);
     el.appendChild(h); h.addEventListener("animationend",function(){ h.remove(); });
   }

@@ -111,10 +111,10 @@ function chooseArtist(){
 function prefetchNext(){ NEXT=chooseArtist(); if(NEXT) ensureArtist(NEXT); }
 // ---- play transition: menu zooms in, screen fades to black, game fades in once the first song has loaded ----
 var waitReveal=false, revealT=0;
-// letterbox bars: close smoothly from the edges while the screen goes black, open again as it fades back (CRT effects stay on top)
+// letterbox bars: close smoothly from the edges while the screen goes black, open again as it fades back (under the CRT curve)
 var LBOX=(function(){ var el=null, t=0;
-  function close(ms){ el=el||$("lbox"); clearTimeout(t); el.style.setProperty("--shut",(ms||900)+"ms"); document.body.classList.add("lbox-on"); el.classList.add("shut"); }
-  function open(){ el=el||$("lbox"); clearTimeout(t); el.classList.remove("shut"); t=setTimeout(function(){ document.body.classList.remove("lbox-on"); }, 1000); }
+  function close(ms){ el=el||$("lbox"); clearTimeout(t); el.style.setProperty("--shut",(ms||900)+"ms"); el.classList.add("shut"); }
+  function open(){ el=el||$("lbox"); clearTimeout(t); el.classList.remove("shut"); }
   return {close:close, open:open}; })();
 // ---- menu music: muffled previews of in-game songs while hovering artists / with the game mode panel open ----
 var MM=(function(){

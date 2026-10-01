@@ -1149,32 +1149,24 @@ body.playing.gv-on.bgv-on #nowVid{opacity:1}
 }
 
 /* ===== v1.14: halftone press ripple, letterbox bars, readable song catalog ===== */
-.ht-fx{position:absolute; inset:0; z-index:0; border-radius:inherit; mix-blend-mode:difference; pointer-events:none; --htcol:var(--accent); --x:50%; --y:50%;
-  background:var(--htcol);
-  /* dots on a polar grid (rings x spokes) around the press, inside a soft expanding circle */
-  -webkit-mask:repeating-radial-gradient(circle at var(--x) var(--y), transparent 0 2px, #000 3px 5px, transparent 6px 8px),
-               repeating-conic-gradient(from 0deg at var(--x) var(--y), #000 0 2.2deg, transparent 2.6deg 6deg),
-               radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) * .35), #000 calc(var(--hr) * .75), #000 var(--hr), transparent calc(var(--hr) + 18px));
-  -webkit-mask-composite:source-in, source-in;
-  mask:repeating-radial-gradient(circle at var(--x) var(--y), transparent 0 2px, #000 3px 5px, transparent 6px 8px),
-       repeating-conic-gradient(from 0deg at var(--x) var(--y), #000 0 2.2deg, transparent 2.6deg 6deg),
-       radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) * .35), #000 calc(var(--hr) * .75), #000 var(--hr), transparent calc(var(--hr) + 18px));
-  mask-composite:intersect, intersect;
-  animation:htRip 2.2s cubic-bezier(.25,.5,.35,1) forwards}
+.ht-fx{position:absolute; inset:2px; z-index:-1; border-radius:inherit; mix-blend-mode:difference; pointer-events:none; --htcol:var(--accent); --x:50%; --y:50%;
+  background:radial-gradient(circle, var(--htcol) 0 .8px, transparent 1.2px) 0 0/4px 4px;
+  -webkit-mask:radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) * .3), #000 calc(var(--hr) * .7), #000 var(--hr), transparent calc(var(--hr) + 12px));
+  mask:radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) * .3), #000 calc(var(--hr) * .7), #000 var(--hr), transparent calc(var(--hr) + 12px));
+  animation:htRip 1.1s cubic-bezier(.2,.65,.3,1) forwards}
 @property --hr{syntax:"<length>"; inherits:false; initial-value:0px}
-@keyframes htRip{0%{--hr:0px; opacity:1} 65%{opacity:.85} 100%{--hr:300px; opacity:0}}
+@keyframes htRip{0%{--hr:0px; opacity:1} 60%{opacity:.85} 100%{--hr:340px; opacity:0}}
 /* main play button stays dark while the mode panel or any sheet is open */
 body.modes-open #startScreen #startBtn, body:has(.modal.open) #startScreen #startBtn{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 0 0/280% 100% no-repeat !important;
   color:var(--dc); --htc:var(--dc); box-shadow:inset 0 0 0 1px var(--dc) !important}
 body.modes-open #startBtn .arr{transform:translateX(4px)}
-/* letterbox (under the CRT curve; the CRT grain/lines are lifted above it while the bars are in use) */
+/* letterbox (under the CRT curve/glare; grain and scanlines stay under the black and the UI) */
 #lbox{position:fixed; inset:0; z-index:9990; pointer-events:none; --shut:900ms}
 #lbox i{position:absolute; left:0; right:0; height:51vh; background:#000; will-change:transform;
   transition:transform .95s cubic-bezier(.45,0,.2,1)}
 #lbox .lt{top:0; transform:translateY(-100%)} #lbox .lb{bottom:0; transform:translateY(100%)}
 #lbox.shut i{transition:transform var(--shut) cubic-bezier(.4,0,.2,1)}
 #lbox.shut .lt, #lbox.shut .lb{transform:none}
-body.lbox-on #tvfx{z-index:9995}
 body.noanim #lbox{display:none}
 /* song catalog */
 #ssBody .ssr{gap:12px; padding:10px 6px; margin:0 -6px; border-radius:6px; border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent);
