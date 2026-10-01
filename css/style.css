@@ -1192,3 +1192,5 @@ body.noanim #ssBody .ssr, body.noanim #ssBody.fresh .pickrow{animation:none}
 .toggle.needs.blocked .sw{pointer-events:none}
 .swatches.off{opacity:.35; filter:grayscale(1); pointer-events:none; transition:opacity .3s, filter .3s}
 .swnote{font-size:12px; color:var(--muted); margin:-2px 0 8px}
+.ttag.exp{color:#fff; border-color:#ffc93c; text-shadow:0 1px 1px #000, 0 0 3px #000;
+  background:repeating-linear-gradient(-45deg, #ffc93c 0 5px, #1a1a1a 5px 10px)}

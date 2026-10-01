@@ -28,7 +28,7 @@ var TOGGLES=[
   {cat:"fx", k:"bw",        label:"Black & white",      desc:"Removes all color, album covers included"},
   {cat:"fx", k:"confetti",  label:"Confetti",           desc:"Confetti falls when you get a song right"},
   {cat:"sound", k:"clicks",    label:"UI interaction sounds", desc:"Clicks, blips and whooshes when you press buttons, flip switches and open menus"},
-  {cat:"vsync", k:"vsync", lag:"lo", tag:"Resource Intensive", label:"Sync colours to video", desc:"The theme follows the background video, blending its average colour in smoothly as clips play", need:["bgvid","gamevid"]},
+  {cat:"vsync", k:"vsync", lag:"mid", tag:"Resource Intensive", exp:true, label:"Sync colours to video", desc:"The theme follows the background video, blending its average colour in smoothly as clips play", need:["bgvid","gamevid"]},
   {cat:"ui", k:"ring",      label:"Click ripple",       desc:"The circle that expands where you tap or click"},
   {cat:"fx", k:"tv",        lag:"mid", tag:"Resource Intensive", label:"CRT effects",        desc:"Curved screen, film grain, scanlines and the odd signal glitch over everything"},
   {cat:"fx", k:"bgvid",     lag:"mid", tag:"Resource Intensive", label:"Menu video background", desc:"Blurred music video clips play behind the main menu (uses more data)"},
@@ -41,7 +41,7 @@ function renderToggles(){
   var tgs=document.querySelectorAll("#settings .tg"); for(var ti=0;ti<tgs.length;ti++) tgs[ti].innerHTML="";
   TOGGLES.forEach(function(t){
     var val = prefs[t.k], h="";
-    h+="<div class='toggle'><div><div class='tlabel'>"+t.label+(t.tag?"<span class='ttag "+(t.lag||"")+"'>"+t.tag+"</span>":"")+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(val?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
+    h+="<div class='toggle'><div><div class='tlabel'>"+t.label+(t.tag?"<span class='ttag "+(t.lag||"")+"'>"+t.tag+"</span>":"")+(t.exp?"<span class='ttag exp'>Experimental</span>":"")+"</div><div class='tdesc'>"+t.desc+"</div></div><button class='sw"+(val?" on":"")+"' data-k='"+t.k+"' role='switch' aria-checked='"+(prefs[t.k]?"true":"false")+"'></button></div>";
     if(t.need) h=h.replace("<div class='toggle'>","<div class='toggle needs' data-need='"+t.k+"'>").replace("</div></div><button","</div><div class='tneed'>Needs "+t.need.map(function(n){ var o=TOGGLES.filter(function(x){ return x.k===n; })[0]; return "<b>"+(o?o.label:n)+"</b>"; }).join(" and ")+" turned on</div></div><button");
     document.querySelector("#settings .tg[data-cat='"+t.cat+"']").insertAdjacentHTML("beforeend",h);
   });
