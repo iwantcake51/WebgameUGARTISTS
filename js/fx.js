@@ -217,16 +217,22 @@ var CLICK=(function(){
 // scroll ticks: a soft detent every ~36px scrolled in any list
 (function(){ var acc=new WeakMap();
   document.addEventListener("scroll",function(e){ var el=e.target===document?document.scrollingElement:e.target; if(!el||el.scrollTop==null) return;
-    var a=acc.get(el)||{y:el.scrollTop,d:0}; a.d+=Math.abs(el.scrollTop-a.y); a.y=el.scrollTop;
+    var a=acc.get(el)||{y:el.scrollTop,x:el.scrollLeft,d:0}; a.d+=Math.abs(el.scrollTop-a.y)+Math.abs(el.scrollLeft-a.x); a.y=el.scrollTop; a.x=el.scrollLeft;
     if(a.d>=36){ a.d=0; CLICK.tick(); } acc.set(el,a); },{capture:true,passive:true});
 })();
 // ---- button tilt + ripple ----
 (function(){
-  var SEL=".btn,.opt,.modcard,.sw,.dbtn,.iconbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.chip,.swatch,.vlink,.linkbtn,.lu,.seg,.flink,.modeopt,.bgpo,.fgroup", cur=null;
+  var SEL=".btn,.opt,.modcard,.sw,.dbtn,.iconbtn,.pickrow,.filchip,.cchip,.ghost,.ghost2,.chip,.swatch,.vlink,.linkbtn,.lu,.seg,.flink,.modeopt,.bgpo,.fgroup,.htab,.pgame,.cathdr,.rimg,.rt,.ra,.sres,a.catrow", cur=null;
   function tilt(el,e){
     var r=el.getBoundingClientRect(), px=(e.clientX-r.left)/r.width-0.5, py=(e.clientY-r.top)/r.height-0.5;
     var max = el.classList.contains("lu") ? 9 : (r.width>220 ? 5 : 11);   // artist names tilt gently
     el.classList.add("tilt"); el.style.setProperty("--ry",(px*max).toFixed(2)+"deg"); el.style.setProperty("--rx",(-py*max).toFixed(2)+"deg");
+  }
+  function halftone(el,e){           // halftone dots ripple out from the press across the screen
+    if(prefs.ring===false) return;
+    var h=document.createElement("div"); h.className="ht-fx"; h.style.setProperty("--x",e.clientX+"px"); h.style.setProperty("--y",e.clientY+"px");
+    var c=getComputedStyle(el).getPropertyValue("--dc").trim(); if(c) h.style.setProperty("--htcol",c);
+    document.body.appendChild(h); h.addEventListener("animationend",function(){ h.remove(); });
   }
   function reset(el){ if(!el) return; el.style.setProperty("--rx","0deg"); el.style.setProperty("--ry","0deg"); el.classList.remove("pressed"); }
   document.addEventListener("pointermove",function(e){
@@ -238,7 +244,9 @@ var CLICK=(function(){
     if(prefs.ring!==false){ var ring=document.createElement("div"); ring.className="ring-fx"; ring.style.left=e.clientX+"px"; ring.style.top=e.clientY+"px";
     document.body.appendChild(ring); ring.addEventListener("animationend",function(){ ring.remove(); }); }
     var el=e.target.closest&&e.target.closest(SEL);
-    if(el && !el.disabled){ cur=el; tilt(el,e); el.classList.add("pressed"); CLICK.play(false); if(e.pointerType==="touch" && navigator.vibrate){ try{navigator.vibrate(8);}catch(x){} } }
+    if(!el && e.target.classList && (e.target.classList.contains("modal") || (document.body.classList.contains("modes-open") && !document.body.classList.contains("playing") && !document.querySelector(".modal.open") && !e.target.closest("#modePanel")))){ CLICK.play(false); setTimeout(function(){ CLICK.play(true); },70); }   // backdrop / outside clicks that close a sheet or the side panel
+    if(el && !el.disabled){ cur=el; tilt(el,e); el.classList.add("pressed"); CLICK.play(false);
+      if(el.id==="startBtn"||el.id==="modeGo") halftone(el,e); if(e.pointerType==="touch" && navigator.vibrate){ try{navigator.vibrate(8);}catch(x){} } }
   },{passive:true});
   function up(e){ if(cur){ if(cur.classList.contains("pressed")) CLICK.play(true); cur.classList.remove("pressed"); if(e.pointerType!=="mouse"){ reset(cur); cur=null; } } }
   document.addEventListener("pointerup",up,{passive:true}); document.addEventListener("pointercancel",up,{passive:true});
@@ -308,4 +316,29 @@ var BULGE=(function(){
   new MutationObserver(q).observe(document.body,{attributes:true,attributeFilter:["class"]});
   setTimeout(q,300);
   return {update:q};
+})();
+// ---- smooth wheel scrolling: mouse-wheel notches glide (eased) in any scrollable box; trackpads keep their native feel ----
+(function(){
+  var st=new WeakMap();
+  function box(el,dy){ for(;el&&el!==document.body&&el.nodeType===1;el=el.parentElement){
+      var cs=getComputedStyle(el), oy=cs.overflowY;
+      if((oy==="auto"||oy==="scroll") && el.scrollHeight>el.clientHeight+1){
+        if((dy>0 && el.scrollTop<el.scrollHeight-el.clientHeight-1) || (dy<0 && el.scrollTop>0)) return el; } }
+    return null; }
+  document.addEventListener("wheel",function(e){
+    if(e.ctrlKey || e.shiftKey || !prefs.anim || Math.abs(e.deltaX)>Math.abs(e.deltaY)) return;
+    var dy=e.deltaY*(e.deltaMode===1?36:e.deltaMode===2?window.innerHeight:1);
+    if(e.deltaMode===0 && Math.abs(dy)<40) return;        // fine pixel deltas = trackpad, already smooth
+    var el=box(e.target,dy); if(!el) return;
+    e.preventDefault();
+    var s=st.get(el); if(!s){ s={t:el.scrollTop,raf:0}; st.set(el,s); }
+    if(!s.raf) s.t=el.scrollTop;
+    s.t=Math.max(0,Math.min(el.scrollHeight-el.clientHeight,s.t+dy));
+    if(!s.raf){ el.style.scrollBehavior="auto";
+      (function step(){ var d=s.t-el.scrollTop;
+        if(Math.abs(d)<0.6){ el.scrollTop=s.t; s.raf=0; el.style.scrollBehavior=""; return; }
+        var before=el.scrollTop; el.scrollTop+=d*0.16;
+        if(el.scrollTop===before){ s.raf=0; el.style.scrollBehavior=""; return; }       // hit an edge
+        s.raf=requestAnimationFrame(step); })(); }
+  },{passive:false});
 })();

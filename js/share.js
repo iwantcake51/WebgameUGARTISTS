@@ -131,7 +131,8 @@ $("homeBtn").onclick=goHomeFade; $("logoBtn").onclick=goHomeFade;
 (function(){
   var cur=null, seq=0;
   function diffTags(tr){ var m={}; ["easy","normal","hard","extreme"].forEach(function(k){ windowed(tr,k).forEach(function(t){ (m[t.id]=m[t.id]||[]).push(DIFFS[k].label); }); }); return m; }
-  function row(t,tags){ return "<div class='sres'><img src='"+escapeHtml(t.art||"")+"' alt=''><div class='st'><div class='stt'>"+escapeHtml(t.title)+"</div><div class='sta'>"+escapeHtml(t.credit||t.artist)+" \u00b7 <span class='why'>"+escapeHtml(t.album)+"</span></div></div><span class='badge in'>"+escapeHtml(tags.join(", "))+"</span></div>"; }
+  function row(t,tags,i){ return "<div class='sres ssr' style='--d:"+Math.min(i,14)*22+"ms'><span class='snum'>"+(i+1)+"</span><img src='"+escapeHtml(t.art||"")+"' alt='' loading='lazy' decoding='async'><div class='st'><div class='stt'>"+escapeHtml(t.title)+"</div><div class='sta'>"+escapeHtml(t.credit||t.artist)+" \u00b7 <span class='why'>"+escapeHtml(t.album)+"</span></div>"+
+    (tags.length?"<div class='sstags'>"+tags.map(function(g){ return "<i class='sstag t-"+escapeHtml(g.toLowerCase())+"'>"+escapeHtml(g)+"</i>"; }).join("")+"</div>":"")+"</div></div>"; }
   function showArtists(){
     var q=norm($("ssInput").value);
     var list=ARTISTS.filter(function(a){ return !q || termsOf(a).concat([a]).some(function(n){ return norm(n).indexOf(q)!==-1; }); });
@@ -145,7 +146,7 @@ $("homeBtn").onclick=goHomeFade; $("logoBtn").onclick=goHomeFade;
     $("ssBody").innerHTML="<div class='roundwait'>loading "+escapeHtml(a)+"'s songs\u2026</div>";
     ensureArtist(a).then(function(ok){ if(my!==seq||cur!==a) return;
       if(!ok){ $("ssBody").innerHTML="<div class='roundwait'>Couldn't load "+escapeHtml(a)+". Try again in a minute.</div>"; return; }
-      showSongs(); });
+      $("ssBody").classList.add("fresh"); showSongs(); setTimeout(function(){ $("ssBody").classList.remove("fresh"); },700); });
     setTimeout(function(){ $("ssInput").focus(); },30);
   }
   function showSongs(){
@@ -153,9 +154,9 @@ $("homeBtn").onclick=goHomeFade; $("logoBtn").onclick=goHomeFade;
     var pool=byArtist[cur].tracks, tags=diffTags(pool), words=$("ssInput").value.toLowerCase().split(/\s+/).filter(Boolean);
     var hits=pool.filter(function(t){ var h=(t.title+" "+t.album+" "+t.credit).toLowerCase(); return words.every(function(w){ return h.indexOf(w)!==-1; }); });
     $("ssBody").innerHTML="<div class='sslabel'>"+(words.length?hits.length+" of "+pool.length+" in-game songs":pool.length+" songs in the game, most popular first")+"</div>"+
-      (hits.length ? hits.map(function(t){ return row(t,tags[t.id]||[]); }).join("") : "<div class='roundwait'>Not in the game. Only "+escapeHtml(cur)+"'s top songs on Apple are used.</div>");
+      (hits.length ? hits.map(function(t,i){ return row(t,tags[t.id]||[],i); }).join("") : "<div class='roundwait'>Not in the game. Only "+escapeHtml(cur)+"'s top songs on Apple are used.</div>");
   }
-  function back(){ cur=null; seq++; $("ssInput").value=""; $("ssInput").placeholder="Search an artist\u2026"; $("ssTitle").textContent="Song catalog"; $("ssBack").style.display="none"; showArtists(); }
+  function back(){ cur=null; seq++; $("ssInput").value=""; $("ssInput").placeholder="Search an artist\u2026"; $("ssTitle").textContent="Song catalog"; $("ssBack").style.display="none"; $("ssBody").classList.add("fresh"); showArtists(); setTimeout(function(){ $("ssBody").classList.remove("fresh"); },500); }
   $("ssBtn").onclick=function(){ back(); openModal($("songsearch")); setTimeout(function(){ $("ssInput").focus(); },60); };
   $("ssBack").onclick=back;
   $("ssInput").oninput=function(){ if(cur) showSongs(); else showArtists(); };

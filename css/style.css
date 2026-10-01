@@ -18,11 +18,14 @@ body{
 .mono{font-family:var(--f-mono)}
 .wrap{width:100%; max-width:440px; padding:20px;}
 html{scroll-behavior:smooth}
-*{scrollbar-width:thin; scrollbar-color:var(--surface2) transparent}
-::-webkit-scrollbar{width:9px; height:9px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--surface2); border-radius:5px; border:2px solid transparent; background-clip:padding-box}
-::-webkit-scrollbar-thumb:hover{background:var(--line)}
+*{scrollbar-width:thin; scrollbar-color:color-mix(in srgb,var(--accent) 45%,var(--surface2)) transparent}
+::-webkit-scrollbar{width:8px; height:8px}
+::-webkit-scrollbar-track{background:transparent; margin:6px}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--accent) 35%,var(--surface2)); border-radius:8px; border:2px solid transparent; background-clip:padding-box; transition:background-color .2s}
+::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--accent) 70%,var(--surface2)); background-clip:padding-box}
+::-webkit-scrollbar-thumb:active{background:var(--accent); background-clip:padding-box}
+::-webkit-scrollbar-corner{background:transparent}
+.sheetbody,.recent,.catfilter,.lineup{scroll-behavior:smooth; -webkit-overflow-scrolling:touch}
 .wrap{position:relative; z-index:1}
 .spot{position:fixed; top:0; left:50%; transform:translateX(-50%); width:min(92vw,900px); height:78vh;
   pointer-events:none; z-index:0; filter:blur(30px); opacity:.5}
@@ -1144,3 +1147,44 @@ body.playing.gv-on.bgv-on #nowVid{opacity:1}
     background:radial-gradient(circle, color-mix(in srgb,var(--accent) 70%,#fff) 0 1.1px, transparent 1.6px) 0 0/7px 7px; opacity:.22;
     -webkit-mask-image:linear-gradient(to top,#000,transparent); mask-image:linear-gradient(to top,#000,transparent)}
 }
+
+/* ===== v1.14: halftone press ripple, letterbox bars, readable song catalog ===== */
+.ht-fx{position:fixed; inset:0; z-index:91; pointer-events:none; --htcol:var(--accent); --x:50%; --y:50%;
+  background:radial-gradient(circle, var(--htcol) 0 1.3px, transparent 1.9px) 0 0/7px 7px;
+  -webkit-mask:radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) - 90px), #000 calc(var(--hr) - 40px), #000 var(--hr), transparent calc(var(--hr) + 30px));
+  mask:radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) - 90px), #000 calc(var(--hr) - 40px), #000 var(--hr), transparent calc(var(--hr) + 30px));
+  animation:htRip 1s cubic-bezier(.15,.7,.25,1) forwards}
+@property --hr{syntax:"<length>"; inherits:false; initial-value:0px}
+@keyframes htRip{0%{--hr:0px; opacity:1} 55%{opacity:.8} 100%{--hr:110vmax; opacity:0}}
+/* main play button stays dark while the mode panel or any sheet is open */
+body.modes-open #startScreen #startBtn, body:has(.modal.open) #startScreen #startBtn{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 0 0/280% 100% no-repeat !important;
+  color:var(--dc); --htc:var(--dc); box-shadow:inset 0 0 0 1px var(--dc) !important}
+body.modes-open #startBtn .arr{transform:translateX(4px)}
+/* letterbox */
+#lbox{position:fixed; inset:0; z-index:9999; pointer-events:none; --bar:11vh; --shut:900ms}
+#lbox i{position:absolute; left:0; right:0; height:51vh; background:#000; will-change:transform;
+  transition:transform .95s cubic-bezier(.45,0,.2,1)}
+#lbox .lt{top:0; transform:translateY(-100%)} #lbox .lb{bottom:0; transform:translateY(100%)}
+#lbox.in i{transition:transform .3s cubic-bezier(.2,.9,.25,1)}
+#lbox.in .lt{transform:translateY(calc(-100% + var(--bar)))} #lbox.in .lb{transform:translateY(calc(100% - var(--bar)))}
+#lbox.in.shut i{transition:transform var(--shut) cubic-bezier(.55,0,.45,1)}
+#lbox.in.shut .lt, #lbox.in.shut .lb{transform:none}
+body.noanim #lbox{display:none}
+/* song catalog */
+#ssBody .ssr{gap:12px; padding:10px 6px; margin:0 -6px; border-radius:6px; border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent);
+  transition:background-color .2s}
+#ssBody.fresh .ssr{animation:ssIn .35s cubic-bezier(.2,.8,.2,1) var(--d,0ms) both}
+#ssBody .ssr:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+#ssBody .ssr .snum{width:20px; font-size:11px; opacity:.7}
+#ssBody .ssr img{width:46px; height:46px; border-radius:4px}
+#ssBody .ssr .stt{font-size:15px; font-weight:600; line-height:1.25; color:var(--ink)}
+#ssBody .ssr .sta{font-size:12.5px; line-height:1.4; margin-top:1px}
+#ssBody .ssr .why{font-size:12px; opacity:.85}
+.sstags{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px}
+.sstag{font-style:normal; font-family:var(--f-mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; padding:2px 7px; border-radius:3px;
+  color:var(--muted); background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.sstag.t-easy{color:#7ff2b3; background:rgba(57,224,139,.13)} .sstag.t-normal{color:#9fd0ff; background:rgba(80,160,255,.13)}
+.sstag.t-hard{color:#ffc27a; background:rgba(255,160,60,.13)} .sstag.t-extreme{color:#ff8fa6; background:rgba(255,70,107,.14)}
+#ssBody.fresh .pickrow{animation:ssIn .3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ssIn{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+body.noanim #ssBody .ssr, body.noanim #ssBody.fresh .pickrow{animation:none}
