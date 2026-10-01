@@ -1150,12 +1150,19 @@ body.playing.gv-on.bgv-on #nowVid{opacity:1}
 
 /* ===== v1.14: halftone press ripple, letterbox bars, readable song catalog ===== */
 .ht-fx{position:absolute; inset:0; z-index:0; border-radius:inherit; mix-blend-mode:difference; pointer-events:none; --htcol:var(--accent); --x:50%; --y:50%;
-  background:radial-gradient(circle, var(--htcol) 0 1.4px, transparent 2px) 0 0/6px 6px;
-  -webkit-mask:radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) - 60px), #000 calc(var(--hr) - 25px), #000 var(--hr), transparent calc(var(--hr) + 20px));
-  mask:radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) - 60px), #000 calc(var(--hr) - 25px), #000 var(--hr), transparent calc(var(--hr) + 20px));
-  animation:htRip .9s cubic-bezier(.15,.7,.25,1) forwards}
+  background:var(--htcol);
+  /* dots on a polar grid (rings x spokes) around the press, inside a soft expanding circle */
+  -webkit-mask:repeating-radial-gradient(circle at var(--x) var(--y), transparent 0 2px, #000 3px 5px, transparent 6px 8px),
+               repeating-conic-gradient(from 0deg at var(--x) var(--y), #000 0 2.2deg, transparent 2.6deg 6deg),
+               radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) * .35), #000 calc(var(--hr) * .75), #000 var(--hr), transparent calc(var(--hr) + 18px));
+  -webkit-mask-composite:source-in, source-in;
+  mask:repeating-radial-gradient(circle at var(--x) var(--y), transparent 0 2px, #000 3px 5px, transparent 6px 8px),
+       repeating-conic-gradient(from 0deg at var(--x) var(--y), #000 0 2.2deg, transparent 2.6deg 6deg),
+       radial-gradient(circle at var(--x) var(--y), transparent calc(var(--hr) * .35), #000 calc(var(--hr) * .75), #000 var(--hr), transparent calc(var(--hr) + 18px));
+  mask-composite:intersect, intersect;
+  animation:htRip 2.2s cubic-bezier(.25,.5,.35,1) forwards}
 @property --hr{syntax:"<length>"; inherits:false; initial-value:0px}
-@keyframes htRip{0%{--hr:0px; opacity:1} 55%{opacity:.8} 100%{--hr:480px; opacity:0}}
+@keyframes htRip{0%{--hr:0px; opacity:1} 65%{opacity:.85} 100%{--hr:300px; opacity:0}}
 /* main play button stays dark while the mode panel or any sheet is open */
 body.modes-open #startScreen #startBtn, body:has(.modal.open) #startScreen #startBtn{background:linear-gradient(115deg, #0a0711 0 38%, var(--dc) 62% 100%) 0 0/280% 100% no-repeat !important;
   color:var(--dc); --htc:var(--dc); box-shadow:inset 0 0 0 1px var(--dc) !important}
