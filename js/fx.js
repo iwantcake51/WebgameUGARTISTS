@@ -356,17 +356,18 @@ var VSYNC=(function(){
     var r=0,g=0,b=0,w=0, R=0,G=0,B=0,n=0;
     for(var i=0;i<d.length;i+=4){ var pr=d[i],pg=d[i+1],pb=d[i+2], mx=Math.max(pr,pg,pb), mn=Math.min(pr,pg,pb), sat=mx?(mx-mn)/mx:0, k=sat*sat*(mx/255)+0.002;
       r+=pr*k; g+=pg*k; b+=pb*k; w+=k; R+=pr; G+=pg; B+=pb; n++; }
-    tgt=hsl(r/w,g/w,b/w); var avg=hsl(R/n,G/n,B/n); tgt.l=avg.l;          // hue/saturation from the vivid pixels, brightness from the whole frame
-    if(!cur) cur={h:tgt.h,s:tgt.s,l:tgt.l};
+    tgt={r:r/w, g:g/w, b:b/w, l:hsl(R/n,G/n,B/n).l};          // colour from the vivid pixels, brightness from the whole frame
+    if(!cur) cur={r:tgt.r, g:tgt.g, b:tgt.b, l:tgt.l};
   }
   function hsl(r,g,b){ r/=255; g/=255; b/=255; var mx=Math.max(r,g,b), mn=Math.min(r,g,b), h=0, s=0, l=(mx+mn)/2, d=mx-mn;
     if(d){ s=d/(1-Math.abs(2*l-1)); h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4; h*=60; if(h<0) h+=360; } return {h:h,s:s,l:l}; }
   function blend(){
     if(!on() || !cur || !tgt || document.hidden || document.body.classList.contains("launching")) return;
-    var dh=((tgt.h-cur.h+540)%360)-180;           // shortest way round the colour wheel
-    cur.h=(cur.h+dh*0.16+360)%360; cur.s+=(tgt.s-cur.s)*0.16; cur.l+=(tgt.l-cur.l)*0.16;
+    // blend straight across in RGB (not round the hue wheel), so red -> blue doesn't pass through every colour in between
+    var K=0.42; cur.r+=(tgt.r-cur.r)*K; cur.g+=(tgt.g-cur.g)*K; cur.b+=(tgt.b-cur.b)*K; cur.l+=(tgt.l-cur.l)*K;
+    var hc=hsl(cur.r,cur.g,cur.b); hc.l=cur.l;
     // rounded steps: every restyle repaints the whole page, so only change when the difference is visible
-    var h=Math.round(cur.h/3)*3, s=Math.round(Math.min(1,cur.s)*25)/25, lb=Math.round(Math.min(0.06,0.025+cur.l*0.05)*200)/200, gl=Math.round((.13+cur.l*.08)*100)/100;
+    var h=Math.round(hc.h/3)*3, s=Math.round(Math.min(1,hc.s)*25)/25, lb=Math.round(Math.min(0.06,0.025+hc.l*0.05)*200)/200, gl=Math.round((.13+hc.l*.08)*100)/100;
     function c(sat,l){ return "hsl("+h+","+Math.round(sat*100)+"%,"+(l*100).toFixed(1)+"%)"; }
     var vars={"--bg":c(s*.55,lb), "--grad":c(s*.6,gl), "--surface":c(s*.35,lb+.035), "--surface2":c(s*.35,lb+.065), "--line":c(s*.3,lb+.12),
       "--accent":c(Math.max(.55,s),.64), "--spot":c(Math.max(.5,s),.68)}, key=JSON.stringify(vars);
@@ -376,7 +377,7 @@ var VSYNC=(function(){
   function noCors(){ if(blocked) return; blocked=true; stop(); var n=$("swNote"); if(n) n.innerHTML="Couldn't read colours from these videos, so your theme is used"; }
   function stop(){ clearInterval(sT); clearInterval(lT); sT=lT=0; cur=tgt=null; last=""; }
   function toggle(){
-    if(on()){ document.documentElement.setAttribute("data-th","vsync"); if(!sT){ sT=setInterval(sample,900); lT=setInterval(blend,450); } }
+    if(on()){ document.documentElement.setAttribute("data-th","vsync"); if(!sT){ sT=setInterval(sample,600); lT=setInterval(blend,300); } }
     else if(sT || document.documentElement.getAttribute("data-th")==="vsync"){ stop(); applyTheme(prefs.theme); }
   }
   setTimeout(toggle,0);
